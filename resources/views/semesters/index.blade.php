@@ -140,9 +140,7 @@
                 </table>
             </div>
 
-            @if($semesters->hasPages())
-                <div class="mt-4">{{ $semesters->links() }}</div>
-            @endif
+            <x-table-pagination :paginator="$semesters" label="semester" />
         </div>
     </div>
 

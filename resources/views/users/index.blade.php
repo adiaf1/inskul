@@ -227,9 +227,7 @@
                     </tbody>
                 </table>
 
-                <div class="mt-3">
-                    {{ $users->links('pagination::bootstrap-4') }}
-                </div>
+                <x-table-pagination :paginator="$users" label="pengguna" />
             </div>
         </div>
 

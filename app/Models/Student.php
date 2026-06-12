@@ -16,6 +16,7 @@ class Student extends Model
         'user_id',
         'nis',
         'nisn',
+        'entry_year',
         'gender',
         'phone',
         'birth_place',

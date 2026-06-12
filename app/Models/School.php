@@ -85,4 +85,14 @@ class School extends Model
     {
         return $this->hasMany(Classroom::class);
     }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
+    }
 }

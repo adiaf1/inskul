@@ -22,6 +22,7 @@ class StudentController extends Controller
         'password',
         'nis',
         'nisn',
+        'entry_year',
         'gender',
         'phone',
         'birth_place',
@@ -121,6 +122,7 @@ class StudentController extends Controller
                 'password123',
                 '="20260001"',
                 '="0012345678"',
+                '2026',
                 'L',
                 '="08123456789"',
                 'Bandung',
@@ -133,6 +135,7 @@ class StudentController extends Controller
                 'password123',
                 '="20260002"',
                 '="0012345679"',
+                '2026',
                 'P',
                 '="08129876543"',
                 'Jakarta',
@@ -198,6 +201,10 @@ class StudentController extends Controller
                 $errors[] = "Baris {$line}: gender hanya boleh L atau P.";
             }
 
+            if (! empty($row['entry_year']) && ! preg_match('/^\d{4}$/', $row['entry_year'])) {
+                $errors[] = "Baris {$line}: angkatan harus diisi tahun 4 digit.";
+            }
+
             if (! empty($row['birth_date']) && ! strtotime($row['birth_date'])) {
                 $errors[] = "Baris {$line}: tanggal lahir harus format YYYY-MM-DD.";
             }
@@ -242,6 +249,7 @@ class StudentController extends Controller
                     'user_id' => $user->id,
                     'nis' => $this->normalizeImportedText($row['nis'] ?? ''),
                     'nisn' => $this->normalizeImportedText($row['nisn'] ?? ''),
+                    'entry_year' => $row['entry_year'] ?: null,
                     'gender' => $gender,
                     'phone' => $this->normalizeImportedText($row['phone'] ?? ''),
                     'birth_place' => $row['birth_place'] ?: null,
@@ -330,6 +338,7 @@ class StudentController extends Controller
         return [
             'nis' => ['nullable', 'string', 'max:50'],
             'nisn' => ['nullable', 'string', 'max:50'],
+            'entry_year' => ['nullable', 'integer', 'min:1900', 'max:2100'],
             'gender' => ['nullable', 'in:male,female'],
             'phone' => ['nullable', 'string', 'max:50'],
             'birth_place' => ['nullable', 'string', 'max:100'],
@@ -344,6 +353,7 @@ class StudentController extends Controller
         return [
             'nis' => $validated['nis'] ?? null,
             'nisn' => $validated['nisn'] ?? null,
+            'entry_year' => $validated['entry_year'] ?? null,
             'gender' => $validated['gender'] ?? null,
             'phone' => $validated['phone'] ?? null,
             'birth_place' => $validated['birth_place'] ?? null,

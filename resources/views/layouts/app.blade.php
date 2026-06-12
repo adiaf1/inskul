@@ -398,7 +398,7 @@
                                         <div data-i18n="Profil Sekolah">Profil Sekolah</div>
                                     </a>
                                 </li>
-                                <li class="menu-item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','subjects*','teachers*','students*') ? 'active' : '' }}">
+                                <li class="menu-item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','rooms*','schedules*','subjects*','teachers*','students*') ? 'active' : '' }}">
                                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                                         <i class="menu-icon tf-icons bx bx-book-open"></i>
                                         <div data-i18n="Data Akademik">Data Akademik</div>
@@ -426,6 +426,18 @@
                                             <a href="{{ route('classrooms.index') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-group"></i>
                                                 <div data-i18n="Rombel">Rombel</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('rooms*') ? 'active' : '' }}">
+                                            <a href="{{ route('rooms.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-door-open"></i>
+                                                <div data-i18n="Ruangan">Ruangan</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('schedules*') ? 'active' : '' }}">
+                                            <a href="{{ route('schedules.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                                                <div data-i18n="Jadwal">Jadwal</div>
                                             </a>
                                         </li>
                                         <li class="menu-item {{ request()->is('subjects*') ? 'active' : '' }}">

@@ -29,6 +29,7 @@ class ClassroomController extends Controller
         $schoolClasses = $school->classes()->where('is_active', true)->orderBy('level')->orderBy('name')->get();
         $teachers = $school->teachers()->with('user')->where('is_active', true)->get()->sortBy('user.name');
         $students = $school->students()->with('user')->where('is_active', true)->get()->sortBy('user.name');
+        $studentCohorts = $students->pluck('entry_year')->filter()->unique()->sortDesc()->values();
 
         $classrooms = $school->classrooms()
             ->with(['academicYear', 'semester', 'schoolClass', 'homeroomTeacher.user', 'students'])
@@ -54,6 +55,7 @@ class ClassroomController extends Controller
             'schoolClasses',
             'teachers',
             'students',
+            'studentCohorts',
             'academicYearId',
             'semesterId',
             'status'

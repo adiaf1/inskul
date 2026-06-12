@@ -117,9 +117,7 @@
                 </table>
             </div>
 
-            @if($academicYears->hasPages())
-                <div class="mt-4">{{ $academicYears->links() }}</div>
-            @endif
+            <x-table-pagination :paginator="$academicYears" label="tahun ajaran" />
         </div>
     </div>
 

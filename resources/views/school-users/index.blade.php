@@ -73,9 +73,7 @@
                 </table>
             </div>
 
-            @if($users->hasPages())
-                <div class="mt-4">{{ $users->links() }}</div>
-            @endif
+            <x-table-pagination :paginator="$users" label="pengguna" />
         </div>
     </div>
 

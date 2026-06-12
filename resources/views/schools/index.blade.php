@@ -24,7 +24,7 @@
         <form method="GET" action="{{ route('schools.index') }}" class="d-flex gap-2">
             <select class="form-select" name="status" onchange="this.form.submit()">
                 <option value="">Semua Status</option>
-                @foreach (['pending' => 'Menunggu', 'active' => 'Aktif', 'rejected' => 'Ditolak'] as $value => $label)
+                @foreach (['pending' => 'Menunggu', 'inactive' => 'Tidak Aktif', 'active' => 'Aktif', 'rejected' => 'Ditolak'] as $value => $label)
                     <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
                 @endforeach
             </select>
@@ -71,10 +71,11 @@
                                 <span @class([
                                     'badge',
                                     'bg-label-warning' => $school->status === 'pending',
+                                    'bg-label-secondary' => $school->status === 'inactive',
                                     'bg-label-success' => $school->status === 'active',
                                     'bg-label-danger' => $school->status === 'rejected',
                                 ])>
-                                    {{ ['pending' => 'Menunggu', 'active' => 'Aktif', 'rejected' => 'Ditolak'][$school->status] ?? ucfirst($school->status) }}
+                                    {{ ['pending' => 'Menunggu', 'inactive' => 'Tidak Aktif', 'active' => 'Aktif', 'rejected' => 'Ditolak'][$school->status] ?? ucfirst($school->status) }}
                                 </span>
                             </td>
                             <td>{{ $school->created_at->format('d M Y H:i') }}</td>
@@ -83,12 +84,18 @@
                                     <form method="POST" action="{{ route('schools.approve', $school) }}" class="d-inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button class="btn btn-sm btn-primary" type="submit">Setujui</button>
+                                        <button class="btn btn-sm btn-primary" type="submit">Approve</button>
                                     </form>
                                     <form method="POST" action="{{ route('schools.reject', $school) }}" class="d-inline">
                                         @csrf
                                         @method('PATCH')
                                         <button class="btn btn-sm btn-outline-danger" type="submit">Tolak</button>
+                                    </form>
+                                @elseif($school->status === 'inactive')
+                                    <form method="POST" action="{{ route('schools.approve', $school) }}" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="btn btn-sm btn-primary" type="submit">Aktifkan</button>
                                     </form>
                                 @else
                                     <span class="text-muted">Selesai</span>
@@ -104,11 +111,9 @@
             </table>
         </div>
 
-        @if($schools->hasPages())
-            <div class="card-footer">
-                {{ $schools->links() }}
-            </div>
-        @endif
+        <div class="card-footer">
+            <x-table-pagination :paginator="$schools" label="sekolah" />
+        </div>
     </div>
 </div>
 @endsection

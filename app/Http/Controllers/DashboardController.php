@@ -16,7 +16,7 @@ class DashboardController extends Controller
             return view('dashboard.super-admin');
         } elseif ($user->hasRole('school_admin')) {
             $school = $user->schools()
-                ->withCount(['academicYears', 'semesters', 'classes', 'classrooms', 'subjects', 'teachers', 'students'])
+                ->withCount(['academicYears', 'semesters', 'classes', 'classrooms', 'rooms', 'schedules', 'subjects', 'teachers', 'students'])
                 ->wherePivot('status', 'active')
                 ->where('schools.status', 'active')
                 ->first();

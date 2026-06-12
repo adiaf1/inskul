@@ -17,18 +17,18 @@
 
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
-            <h4 class="mb-1">Rombel</h4>
-            <p class="text-muted mb-0">{{ $school->name }} - kelola rombongan belajar per tahun ajaran dan semester.</p>
+            <h4 class="mb-1">Jadwal</h4>
+            <p class="text-muted mb-0">{{ $school->name }} - kelola jadwal pelajaran per rombel.</p>
         </div>
 
-        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddClassroom">
-            <i class="bx bx-plus me-1"></i> Tambah Rombel
+        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddSchedule">
+            <i class="bx bx-plus me-1"></i> Tambah Jadwal
         </button>
     </div>
 
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="{{ route('classrooms.index') }}" class="mb-4">
+            <form method="GET" action="{{ route('schedules.index') }}" class="mb-4">
                 <div class="d-flex flex-column flex-md-row gap-3">
                     <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Tahun Ajaran</option>
@@ -46,15 +46,33 @@
                             </option>
                         @endforeach
                     </select>
+                    <select name="classroom_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Rombel</option>
+                        @foreach($classrooms as $classroom)
+                            <option value="{{ $classroom->id }}" @selected((string) $classroomId === (string) $classroom->id)>
+                                {{ $classroom->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <select name="room_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Ruangan</option>
+                        @foreach($rooms as $room)
+                            <option value="{{ $room->id }}" @selected((string) $roomId === (string) $room->id)>
+                                {{ $room->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <select name="day_of_week" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Hari</option>
+                        @foreach($days as $dayValue => $dayLabel)
+                            <option value="{{ $dayValue }}" @selected((string) $dayOfWeek === (string) $dayValue)>{{ $dayLabel }}</option>
+                        @endforeach
+                    </select>
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
                         <option value="active" @selected($status === 'active')>Aktif</option>
                         <option value="inactive" @selected($status === 'inactive')>Tidak Aktif</option>
                     </select>
-                    <div class="input-group">
-                        <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari rombel, kelas, wali kelas">
-                        <button class="btn btn-outline-primary" type="submit">Cari</button>
-                    </div>
                 </div>
             </form>
 
@@ -62,68 +80,69 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th>Hari/Jam</th>
                             <th>Rombel</th>
-                            <th>Periode</th>
-                            <th>Wali Kelas</th>
-                            <th>Murid</th>
+                            <th>Mata Pelajaran</th>
+                            <th>Guru</th>
+                            <th>Ruang</th>
                             <th>Status</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($classrooms as $classroom)
+                        @forelse($schedules as $schedule)
                             <tr>
                                 <td>
-                                    <strong>{{ $classroom->name }}</strong>
-                                    <div class="text-muted small">{{ $classroom->schoolClass?->name ?? '-' }}</div>
+                                    <strong>{{ $days[$schedule->day_of_week] ?? '-' }}</strong>
+                                    <div class="text-muted small">{{ substr($schedule->starts_at, 0, 5) }} - {{ substr($schedule->ends_at, 0, 5) }}</div>
                                 </td>
                                 <td>
-                                    <div>{{ $classroom->academicYear?->name ?? '-' }}</div>
-                                    <div class="text-muted small">{{ $classroom->semester?->name ?? '-' }}</div>
-                                </td>
-                                <td>{{ $classroom->homeroomTeacher?->user?->name ?? '-' }}</td>
-                                <td>
-                                    <div>{{ $classroom->students->count() }} murid</div>
-                                    <div class="text-muted small">{{ $classroom->capacity ? 'Kapasitas: '.$classroom->capacity : '' }}</div>
+                                    <div>{{ $schedule->classroom?->name ?? '-' }}</div>
+                                    <div class="text-muted small">{{ $schedule->semester?->name ?? '-' }}</div>
                                 </td>
                                 <td>
-                                    @if($classroom->is_active)
+                                    <strong>{{ $schedule->subject?->name ?? '-' }}</strong>
+                                    <div class="text-muted small">{{ $schedule->subject?->code ?: '' }}</div>
+                                </td>
+                                <td>{{ $schedule->teacher?->user?->name ?? '-' }}</td>
+                                <td>
+                                    <div>{{ $schedule->physicalRoom?->name ?: ($schedule->room ?: '-') }}</div>
+                                    <div class="text-muted small">{{ $schedule->physicalRoom?->code ?: '' }}</div>
+                                </td>
+                                <td>
+                                    @if($schedule->is_active)
                                         <span class="badge bg-label-success">Aktif</span>
                                     @else
                                         <span class="badge bg-label-secondary">Tidak Aktif</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditClassroom{{ $classroom->id }}">
+                                    <button type="button" class="btn btn-sm btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditSchedule{{ $schedule->id }}">
                                         Edit
                                     </button>
-                                    <form method="POST" action="{{ route('classrooms.destroy', $classroom) }}" class="d-inline" id="delete-classroom-{{ $classroom->id }}">
+                                    <form method="POST" action="{{ route('schedules.destroy', $schedule) }}" class="d-inline" id="delete-schedule-{{ $schedule->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteClassroom({{ $classroom->id }})">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteSchedule({{ $schedule->id }})">
                                             Hapus
                                         </button>
                                     </form>
                                 </td>
                             </tr>
 
-                            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasEditClassroom{{ $classroom->id }}" aria-labelledby="offcanvasEditClassroomLabel{{ $classroom->id }}">
+                            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasEditSchedule{{ $schedule->id }}" aria-labelledby="offcanvasEditScheduleLabel{{ $schedule->id }}">
                                 <div class="offcanvas-header border-bottom">
-                                    <h5 id="offcanvasEditClassroomLabel{{ $classroom->id }}" class="offcanvas-title">Edit Rombel</h5>
+                                    <h5 id="offcanvasEditScheduleLabel{{ $schedule->id }}" class="offcanvas-title">Edit Jadwal</h5>
                                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
                                 <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-                                    @php
-                                        $selectedStudents = old('student_ids', $classroom->students->pluck('id')->map(fn ($id) => (string) $id)->all());
-                                    @endphp
-                                    <form method="POST" action="{{ route('classrooms.update', $classroom) }}">
+                                    <form method="POST" action="{{ route('schedules.update', $schedule) }}">
                                         @csrf
                                         @method('PUT')
 
-                                        @include('classrooms.partials.form', [
-                                            'mode' => 'edit_'.$classroom->id,
-                                            'classroom' => $classroom,
-                                            'selectedStudents' => $selectedStudents,
+                                        @include('schedules.partials.form', [
+                                            'mode' => 'edit_'.$schedule->id,
+                                            'schedule' => $schedule,
                                         ])
 
                                         <button type="submit" class="btn btn-primary me-2">Simpan Perubahan</button>
@@ -133,30 +152,29 @@
                             </div>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">Belum ada data rombel.</td>
+                                <td colspan="7" class="text-center py-5 text-muted">Belum ada data jadwal.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <x-table-pagination :paginator="$classrooms" label="rombel" />
+            <x-table-pagination :paginator="$schedules" label="jadwal" />
         </div>
     </div>
 
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasAddClassroom" aria-labelledby="offcanvasAddClassroomLabel">
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasAddSchedule" aria-labelledby="offcanvasAddScheduleLabel">
         <div class="offcanvas-header border-bottom">
-            <h5 id="offcanvasAddClassroomLabel" class="offcanvas-title">Tambah Rombel</h5>
+            <h5 id="offcanvasAddScheduleLabel" class="offcanvas-title">Tambah Jadwal</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-            <form method="POST" action="{{ route('classrooms.store') }}">
+            <form method="POST" action="{{ route('schedules.store') }}">
                 @csrf
 
-                @include('classrooms.partials.form', [
+                @include('schedules.partials.form', [
                     'mode' => 'create',
-                    'classroom' => null,
-                    'selectedStudents' => old('student_ids', []),
+                    'schedule' => null,
                 ])
 
                 <button type="submit" class="btn btn-primary me-2">Simpan</button>
@@ -167,10 +185,10 @@
 </div>
 
 <script>
-function confirmDeleteClassroom(id) {
+function confirmDeleteSchedule(id) {
     Swal.fire({
-        title: 'Hapus rombel?',
-        text: 'Anggota murid pada rombel ini juga akan dilepas.',
+        title: 'Hapus jadwal?',
+        text: 'Data jadwal yang dihapus tidak dapat dikembalikan.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -179,7 +197,7 @@ function confirmDeleteClassroom(id) {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            document.getElementById('delete-classroom-' + id).submit();
+            document.getElementById('delete-schedule-' + id).submit();
         }
     });
 }

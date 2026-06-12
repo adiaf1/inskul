@@ -71,6 +71,7 @@
                                 <td>
                                     <div>{{ $student->nis ?: '-' }}</div>
                                     <div class="text-muted small">{{ $student->nisn ? 'NISN: '.$student->nisn : '' }}</div>
+                                    <div class="text-muted small">{{ $student->entry_year ? 'Angkatan: '.$student->entry_year : '' }}</div>
                                 </td>
                                 <td>
                                     <div>{{ $student->phone ?: '-' }}</div>
@@ -131,6 +132,10 @@
                                             <input class="form-control" id="edit_nisn_{{ $student->id }}" name="nisn" value="{{ old('nisn', $student->nisn) }}">
                                         </div>
                                         <div class="mb-4">
+                                            <label class="form-label" for="edit_entry_year_{{ $student->id }}">Angkatan</label>
+                                            <input type="number" min="1900" max="2100" class="form-control" id="edit_entry_year_{{ $student->id }}" name="entry_year" value="{{ old('entry_year', $student->entry_year) }}" placeholder="Contoh: 2026">
+                                        </div>
+                                        <div class="mb-4">
                                             <label class="form-label" for="edit_gender_{{ $student->id }}">Jenis Kelamin</label>
                                             <select class="form-select" id="edit_gender_{{ $student->id }}" name="gender">
                                                 <option value="">Pilih jenis kelamin</option>
@@ -173,9 +178,7 @@
                 </table>
             </div>
 
-            @if($students->hasPages())
-                <div class="mt-4">{{ $students->links() }}</div>
-            @endif
+            <x-table-pagination :paginator="$students" label="murid" />
         </div>
     </div>
 
@@ -186,7 +189,7 @@
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
             <div class="alert alert-info">
-                Gunakan file dari tombol <strong>Download Format</strong>. Gender diisi <strong>L</strong> atau <strong>P</strong>. Data hasil import otomatis aktif.
+                Gunakan file dari tombol <strong>Download Format</strong>. Angkatan diisi tahun masuk, gender diisi <strong>L</strong> atau <strong>P</strong>. Data hasil import otomatis aktif.
             </div>
             <form method="POST" action="{{ route('students.import') }}" enctype="multipart/form-data">
                 @csrf
@@ -238,6 +241,10 @@
                 <div class="mb-4">
                     <label class="form-label" for="nisn">NISN</label>
                     <input class="form-control" id="nisn" name="nisn" value="{{ old('nisn') }}">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="entry_year">Angkatan</label>
+                    <input type="number" min="1900" max="2100" class="form-control" id="entry_year" name="entry_year" value="{{ old('entry_year') }}" placeholder="Contoh: 2026">
                 </div>
                 <div class="mb-4">
                     <label class="form-label" for="gender">Jenis Kelamin</label>

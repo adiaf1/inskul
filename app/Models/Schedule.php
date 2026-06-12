@@ -5,10 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Classroom extends Model
+class Schedule extends Model
 {
     use HasFactory;
 
@@ -16,10 +14,15 @@ class Classroom extends Model
         'school_id',
         'academic_year_id',
         'semester_id',
-        'school_class_id',
-        'homeroom_teacher_id',
-        'name',
-        'capacity',
+        'classroom_id',
+        'subject_id',
+        'teacher_id',
+        'room_id',
+        'day_of_week',
+        'starts_at',
+        'ends_at',
+        'room',
+        'notes',
         'is_active',
     ];
 
@@ -42,25 +45,23 @@ class Classroom extends Model
         return $this->belongsTo(Semester::class);
     }
 
-    public function schoolClass(): BelongsTo
+    public function classroom(): BelongsTo
     {
-        return $this->belongsTo(SchoolClass::class);
+        return $this->belongsTo(Classroom::class);
     }
 
-    public function homeroomTeacher(): BelongsTo
+    public function subject(): BelongsTo
     {
-        return $this->belongsTo(Teacher::class, 'homeroom_teacher_id');
+        return $this->belongsTo(Subject::class);
     }
 
-    public function students(): BelongsToMany
+    public function teacher(): BelongsTo
     {
-        return $this->belongsToMany(Student::class)
-            ->withPivot('status')
-            ->withTimestamps();
+        return $this->belongsTo(Teacher::class);
     }
 
-    public function schedules(): HasMany
+    public function physicalRoom(): BelongsTo
     {
-        return $this->hasMany(Schedule::class);
+        return $this->belongsTo(Room::class, 'room_id');
     }
 }

@@ -117,9 +117,7 @@
                 </table>
             </div>
 
-            @if($subjects->hasPages())
-                <div class="mt-4">{{ $subjects->links() }}</div>
-            @endif
+            <x-table-pagination :paginator="$subjects" label="mata pelajaran" />
         </div>
     </div>
 

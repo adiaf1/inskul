@@ -41,6 +41,18 @@
                     </div>
                     <div class="col-md-3">
                         <div class="border rounded p-3">
+                            <div class="text-muted small">Jadwal</div>
+                            <strong>{{ $school->schedules_count }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <div class="text-muted small">Ruangan</div>
+                            <strong>{{ $school->rooms_count }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
                             <div class="text-muted small">Mata Pelajaran</div>
                             <strong>{{ $school->subjects_count }}</strong>
                         </div>
