@@ -49,6 +49,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->status !== 'active') {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda belum aktif. Silakan tunggu approval Super Admin.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

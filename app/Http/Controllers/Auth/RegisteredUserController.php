@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\School;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -31,21 +32,49 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'school_name' => ['required', 'string', 'max:255'],
+            'npsn' => ['nullable', 'string', 'max:50', 'unique:schools,npsn'],
+            'level' => ['required', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'school_phone' => ['nullable', 'string', 'max:50'],
+            'school_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
+            'admin_name' => ['required', 'string', 'max:255'],
+            'admin_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class.',email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        DB::transaction(function () use ($request) {
+            $schoolAdminRole = Role::findByName('school_admin');
 
-        event(new Registered($user));
+            $school = School::create([
+                'name' => $request->school_name,
+                'npsn' => $request->npsn,
+                'level' => $request->level,
+                'address' => $request->address,
+                'phone' => $request->school_phone,
+                'email' => $request->school_email,
+                'status' => 'pending',
+            ]);
 
-        Auth::login($user);
+            $user = User::create([
+                'name' => $request->admin_name,
+                'email' => $request->admin_email,
+                'password' => Hash::make($request->password),
+                'status' => 'pending',
+            ]);
 
-        return redirect(RouteServiceProvider::HOME);
+            $user->assignRole($schoolAdminRole);
+
+            $school->users()->attach($user->id, [
+                'role_id' => $schoolAdminRole->id,
+                'status' => 'pending',
+            ]);
+
+            event(new Registered($user));
+        });
+
+        return redirect()
+            ->route('register.success')
+            ->with('success', 'Registrasi sekolah berhasil dikirim. Akun admin sekolah akan aktif setelah disetujui Super Admin.');
     }
 }

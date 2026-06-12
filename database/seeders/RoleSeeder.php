@@ -17,36 +17,63 @@ class RoleSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (['admin', 'editor', 'guest'] as $role) {
-            Role::firstOrCreate(['name' => $role]);
+        $roles = [
+            'super_admin',
+            'school_admin',
+            'principal',
+            'teacher',
+            'student',
+            'parent',
+        ];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate([
+                'name' => $role,
+                'guard_name' => 'web',
+            ]);
         }
 
-        // Buat user admin
-        $admin = User::updateOrCreate([
+        // Akun pengelola aplikasi utama.
+        $superAdmin = User::updateOrCreate([
             'email' => 'admin@mail.com',
         ], [
-            'name' => 'Admin',
+            'name' => 'Super Admin',
             'password' => Hash::make('password'),
         ]);
-        $admin->assignRole('admin');
+        $superAdmin->syncRoles(['super_admin']);
 
-        // Buat user editor
-        $editor = User::updateOrCreate([
-            'email' => 'editor@mail.com',
+        // Akun contoh untuk kebutuhan pengembangan awal.
+        $schoolAdmin = User::updateOrCreate([
+            'email' => 'school.admin@mail.com',
         ], [
-            'name' => 'Editor',
+            'name' => 'Admin Sekolah',
             'password' => Hash::make('password'),
         ]);
-        $editor->assignRole('editor');
+        $schoolAdmin->syncRoles(['school_admin']);
 
-        // Buat user guest
-        $guest = User::updateOrCreate([
-            'email' => 'guest@mail.com',
+        $teacher = User::updateOrCreate([
+            'email' => 'teacher@mail.com',
         ], [
-            'name' => 'Guest',
+            'name' => 'Guru',
             'password' => Hash::make('password'),
         ]);
-        $guest->assignRole('guest');
+        $teacher->syncRoles(['teacher']);
+
+        $student = User::updateOrCreate([
+            'email' => 'student@mail.com',
+        ], [
+            'name' => 'Siswa',
+            'password' => Hash::make('password'),
+        ]);
+        $student->syncRoles(['student']);
+
+        $parent = User::updateOrCreate([
+            'email' => 'parent@mail.com',
+        ], [
+            'name' => 'Orang Tua',
+            'password' => Hash::make('password'),
+        ]);
+        $parent->syncRoles(['parent']);
     }
 
 }

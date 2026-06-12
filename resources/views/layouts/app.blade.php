@@ -158,28 +158,28 @@
                                 <a class="nav-link dropdown-toggle hide-arrow" id="nav-theme" href="javascript:void(0);"
                                     data-bs-toggle="dropdown">
                                     <i class="icon-base bx bx-sun icon-md theme-icon-active"></i>
-                                    <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
+                                    <span class="d-none ms-2" id="nav-theme-text">Ubah tema</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
                                     <li>
                                         <button type="button" class="dropdown-item align-items-center active"
                                             data-bs-theme-value="light" aria-pressed="false">
                                             <span><i class="icon-base bx bx-sun icon-md me-3"
-                                                    data-icon="sun"></i>Light</span>
+                                                    data-icon="sun"></i>Terang</span>
                                         </button>
                                     </li>
                                     <li>
                                         <button type="button" class="dropdown-item align-items-center"
                                             data-bs-theme-value="dark" aria-pressed="true">
                                             <span><i class="icon-base bx bx-moon icon-md me-3"
-                                                    data-icon="moon"></i>Dark</span>
+                                                    data-icon="moon"></i>Gelap</span>
                                         </button>
                                     </li>
                                     <li>
                                         <button type="button" class="dropdown-item align-items-center"
                                             data-bs-theme-value="system" aria-pressed="false">
                                             <span><i class="icon-base bx bx-desktop icon-md me-3"
-                                                    data-icon="desktop"></i>System</span>
+                                                    data-icon="desktop"></i>Sistem</span>
                                         </button>
                                     </li>
                                 </ul>
@@ -195,10 +195,10 @@
                                 <div class="dropdown-menu dropdown-menu-end p-0">
                                     <div class="dropdown-menu-header border-bottom">
                                         <div class="dropdown-header d-flex align-items-center py-3">
-                                            <h6 class="mb-0 me-auto">Shortcuts</h6>
+                                            <h6 class="mb-0 me-auto">Pintasan</h6>
                                             <a href="javascript:void(0)" class="dropdown-shortcuts-add py-2"
                                                 data-bs-toggle="tooltip" data-bs-placement="top"
-                                                title="Add shortcuts"><i
+                                                title="Tambah pintasan"><i
                                                     class="icon-base bx bx-plus-circle text-heading"></i></a>
                                         </div>
                                     </div>
@@ -208,15 +208,15 @@
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-calendar icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="app-calendar.html" class="stretched-link">Calendar</a>
-                                                <small>Appointments</small>
+                                                <a href="app-calendar.html" class="stretched-link">Kalender</a>
+                                                <small>Jadwal</small>
                                             </div>
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-food-menu icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="app-invoice-list.html" class="stretched-link">Invoice App</a>
-                                                <small>Manage Accounts</small>
+                                                <a href="app-invoice-list.html" class="stretched-link">Invoice</a>
+                                                <small>Kelola akun</small>
                                             </div>
                                         </div>
                                         <div class="row row-bordered overflow-visible g-0">
@@ -224,16 +224,16 @@
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-user icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="app-user-list.html" class="stretched-link">User App</a>
-                                                <small>Manage Users</small>
+                                                <a href="app-user-list.html" class="stretched-link">Pengguna</a>
+                                                <small>Kelola pengguna</small>
                                             </div>
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-check-shield icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="app-access-roles.html" class="stretched-link">Role
-                                                    Management</a>
-                                                <small>Permission</small>
+                                                <a href="app-access-roles.html" class="stretched-link">Manajemen
+                                                    Role</a>
+                                                <small>Hak akses</small>
                                             </div>
                                         </div>
                                         <div class="row row-bordered overflow-visible g-0">
@@ -243,15 +243,15 @@
                                                         class="icon-base bx bx-pie-chart-alt-2 icon-26px text-heading"></i>
                                                 </span>
                                                 <a href="index.html" class="stretched-link">Dashboard</a>
-                                                <small>User Dashboard</small>
+                                                <small>Dashboard pengguna</small>
                                             </div>
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-cog icon-26px text-heading"></i>
                                                 </span>
                                                 <a href="pages-account-settings-account.html"
-                                                    class="stretched-link">Setting</a>
-                                                <small>Account Settings</small>
+                                                    class="stretched-link">Pengaturan</a>
+                                                <small>Pengaturan akun</small>
                                             </div>
                                         </div>
                                         <div class="row row-bordered overflow-visible g-0">
@@ -259,15 +259,15 @@
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-help-circle icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="pages-faq.html" class="stretched-link">FAQs</a>
-                                                <small>FAQs & Articles</small>
+                                                <a href="pages-faq.html" class="stretched-link">FAQ</a>
+                                                <small>Pertanyaan dan artikel</small>
                                             </div>
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-window-open icon-26px text-heading"></i>
                                                 </span>
                                                 <a href="modal-examples.html" class="stretched-link">Modals</a>
-                                                <small>Useful Popups</small>
+                                                <small>Popup berguna</small>
                                             </div>
                                         </div>
                                     </div>
@@ -305,7 +305,7 @@
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                            <i class="bx bx-user bx-md me-3"></i><span>My Profile</span>
+                                            <i class="bx bx-user bx-md me-3"></i><span>Profil Saya</span>
                                         </a>
                                     </li>
                                     <li>
@@ -313,20 +313,20 @@
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="javascript:void(0);" onclick="confirmLogout()">
-                                            <i class="bx bx-power-off bx-md me-3"></i><span>Log Out</span>
+                                            <i class="bx bx-power-off bx-md me-3"></i><span>Keluar</span>
                                         </a>
                                     </li>
 
                                     <script>
                                       function confirmLogout() {
                                           Swal.fire({
-                                              title: 'Are you sure?',
-                                              text: "You will be logged out!",
+                                              title: 'Anda yakin?',
+                                              text: "Anda akan keluar dari sistem.",
                                               icon: 'warning',
                                               showCancelButton: true,
                                               confirmButtonColor: '#d33',
                                               cancelButtonColor: '#3085d6',
-                                              confirmButtonText: 'Yes, log out!'
+                                              confirmButtonText: 'Ya, keluar!'
                                           }).then((result) => {
                                               if (result.isConfirmed) {
                                                   // Log out with the form submission
@@ -367,30 +367,94 @@
                                     </a>
                                 </li>
 
-                                @hasanyrole('admin|editor')
+                                @hasanyrole('super_admin')
                                 <!-- Users -->
-                                <li class="menu-item {{ request()->is('users','roles','permissions') ? 'active' : '' }}">
+                                <li class="menu-item {{ request()->is('schools','users','roles','permissions') ? 'active' : '' }}">
                                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                                         <i class="menu-icon tf-icons bx bx-user"></i>
-                                        <div data-i18n="Manage Users">Manage users</div>
+                                        <div data-i18n="Super Admin">Super Admin</div>
                                     </a>
                                     <ul class="menu-sub">
-                                        <li class="menu-item {{ request()->is('users') ? 'active' : '' }}">
-                                            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                                                <i class="menu-icon tf-icons bx bx-user"></i>
-                                                <div data-i18n="Users">Users</div>
+                                        <li class="menu-item {{ request()->is('schools') ? 'active' : '' }}">
+                                            <a href="{{ route('schools.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-building"></i>
+                                                <div data-i18n="Schools">Registrasi Sekolah</div>
                                             </a>
-                                            <ul class="menu-sub">
-                                                <li class="menu-item {{ request()->is('users') ? 'active' : '' }}">
-                                                    <a href="{{ url('/users') }}" class="menu-link">
-                                                        <div data-i18n="List">List</div>
-                                                    </a>
-                                                </li>
-                                            </ul>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('users') ? 'active' : '' }}">
+                                            <a href="{{ url('/users') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-user"></i>
+                                                <div data-i18n="Users">Pengguna</div>
+                                            </a>
                                         </li>
                                     </ul>
                                 </li>
                                 @endhasanyrole
+
+                                @hasrole('school_admin')
+                                <li class="menu-item {{ request()->is('school-profile') ? 'active' : '' }}">
+                                    <a href="{{ route('school-profile.edit') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-building-house"></i>
+                                        <div data-i18n="Profil Sekolah">Profil Sekolah</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','subjects*','teachers*','students*') ? 'active' : '' }}">
+                                    <a href="javascript:void(0)" class="menu-link menu-toggle">
+                                        <i class="menu-icon tf-icons bx bx-book-open"></i>
+                                        <div data-i18n="Data Akademik">Data Akademik</div>
+                                    </a>
+                                    <ul class="menu-sub">
+                                        <li class="menu-item {{ request()->is('academic-years*') ? 'active' : '' }}">
+                                            <a href="{{ route('academic-years.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                                                <div data-i18n="Tahun Ajaran">Tahun Ajaran</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('semesters*') ? 'active' : '' }}">
+                                            <a href="{{ route('semesters.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                                                <div data-i18n="Semester">Semester</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('school-classes*') ? 'active' : '' }}">
+                                            <a href="{{ route('school-classes.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-building"></i>
+                                                <div data-i18n="Kelas">Kelas</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('classrooms*') ? 'active' : '' }}">
+                                            <a href="{{ route('classrooms.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-group"></i>
+                                                <div data-i18n="Rombel">Rombel</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('subjects*') ? 'active' : '' }}">
+                                            <a href="{{ route('subjects.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-book"></i>
+                                                <div data-i18n="Mata Pelajaran">Mata Pelajaran</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('teachers*') ? 'active' : '' }}">
+                                            <a href="{{ route('teachers.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                                                <div data-i18n="Guru">Guru</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('students*') ? 'active' : '' }}">
+                                            <a href="{{ route('students.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-user"></i>
+                                                <div data-i18n="Murid">Murid</div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="menu-item {{ request()->is('school-users') ? 'active' : '' }}">
+                                    <a href="{{ route('school-users.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-user-plus"></i>
+                                        <div data-i18n="Pengguna Sekolah">Pengguna Sekolah</div>
+                                    </a>
+                                </li>
+                                @endhasrole
 
                             </ul>
                         </div>

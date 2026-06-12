@@ -4,7 +4,7 @@
 
 
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="py-4 mb-6">Manage Users</h4>
+    <h4 class="py-4 mb-6">Kelola Pengguna</h4>
     <div class="card">
 
         <div class="card-body">
@@ -50,13 +50,40 @@
 <div class="row mb-4">
     <div class="col-md-12">
         <form id="search-form" action="{{ route('users.index') }}" method="GET">
-            <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-6 mb-md-0 mt-n6 mt-md-0">
-                <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                    <label><input type="search" name="search" class="form-control" placeholder="Cari Pengguna" aria-controls="DataTables_Table_0"></label>
+            <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column gap-3 mb-6 mb-md-0 mt-n6 mt-md-0">
+                <div>
+                    <select name="school_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Sekolah Aktif</option>
+                        @foreach($schools as $school)
+                            <option value="{{ $school->id }}" @selected((string) $schoolId === (string) $school->id)>
+                                {{ $school->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="dt-buttons btn-group flex-wrap ms-4">
+                <div>
+                    <select name="role" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Role</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->name }}" @selected($roleName === $role->name)>
+                                {{ [
+                                    'super_admin' => 'Super Admin',
+                                    'school_admin' => 'Admin Sekolah',
+                                    'principal' => 'Kepala Sekolah',
+                                    'teacher' => 'Guru',
+                                    'student' => 'Murid',
+                                    'parent' => 'Wali Murid',
+                                ][$role->name] ?? $role->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div id="DataTables_Table_0_filter" class="dataTables_filter">
+                    <label><input type="search" name="search" value="{{ request('search') }}" class="form-control" placeholder="Cari Pengguna" aria-controls="DataTables_Table_0"></label>
+                </div>
+                <div class="dt-buttons btn-group flex-wrap">
                     <button class="btn btn-secondary add-new btn-primary" tabindex="0" aria-controls="DataTables_Table_0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddUser">
-                        <span><i class="bx bx-user-plus bx-sm me-0 me-sm-2"></i><span class="d-none d-sm-inline-block">Add</span></span>
+                        <span><i class="bx bx-user-plus bx-sm me-0 me-sm-2"></i><span class="d-none d-sm-inline-block">Tambah</span></span>
                     </button>
                 </div>
             </div>
@@ -71,10 +98,11 @@
                     <thead>
                         <tr>
                             <th class="sorting_disabled dt-checkboxes-cell dt-checkboxes-select-all" rowspan="1" colspan="1"><input type="checkbox" class="form-check-input"></th>
-                            <th class="sorting sorting_desc" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">User</th>
+                            <th class="sorting sorting_desc" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Pengguna</th>
                             <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Role</th>
+                            <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Sekolah</th>
                             <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Email</th>
-                            <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Actions</th>
+                            <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,7 +110,17 @@
                             <tr>
                                 <td><input type="checkbox" class="form-check-input"></td>
                                 <td>{{ $user->name }}</td>
-                                <td>{{ $user->roles->pluck('name')->join(', ') ?: 'No Role Assigned' }}</td>
+                                <td>
+                                    {{ $user->roles->pluck('name')->map(fn ($role) => [
+                                        'super_admin' => 'Super Admin',
+                                        'school_admin' => 'Admin Sekolah',
+                                        'principal' => 'Kepala Sekolah',
+                                        'teacher' => 'Guru',
+                                        'student' => 'Murid',
+                                        'parent' => 'Wali Murid',
+                                    ][$role] ?? $role)->join(', ') ?: 'Belum ada role' }}
+                                </td>
+                                <td>{{ $user->schools->pluck('name')->join(', ') ?: '-' }}</td>
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     <div class="dropdown">
@@ -93,11 +131,14 @@
                                             <button type="button" class="dropdown-item" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditUser{{ $user->id }}" data-user="{{ json_encode($user) }}">
                                                 <i class="bx bx-edit-alt me-1"></i> Edit
                                             </button>
+                                            <button type="button" class="dropdown-item" data-bs-toggle="offcanvas" data-bs-target="#offcanvasResetPassword{{ $user->id }}">
+                                                <i class="bx bx-key me-1"></i> Reset Kata Sandi
+                                            </button>
                                             <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline" id="delete-form-{{ $user->id }}">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="button" class="dropdown-item" onclick="confirmDelete({{ $user->id }})">
-                                                    <i class="bx bx-trash me-1"></i> Delete
+                                                    <i class="bx bx-trash me-1"></i> Hapus
                                                 </button>
                                             </form>
                                         </div>
@@ -108,7 +149,7 @@
                             <!-- Offcanvas untuk mengedit pengguna -->
                             <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasEditUser{{ $user->id }}" aria-labelledby="offcanvasEditUserLabel">
                                 <div class="offcanvas-header border-bottom">
-                                    <h5 id="offcanvasEditUserLabel" class="offcanvas-title">Edit User</h5>
+                                    <h5 id="offcanvasEditUserLabel" class="offcanvas-title">Edit Pengguna</h5>
                                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
                                 <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
@@ -116,7 +157,7 @@
                                         @csrf
                                         @method('PUT')
                                         <div class="mb-6">
-                                            <label for="name" class="form-label">Name</label>
+                                            <label for="name" class="form-label">Nama</label>
                                             <input type="text" class="form-control" id="name" name="name" value="{{ $user->name }}" required>
                                         </div>
                                         <div class="mb-6">
@@ -129,19 +170,58 @@
                                                 @foreach(\Spatie\Permission\Models\Role::all() as $role)
                                                     <option value="{{ $role->name }}" 
                                                         {{ in_array($role->name, $user->roles->pluck('name')->toArray()) ? 'selected' : '' }}>
-                                                        {{ $role->name }}
+                                                        {{ [
+                                                            'super_admin' => 'Super Admin',
+                                                            'school_admin' => 'Admin Sekolah',
+                                                            'principal' => 'Kepala Sekolah',
+                                                            'teacher' => 'Guru',
+                                                            'student' => 'Murid',
+                                                            'parent' => 'Wali Murid',
+                                                        ][$role->name] ?? $role->name }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <button type="submit" class="btn btn-primary me-3">Update User</button>
-                                        <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Cancel</button>
+                                        <button type="submit" class="btn btn-primary me-3">Perbarui Pengguna</button>
+                                        <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Batal</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Offcanvas untuk reset kata sandi -->
+                            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasResetPassword{{ $user->id }}" aria-labelledby="offcanvasResetPasswordLabel{{ $user->id }}">
+                                <div class="offcanvas-header border-bottom">
+                                    <h5 id="offcanvasResetPasswordLabel{{ $user->id }}" class="offcanvas-title">Reset Kata Sandi</h5>
+                                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                                </div>
+                                <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
+                                    <div class="mb-4">
+                                        <strong>{{ $user->name }}</strong>
+                                        <div class="text-muted small">{{ $user->email }}</div>
+                                    </div>
+
+                                    <form method="POST" action="{{ route('users.reset-password', $user->id) }}">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <div class="mb-6">
+                                            <label for="reset_password_{{ $user->id }}" class="form-label">Kata Sandi Baru</label>
+                                            <input type="password" class="form-control" id="reset_password_{{ $user->id }}" name="password" required autocomplete="new-password">
+                                        </div>
+
+                                        <div class="mb-6">
+                                            <label for="reset_password_confirmation_{{ $user->id }}" class="form-label">Konfirmasi Kata Sandi Baru</label>
+                                            <input type="password" class="form-control" id="reset_password_confirmation_{{ $user->id }}" name="password_confirmation" required autocomplete="new-password">
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary me-3">Reset Kata Sandi</button>
+                                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Batal</button>
                                     </form>
                                 </div>
                             </div>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted">No Users Found</td>
+                                <td colspan="6" class="text-center text-muted">Pengguna tidak ditemukan</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -156,14 +236,14 @@
         <!-- Offcanvas untuk menambah pengguna -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasAddUser" aria-labelledby="offcanvasAddUserLabel">
             <div class="offcanvas-header border-bottom">
-                <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Add User</h5>
+                <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Tambah Pengguna</h5>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
                 <form method="POST" action="{{ route('users.store') }}">
                     @csrf
                     <div class="mb-6">
-                        <label for="name" class="form-label">Name</label>
+                        <label for="name" class="form-label">Nama</label>
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="mb-6">
@@ -171,19 +251,28 @@
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
                     <div class="mb-6">
-                        <label for="password" class="form-label">Password</label>
+                        <label for="password" class="form-label">Kata Sandi</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
                     <div class="mb-6">
                         <label for="role" class="form-label">Role</label>
                         <select class="form-control" id="role" name="role" required>
                             @foreach(\Spatie\Permission\Models\Role::all() as $role)
-                                <option value="{{ $role->name }}">{{ $role->name }}</option>
+                                <option value="{{ $role->name }}">
+                                    {{ [
+                                        'super_admin' => 'Super Admin',
+                                        'school_admin' => 'Admin Sekolah',
+                                        'principal' => 'Kepala Sekolah',
+                                        'teacher' => 'Guru',
+                                        'student' => 'Murid',
+                                        'parent' => 'Wali Murid',
+                                    ][$role->name] ?? $role->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary me-3">Create User</button>
-                    <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Cancel</button>
+                    <button type="submit" class="btn btn-primary me-3">Buat Pengguna</button>
+                    <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Batal</button>
                 </form>
             </div>
         </div>

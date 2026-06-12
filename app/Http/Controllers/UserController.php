@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\School;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -15,19 +18,38 @@ class UserController extends Controller
     {
         // Ambil parameter pencarian (jika ada)
         $search = $request->input('search');
+        $schoolId = $request->input('school_id');
+        $roleName = $request->input('role');
+        $schools = School::where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $roles = Role::orderBy('name')->get(['id', 'name']);
 
         // Query pengguna, filter kalau ada pencarian
-        $users = User::with('roles')
+        $users = User::with(['roles', 'schools'])
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");
                 });
             })
+            ->when($schoolId, function ($query, $schoolId) {
+                return $query->whereHas('schools', function ($schoolQuery) use ($schoolId) {
+                    $schoolQuery->where('schools.id', $schoolId)
+                        ->where('schools.status', 'active')
+                        ->where('school_user.status', 'active');
+                });
+            })
+            ->when($roleName, function ($query, $roleName) {
+                return $query->whereHas('roles', function ($roleQuery) use ($roleName) {
+                    $roleQuery->where('name', $roleName);
+                });
+            })
             ->orderBy('name')
-            ->paginate(10); // pagination
+            ->paginate(10)
+            ->withQueryString(); // pagination
 
-        return view('users.index', compact('users'));
+        return view('users.index', compact('users', 'schools', 'schoolId', 'roles', 'roleName'));
     }
 
     /**
@@ -109,6 +131,22 @@ class UserController extends Controller
 
         // Kembali ke halaman index dengan notifikasi sukses
         return redirect()->route('users.index')->with('success', 'User Berhasil Diperbaharui.'); // Kembali ke index dengan sukses
+    }
+
+    /**
+     * Reset the specified user's password.
+     */
+    public function resetPassword(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'Kata sandi pengguna berhasil direset.');
     }
 
     /**
