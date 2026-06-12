@@ -127,7 +127,7 @@
                                     </svg>
                                 </span>
                             </span>
-                            <span class="app-brand-text demo menu-text fw-bold text-heading">Slims.V2</span>
+                            <span class="app-brand-text demo menu-text fw-bold text-heading">{{ config('app.name', 'Laravel') }}</span>
                         </a>
 
                         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-xl-none">
@@ -412,7 +412,7 @@
                                         document.write(new Date().getFullYear());
 
                                     </script>
-                                    , Slims_V2 ❤️ by
+                                    , {{ config('app.name', 'Laravel') }} ❤️ by
                                     <a href="" 
                                         class="footer-link">PT. Megakarya Teknologi Nusantara</a>
                                 </div>
