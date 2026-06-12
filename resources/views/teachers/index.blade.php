@@ -86,15 +86,15 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditTeacher{{ $teacher->id }}">
-                                        Edit
+                                    <button type="button" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditTeacher{{ $teacher->id }}" title="Edit" aria-label="Edit">
+                                        <i class="bx bx-edit-alt"></i>
                                     </button>
                                     @if($teacher->is_active)
                                         <form method="POST" action="{{ route('teachers.destroy', $teacher) }}" class="d-inline" id="deactivate-teacher-{{ $teacher->id }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeactivateTeacher({{ $teacher->id }})">
-                                                Nonaktifkan
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeactivateTeacher({{ $teacher->id }})" title="Nonaktifkan" aria-label="Nonaktifkan">
+                                                <i class="bx bx-power-off"></i>
                                             </button>
                                         </form>
                                     @endif

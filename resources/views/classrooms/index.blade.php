@@ -21,9 +21,9 @@
             <p class="text-muted mb-0">{{ $school->name }} - kelola rombongan belajar per tahun ajaran dan semester.</p>
         </div>
 
-        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddClassroom">
+        <a href="{{ route('classrooms.create') }}" class="btn btn-primary">
             <i class="bx bx-plus me-1"></i> Tambah Rombel
-        </button>
+        </a>
     </div>
 
     <div class="card">
@@ -94,43 +94,19 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditClassroom{{ $classroom->id }}">
-                                        Edit
-                                    </button>
+                                    <a href="{{ route('classrooms.edit', $classroom) }}" class="btn btn-sm btn-icon btn-label-primary" title="Edit" aria-label="Edit">
+                                        <i class="bx bx-edit-alt"></i>
+                                    </a>
                                     <form method="POST" action="{{ route('classrooms.destroy', $classroom) }}" class="d-inline" id="delete-classroom-{{ $classroom->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteClassroom({{ $classroom->id }})">
-                                            Hapus
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteClassroom({{ $classroom->id }})" title="Hapus" aria-label="Hapus">
+                                            <i class="bx bx-trash"></i>
                                         </button>
                                     </form>
                                 </td>
                             </tr>
 
-                            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasEditClassroom{{ $classroom->id }}" aria-labelledby="offcanvasEditClassroomLabel{{ $classroom->id }}">
-                                <div class="offcanvas-header border-bottom">
-                                    <h5 id="offcanvasEditClassroomLabel{{ $classroom->id }}" class="offcanvas-title">Edit Rombel</h5>
-                                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                                </div>
-                                <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-                                    @php
-                                        $selectedStudents = old('student_ids', $classroom->students->pluck('id')->map(fn ($id) => (string) $id)->all());
-                                    @endphp
-                                    <form method="POST" action="{{ route('classrooms.update', $classroom) }}">
-                                        @csrf
-                                        @method('PUT')
-
-                                        @include('classrooms.partials.form', [
-                                            'mode' => 'edit_'.$classroom->id,
-                                            'classroom' => $classroom,
-                                            'selectedStudents' => $selectedStudents,
-                                        ])
-
-                                        <button type="submit" class="btn btn-primary me-2">Simpan Perubahan</button>
-                                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Batal</button>
-                                    </form>
-                                </div>
-                            </div>
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center py-5 text-muted">Belum ada data rombel.</td>
@@ -144,26 +120,6 @@
         </div>
     </div>
 
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasAddClassroom" aria-labelledby="offcanvasAddClassroomLabel">
-        <div class="offcanvas-header border-bottom">
-            <h5 id="offcanvasAddClassroomLabel" class="offcanvas-title">Tambah Rombel</h5>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-            <form method="POST" action="{{ route('classrooms.store') }}">
-                @csrf
-
-                @include('classrooms.partials.form', [
-                    'mode' => 'create',
-                    'classroom' => null,
-                    'selectedStudents' => old('student_ids', []),
-                ])
-
-                <button type="submit" class="btn btn-primary me-2">Simpan</button>
-                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Batal</button>
-            </form>
-        </div>
-    </div>
 </div>
 
 <script>

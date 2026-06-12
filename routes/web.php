@@ -64,7 +64,7 @@ Route::middleware(['auth', 'active.user', 'role:school_admin'])->group(function 
         Route::resource('academic-years', AcademicYearController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('semesters', SemesterController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('school-classes', SchoolClassController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::resource('classrooms', ClassroomController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('classrooms', ClassroomController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('rooms', RoomController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('schedules', ScheduleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('subjects', SubjectController::class)->only(['index', 'store', 'update', 'destroy']);

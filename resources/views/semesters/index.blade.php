@@ -72,14 +72,14 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditSemester{{ $semester->id }}">
-                                        Edit
+                                    <button type="button" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditSemester{{ $semester->id }}" title="Edit" aria-label="Edit">
+                                        <i class="bx bx-edit-alt"></i>
                                     </button>
                                     <form method="POST" action="{{ route('semesters.destroy', $semester) }}" class="d-inline" id="delete-semester-{{ $semester->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteSemester({{ $semester->id }})">
-                                            Hapus
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteSemester({{ $semester->id }})" title="Hapus" aria-label="Hapus">
+                                            <i class="bx bx-trash"></i>
                                         </button>
                                     </form>
                                 </td>

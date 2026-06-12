@@ -84,18 +84,24 @@
                                     <form method="POST" action="{{ route('schools.approve', $school) }}" class="d-inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button class="btn btn-sm btn-primary" type="submit">Approve</button>
+                                        <button class="btn btn-sm btn-icon btn-primary" type="submit" title="Approve" aria-label="Approve">
+                                            <i class="bx bx-check"></i>
+                                        </button>
                                     </form>
                                     <form method="POST" action="{{ route('schools.reject', $school) }}" class="d-inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button class="btn btn-sm btn-outline-danger" type="submit">Tolak</button>
+                                        <button class="btn btn-sm btn-icon btn-outline-danger" type="submit" title="Tolak" aria-label="Tolak">
+                                            <i class="bx bx-x"></i>
+                                        </button>
                                     </form>
                                 @elseif($school->status === 'inactive')
                                     <form method="POST" action="{{ route('schools.approve', $school) }}" class="d-inline">
                                         @csrf
                                         @method('PATCH')
-                                        <button class="btn btn-sm btn-primary" type="submit">Aktifkan</button>
+                                        <button class="btn btn-sm btn-icon btn-primary" type="submit" title="Aktifkan" aria-label="Aktifkan">
+                                            <i class="bx bx-check-circle"></i>
+                                        </button>
                                     </form>
                                 @else
                                     <span class="text-muted">Selesai</span>
@@ -111,7 +117,7 @@
             </table>
         </div>
 
-        <div class="card-footer">
+        <div class="card-body pt-0">
             <x-table-pagination :paginator="$schools" label="sekolah" />
         </div>
     </div>

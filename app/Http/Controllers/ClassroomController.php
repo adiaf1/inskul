@@ -26,10 +26,6 @@ class ClassroomController extends Controller
 
         $academicYears = $school->academicYears()->orderByDesc('is_active')->orderBy('name')->get();
         $semesters = $school->semesters()->with('academicYear')->orderByDesc('is_active')->orderBy('name')->get();
-        $schoolClasses = $school->classes()->where('is_active', true)->orderBy('level')->orderBy('name')->get();
-        $teachers = $school->teachers()->with('user')->where('is_active', true)->get()->sortBy('user.name');
-        $students = $school->students()->with('user')->where('is_active', true)->get()->sortBy('user.name');
-        $studentCohorts = $students->pluck('entry_year')->filter()->unique()->sortDesc()->values();
 
         $classrooms = $school->classrooms()
             ->with(['academicYear', 'semester', 'schoolClass', 'homeroomTeacher.user', 'students'])
@@ -52,14 +48,26 @@ class ClassroomController extends Controller
             'classrooms',
             'academicYears',
             'semesters',
-            'schoolClasses',
-            'teachers',
-            'students',
-            'studentCohorts',
             'academicYearId',
             'semesterId',
             'status'
         ));
+    }
+
+    public function create(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        return view('classrooms.create', [
+            'school' => $school,
+            'classroom' => null,
+            'selectedStudents' => old('student_ids', []),
+            ...$this->formOptions($school),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -117,6 +125,24 @@ class ClassroomController extends Controller
         return redirect()->route('classrooms.index')->with('success', 'Rombel berhasil diperbarui.');
     }
 
+    public function edit(Request $request, Classroom $classroom): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school || $classroom->school_id !== $school->id) {
+            abort(403);
+        }
+
+        $classroom->load('students');
+
+        return view('classrooms.edit', [
+            'school' => $school,
+            'classroom' => $classroom,
+            'selectedStudents' => old('student_ids', $classroom->students->pluck('id')->map(fn ($id) => (string) $id)->all()),
+            ...$this->formOptions($school),
+        ]);
+    }
+
     public function destroy(Request $request, Classroom $classroom): RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -161,6 +187,20 @@ class ClassroomController extends Controller
             ->unique()
             ->mapWithKeys(fn ($studentId) => [$studentId => ['status' => 'active']])
             ->all();
+    }
+
+    private function formOptions($school): array
+    {
+        $students = $school->students()->with('user')->where('is_active', true)->get()->sortBy('user.name');
+
+        return [
+            'academicYears' => $school->academicYears()->orderByDesc('is_active')->orderBy('name')->get(),
+            'semesters' => $school->semesters()->with('academicYear')->orderByDesc('is_active')->orderBy('name')->get(),
+            'schoolClasses' => $school->classes()->where('is_active', true)->orderBy('level')->orderBy('name')->get(),
+            'teachers' => $school->teachers()->with('user')->where('is_active', true)->get()->sortBy('user.name'),
+            'students' => $students,
+            'studentCohorts' => $students->pluck('entry_year')->filter()->unique()->sortDesc()->values(),
+        ];
     }
 
     private function activeSchool(Request $request)
