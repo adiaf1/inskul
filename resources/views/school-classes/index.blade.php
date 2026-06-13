@@ -81,7 +81,7 @@
                                     <form method="POST" action="{{ route('school-classes.destroy', $class) }}" class="d-inline" id="delete-class-{{ $class->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteClass({{ $class->id }})" title="Hapus" aria-label="Hapus">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteClass(@js($class->id))" title="Hapus" aria-label="Hapus">
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </form>
@@ -102,7 +102,7 @@
                                             <label class="form-label" for="edit_academic_year_id_{{ $class->id }}">Tahun Ajaran</label>
                                             <select class="form-select" id="edit_academic_year_id_{{ $class->id }}" name="academic_year_id" required>
                                                 @foreach($academicYears as $academicYear)
-                                                    <option value="{{ $academicYear->id }}" @selected((int) old('academic_year_id', $class->academic_year_id) === $academicYear->id)>
+                                                    <option value="{{ $academicYear->id }}" @selected((string) old('academic_year_id', $class->academic_year_id) === (string) $academicYear->id)>
                                                         {{ $academicYear->name }}
                                                     </option>
                                                 @endforeach
@@ -156,7 +156,7 @@
                     <select class="form-select" id="academic_year_id" name="academic_year_id" required>
                         <option value="">Pilih tahun ajaran</option>
                         @foreach($academicYears as $academicYear)
-                            <option value="{{ $academicYear->id }}" @selected((int) old('academic_year_id') === $academicYear->id)>
+                            <option value="{{ $academicYear->id }}" @selected((string) old('academic_year_id') === (string) $academicYear->id)>
                                 {{ $academicYear->name }}{{ $academicYear->is_active ? ' - Aktif' : '' }}
                             </option>
                         @endforeach

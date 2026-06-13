@@ -63,7 +63,7 @@
                         <div class="d-flex flex-wrap align-items-center gap-4">
                             <div class="border rounded d-flex align-items-center justify-content-center bg-light" style="width: 104px; height: 104px;">
                                 @if($school->logo_path)
-                                    <img id="logoPreview" src="{{ asset($school->logo_path) }}" alt="Logo sekolah" class="img-fluid rounded" style="max-width: 96px; max-height: 96px;">
+                                    <img id="logoPreview" src="{{ \App\Support\SchoolFileStorage::url($school->logo_path) }}" alt="Logo sekolah" class="img-fluid rounded" style="max-width: 96px; max-height: 96px;">
                                 @else
                                     <img id="logoPreview" src="" alt="Preview logo sekolah" class="img-fluid rounded d-none" style="max-width: 96px; max-height: 96px;">
                                     <i id="logoPlaceholder" class="bx bx-image text-muted fs-1"></i>

@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('academic_years', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('school_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('school_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->date('starts_at');
             $table->date('ends_at');

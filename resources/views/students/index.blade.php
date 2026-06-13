@@ -22,6 +22,9 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('students.nametags', request()->only(['search', 'status'])) }}" class="btn btn-label-info" target="_blank">
+                <i class="bx bx-printer me-1"></i> Cetak Nametag
+            </a>
             <a href="{{ route('students.import-template') }}" class="btn btn-label-primary">
                 <i class="bx bx-download me-1"></i> Download Format
             </a>
@@ -65,8 +68,21 @@
                         @forelse($students as $student)
                             <tr>
                                 <td>
-                                    <strong>{{ $student->user?->name }}</strong>
-                                    <div class="text-muted small">{{ $student->user?->email }}</div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar">
+                                            @if($student->photo_path)
+                                                <img src="{{ \App\Support\SchoolFileStorage::url($student->photo_path) }}" alt="Foto {{ $student->user?->name }}" class="rounded object-fit-cover" style="width: 40px; height: 40px;">
+                                            @else
+                                                <span class="avatar-initial rounded bg-label-secondary">
+                                                    {{ strtoupper(substr($student->user?->name ?? 'M', 0, 1)) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <strong>{{ $student->user?->name }}</strong>
+                                            <div class="text-muted small">{{ $student->user?->email }}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     <div>{{ $student->nis ?: '-' }}</div>
@@ -87,6 +103,9 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
+                                    <a href="{{ route('students.nametag', $student) }}" class="btn btn-sm btn-icon btn-label-info" target="_blank" title="Cetak Nametag" aria-label="Cetak Nametag">
+                                        <i class="bx bx-id-card"></i>
+                                    </a>
                                     <button type="button" class="btn btn-sm btn-icon btn-label-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasEditStudent{{ $student->id }}" title="Edit" aria-label="Edit">
                                         <i class="bx bx-edit-alt"></i>
                                     </button>
@@ -94,7 +113,7 @@
                                         <form method="POST" action="{{ route('students.destroy', $student) }}" class="d-inline" id="deactivate-student-{{ $student->id }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeactivateStudent({{ $student->id }})" title="Nonaktifkan" aria-label="Nonaktifkan">
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeactivateStudent(@js($student->id))" title="Nonaktifkan" aria-label="Nonaktifkan">
                                                 <i class="bx bx-power-off"></i>
                                             </button>
                                         </form>
@@ -108,7 +127,7 @@
                                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
                                 <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-                                    <form method="POST" action="{{ route('students.update', $student) }}">
+                                    <form method="POST" action="{{ route('students.update', $student) }}" enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
 
@@ -123,6 +142,16 @@
                                         </div>
 
                                         <h6 class="mb-3 mt-2">Profil Murid</h6>
+                                        <div class="mb-4">
+                                            <label class="form-label" for="edit_photo_{{ $student->id }}">Foto Murid</label>
+                                            @if($student->photo_path)
+                                                <div class="mb-2">
+                                                    <img src="{{ \App\Support\SchoolFileStorage::url($student->photo_path) }}" alt="Foto {{ $student->user?->name }}" class="rounded object-fit-cover border" style="width: 72px; height: 72px;">
+                                                </div>
+                                            @endif
+                                            <input type="file" class="form-control" id="edit_photo_{{ $student->id }}" name="photo" accept="image/jpeg,image/png,image/webp">
+                                            <div class="form-text">Kosongkan jika tidak ingin mengganti foto. JPG, PNG, atau WebP maksimal 2MB.</div>
+                                        </div>
                                         <div class="mb-4">
                                             <label class="form-label" for="edit_nis_{{ $student->id }}">NIS</label>
                                             <input class="form-control" id="edit_nis_{{ $student->id }}" name="nis" value="{{ old('nis', $student->nis) }}">
@@ -212,7 +241,7 @@
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-            <form method="POST" action="{{ route('students.store') }}">
+            <form method="POST" action="{{ route('students.store') }}" enctype="multipart/form-data">
                 @csrf
 
                 <h6 class="mb-3">Akun Login</h6>
@@ -234,6 +263,11 @@
                 </div>
 
                 <h6 class="mb-3 mt-2">Profil Murid</h6>
+                <div class="mb-4">
+                    <label class="form-label" for="photo">Foto Murid</label>
+                    <input type="file" class="form-control" id="photo" name="photo" accept="image/jpeg,image/png,image/webp">
+                    <div class="form-text">JPG, PNG, atau WebP maksimal 2MB.</div>
+                </div>
                 <div class="mb-4">
                     <label class="form-label" for="nis">NIS</label>
                     <input class="form-control" id="nis" name="nis" value="{{ old('nis') }}">

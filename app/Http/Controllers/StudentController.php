@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
+use App\Support\EffectiveAccess;
+use App\Support\SchoolFileStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class StudentController extends Controller
 {
@@ -79,6 +82,7 @@ class StudentController extends Controller
         DB::transaction(function () use ($school, $validated, $request) {
             $studentRole = Role::findByName('student');
             $status = $request->boolean('is_active', true) ? 'active' : 'inactive';
+            $photoPath = $this->storeStudentPhoto($request, $school);
 
             $user = User::create([
                 'name' => $validated['name'],
@@ -97,6 +101,7 @@ class StudentController extends Controller
             Student::create([
                 'school_id' => $school->id,
                 'user_id' => $user->id,
+                'photo_path' => $photoPath,
                 ...$this->profilePayload($validated, $request),
             ]);
         });
@@ -263,6 +268,51 @@ class StudentController extends Controller
         return redirect()->route('students.index')->with('success', count($rows).' data murid berhasil diimport.');
     }
 
+    public function printNametags(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        $students = $school->students()
+            ->with('user')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('nis', 'like', "%{$search}%")
+                        ->orWhere('nisn', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->orderBy('users.name')
+            ->select('students.*')
+            ->get();
+
+        return view('students.nametags', compact('school', 'students'));
+    }
+
+    public function printNametag(Request $request, Student $student): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school || $student->school_id !== $school->id) {
+            abort(403);
+        }
+
+        $students = collect([$student->load('user')]);
+
+        return view('students.nametags', compact('school', 'students'));
+    }
+
 
     public function update(Request $request, Student $student): RedirectResponse
     {
@@ -304,7 +354,17 @@ class StudentController extends Controller
                 ],
             ]);
 
-            $student->update($this->profilePayload($validated, $request));
+            $payload = $this->profilePayload($validated, $request);
+
+            if ($photoPath = $this->storeStudentPhoto($request, $school)) {
+                if ($student->photo_path) {
+                    SchoolFileStorage::delete($student->photo_path);
+                }
+
+                $payload['photo_path'] = $photoPath;
+            }
+
+            $student->update($payload);
         });
 
         return redirect()->route('students.index')->with('success', 'Data murid berhasil diperbarui.');
@@ -338,6 +398,7 @@ class StudentController extends Controller
         return [
             'nis' => ['nullable', 'string', 'max:50'],
             'nisn' => ['nullable', 'string', 'max:50'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'entry_year' => ['nullable', 'integer', 'min:1900', 'max:2100'],
             'gender' => ['nullable', 'in:male,female'],
             'phone' => ['nullable', 'string', 'max:50'],
@@ -363,13 +424,26 @@ class StudentController extends Controller
         ];
     }
 
+    private function storeStudentPhoto(Request $request, $school): ?string
+    {
+        if (! $request->hasFile('photo')) {
+            return null;
+        }
+
+        $photo = $request->file('photo');
+
+        if (! $photo->isValid() || empty($photo->getPathname()) || ! is_file($photo->getPathname())) {
+            throw ValidationException::withMessages([
+                'photo' => 'File foto gagal diunggah. Silakan pilih ulang foto murid.',
+            ]);
+        }
+
+        return SchoolFileStorage::store($photo, $school, 'students', 'foto-murid');
+    }
+
     private function activeSchool(Request $request)
     {
-        return $request->user()
-            ->schools()
-            ->wherePivot('status', 'active')
-            ->where('schools.status', 'active')
-            ->first();
+        return EffectiveAccess::school($request);
     }
 
     private function readCsvRows(string $path): array

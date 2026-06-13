@@ -9,12 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('classrooms', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('school_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('academic_year_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('semester_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('school_class_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('homeroom_teacher_id')->nullable()->constrained('teachers')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('school_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('academic_year_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('semester_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('school_class_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('homeroom_teacher_id')->nullable()->constrained('teachers')->nullOnDelete();
             $table->string('name');
             $table->unsignedInteger('capacity')->nullable();
             $table->boolean('is_active')->default(true);

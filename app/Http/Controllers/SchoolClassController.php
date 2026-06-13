@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolClass;
+use App\Support\EffectiveAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -110,10 +111,6 @@ class SchoolClassController extends Controller
 
     private function activeSchool(Request $request)
     {
-        return $request->user()
-            ->schools()
-            ->wherePivot('status', 'active')
-            ->where('schools.status', 'active')
-            ->first();
+        return EffectiveAccess::school($request);
     }
 }

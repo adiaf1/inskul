@@ -1,0 +1,50 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
+        <div>
+            <h4 class="mb-1">Presensi</h4>
+            <p class="text-muted mb-0">{{ $school->name }} - kelola presensi harian dan presensi per jadwal.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="avatar rounded bg-label-primary">
+                            <i class="bx bx-calendar-check"></i>
+                        </span>
+                        <div>
+                            <h5 class="mb-1">Presensi Harian</h5>
+                            <div class="text-muted small">Absensi satu kali per hari berdasarkan rombel.</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.daily') }}" class="btn btn-primary">
+                        Buka Presensi Harian
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="avatar rounded bg-label-info">
+                            <i class="bx bx-time-five"></i>
+                        </span>
+                        <div>
+                            <h5 class="mb-1">Presensi Per Jadwal</h5>
+                            <div class="text-muted small">Absensi per sesi pelajaran berdasarkan jadwal.</div>
+                        </div>
+                    </div>
+                    <span class="badge bg-label-secondary">Segera dibangun</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Semester;
+use App\Support\EffectiveAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -120,10 +121,6 @@ class SemesterController extends Controller
 
     private function activeSchool(Request $request)
     {
-        return $request->user()
-            ->schools()
-            ->wherePivot('status', 'active')
-            ->where('schools.status', 'active')
-            ->first();
+        return EffectiveAccess::school($request);
     }
 }

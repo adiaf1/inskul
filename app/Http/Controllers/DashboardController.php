@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Support\EffectiveAccess;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -11,24 +11,25 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $role = EffectiveAccess::role(request());
 
-        if ($user->hasRole('super_admin')) {
+        if ($role === 'super_admin') {
             return view('dashboard.super-admin');
-        } elseif ($user->hasRole('school_admin')) {
-            $school = $user->schools()
-                ->withCount(['academicYears', 'semesters', 'classes', 'classrooms', 'rooms', 'schedules', 'subjects', 'teachers', 'students'])
-                ->wherePivot('status', 'active')
-                ->where('schools.status', 'active')
-                ->first();
+        } elseif ($role === 'school_admin') {
+            $school = EffectiveAccess::school(request());
+
+            if ($school) {
+                $school->loadCount(['academicYears', 'semesters', 'classes', 'classrooms', 'rooms', 'schedules', 'subjects', 'teachers', 'students']);
+            }
 
             return view('dashboard.school-admin', compact('school'));
-        } elseif ($user->hasRole('principal')) {
+        } elseif ($role === 'principal') {
             return view('dashboard.principal');
-        } elseif ($user->hasRole('teacher')) {
+        } elseif ($role === 'teacher') {
             return view('dashboard.teacher');
-        } elseif ($user->hasRole('student')) {
+        } elseif ($role === 'student') {
             return view('dashboard.student');
-        } elseif ($user->hasRole('parent')) {
+        } elseif ($role === 'parent') {
             return view('dashboard.parent');
         }
 

@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuidPrimaryKey;
 
     protected $fillable = [
         'school_id',
         'user_id',
+        'photo_path',
         'nis',
         'nisn',
         'entry_year',
@@ -43,7 +46,13 @@ class Student extends Model
     public function classrooms(): BelongsToMany
     {
         return $this->belongsToMany(Classroom::class)
+            ->using(ClassroomStudent::class)
             ->withPivot('status')
             ->withTimestamps();
+    }
+
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class);
     }
 }

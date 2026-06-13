@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\EffectiveAccess;
+use App\Support\SchoolFileStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,16 +82,36 @@ class ProfileController extends Controller
         // Cek dan simpan foto profil
         if ($request->hasFile('profile_picture')) {
             $request->validate([
-                'profile_picture' => 'image|mimes:jpeg,png,jpg,gif|max:80000',
+                'profile_picture' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            if ($user->profile_picture && File::exists(public_path('assets/img/avatars/' . $user->profile_picture))) {
-                File::delete(public_path('assets/img/avatars/' . $user->profile_picture));
+            $profilePicture = $request->file('profile_picture');
+
+            if (! $profilePicture->isValid() || empty($profilePicture->getPathname()) || ! is_file($profilePicture->getPathname())) {
+                return back()->withErrors('Foto profil gagal diunggah. Silakan pilih ulang file foto.')->withInput();
             }
 
-            $filename = time() . '.' . $request->profile_picture->getClientOriginalExtension();
-            $request->profile_picture->move(public_path('assets/img/avatars'), $filename);
-            $user->profile_picture = $filename;
+            if ($user->hasRole('super_admin')) {
+                if ($user->profile_picture && $user->profile_picture !== 'default.png' && File::exists(public_path('assets/img/avatars/' . $user->profile_picture))) {
+                    File::delete(public_path('assets/img/avatars/' . $user->profile_picture));
+                }
+
+                $filename = time() . '.' . $profilePicture->getClientOriginalExtension();
+                $profilePicture->move(public_path('assets/img/avatars'), $filename);
+                $user->profile_picture = $filename;
+            } else {
+                $school = $this->activeSchool($request);
+
+                if (! $school) {
+                    return back()->withErrors('Akun Anda belum terhubung ke sekolah aktif.')->withInput();
+                }
+
+                if ($user->profile_picture && $user->profile_picture !== 'default.png') {
+                    SchoolFileStorage::delete($user->profile_picture);
+                }
+
+                $user->profile_picture = SchoolFileStorage::store($profilePicture, $school, 'profiles', 'foto-profil');
+            }
         }
 
         // Ubah data umum
@@ -112,6 +134,11 @@ class ProfileController extends Controller
         $user->save();
 
         return Redirect::route('profile.edit')->with('success', 'Profile updated successfully!');
+    }
+
+    private function activeSchool(Request $request)
+    {
+        return EffectiveAccess::school($request);
     }
 
 }

@@ -49,7 +49,7 @@
 
                     <!-- Unggah foto profil -->
                     <div class="col-md-12 d-flex align-items-start align-items-sm-center gap-6 mb-4 border-bottom pb-4">
-                        <img src="{{ asset('assets/img/avatars/' . ($user->profile_picture ?? 'default.png')) }}" alt="user-avatar" class="d-block w-px-100 h-px-100 rounded" id="uploadedAvatar">
+                        <img src="{{ \App\Support\SchoolFileStorage::url($user->profile_picture) }}" alt="user-avatar" class="d-block w-px-100 h-px-100 rounded" id="uploadedAvatar">
                         <div class="button-wrapper">
                             <label for="upload" class="btn btn-primary me-3 mb-4" tabindex="0">
                                 <span class="d-none d-sm-block">Unggah foto baru</span>

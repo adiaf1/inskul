@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('semesters', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('school_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('academic_year_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('school_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('academic_year_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->date('starts_at');
             $table->date('ends_at');

@@ -17,13 +17,13 @@ return new class extends Migration
         }
 
         Schema::create('schedules', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('school_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('academic_year_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('semester_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('classroom_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('subject_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('teacher_id')->nullable()->constrained()->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('school_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('academic_year_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('semester_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('classroom_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('subject_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('teacher_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedTinyInteger('day_of_week');
             $table->time('starts_at');
             $table->time('ends_at');

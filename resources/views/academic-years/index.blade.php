@@ -66,7 +66,7 @@
                                     <form method="POST" action="{{ route('academic-years.destroy', $academicYear) }}" class="d-inline" id="delete-academic-year-{{ $academicYear->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteAcademicYear({{ $academicYear->id }})" title="Hapus" aria-label="Hapus">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteAcademicYear(@js($academicYear->id))" title="Hapus" aria-label="Hapus">
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </form>

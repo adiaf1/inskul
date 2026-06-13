@@ -123,7 +123,7 @@
                                     <form method="POST" action="{{ route('schedules.destroy', $schedule) }}" class="d-inline" id="delete-schedule-{{ $schedule->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteSchedule({{ $schedule->id }})" title="Hapus" aria-label="Hapus">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteSchedule(@js($schedule->id))" title="Hapus" aria-label="Hapus">
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </form>

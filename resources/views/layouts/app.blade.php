@@ -68,6 +68,9 @@
 </head>
 
 <body>
+    @php($authUser = Auth::user())
+    @php($effectiveRole = \App\Support\EffectiveAccess::role(request()))
+    @php($viewAs = \App\Support\EffectiveAccess::payload(request()))
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
         <div class="layout-container">
@@ -281,7 +284,7 @@
                                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);"
                                     data-bs-toggle="dropdown">
                                     <div class="avatar avatar-online">
-                                    <img src="{{ asset('assets/img/avatars/' . (Auth::user()->profile_picture ?? 'default.png')) }}" alt="Profile Picture">
+                                    <img src="{{ \App\Support\SchoolFileStorage::url($authUser?->profile_picture) }}" alt="Profile Picture">
                                     </div>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
@@ -290,7 +293,7 @@
                                             <div class="d-flex">
                                                 <div class="flex-shrink-0 me-3">
                                                   <div class="avatar avatar-online">
-                                                    <img src="{{ asset('assets/img/avatars/' . ($user->profile_picture ?? 'default.png')) }}" alt="" class="w-px-40 h-auto rounded-circle">
+                                                    <img src="{{ \App\Support\SchoolFileStorage::url($authUser?->profile_picture) }}" alt="" class="w-px-40 h-auto rounded-circle">
                                                   </div>
                                                 </div>
                                                 <div class="flex-grow-1">
@@ -387,15 +390,27 @@
                                                 <div data-i18n="Users">Pengguna</div>
                                             </a>
                                         </li>
+                                        <li class="menu-item {{ request()->is('view-as*') ? 'active' : '' }}">
+                                            <a href="{{ route('view-as.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-show"></i>
+                                                <div data-i18n="Mode Lihat">Mode Lihat</div>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                                 @endhasanyrole
 
-                                @hasrole('school_admin')
+                                @if($effectiveRole === 'school_admin')
                                 <li class="menu-item {{ request()->is('school-profile') ? 'active' : '' }}">
                                     <a href="{{ route('school-profile.edit') }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-building-house"></i>
                                         <div data-i18n="Profil Sekolah">Profil Sekolah</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                    <a href="{{ route('attendances.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                                        <div data-i18n="Presensi">Presensi</div>
                                     </a>
                                 </li>
                                 <li class="menu-item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','rooms*','schedules*','subjects*','teachers*','students*') ? 'active' : '' }}">
@@ -466,7 +481,7 @@
                                         <div data-i18n="Pengguna Sekolah">Pengguna Sekolah</div>
                                     </a>
                                 </li>
-                                @endhasrole
+                                @endif
 
                             </ul>
                         </div>
@@ -474,6 +489,24 @@
                     <!-- / Menu -->
 
                     <!-- Content -->
+                    @if(($viewAs['active'] ?? false) === true)
+                        <div class="container-xxl pt-3">
+                            <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-3 mb-0">
+                                <div>
+                                    <strong>Mode Lihat Sebagai:</strong>
+                                    {{ $viewAs['role_label'] ?? '-' }} di {{ $viewAs['school_name'] ?? '-' }}
+                                    @if(! empty($viewAs['user_name']))
+                                        sebagai {{ $viewAs['user_name'] }}
+                                    @endif
+                                </div>
+                                <form method="POST" action="{{ route('view-as.destroy') }}" class="m-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-label-danger" type="submit">Keluar Mode</button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
                     @yield('content')
                     <!--/ Content -->
 

@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class School extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuidPrimaryKey;
 
     protected $fillable = [
         'name',
@@ -40,6 +41,7 @@ class School extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
+            ->using(SchoolUser::class)
             ->withPivot(['role_id', 'status'])
             ->withTimestamps();
     }
@@ -94,5 +96,10 @@ class School extends Model
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
+    }
+
+    public function attendanceSessions(): HasMany
+    {
+        return $this->hasMany(AttendanceSession::class);
     }
 }

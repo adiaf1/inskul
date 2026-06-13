@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SchoolFileStorage;
+use App\Support\EffectiveAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -48,23 +50,12 @@ class SchoolProfileController extends Controller
                     ->withInput();
             }
 
-            $extension = strtolower($logo->getClientOriginalExtension() ?: 'png');
-            $fileName = 'school-'.$school->id.'-'.now()->format('YmdHis').'.'.$extension;
-            $targetDirectory = public_path('uploads/school-logos');
+            $folderSchool = clone $school;
+            $folderSchool->name = $validated['school_name'];
+            $folderSchool->npsn = $validated['npsn'] ?? null;
 
-            if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0755, true)) {
-                return back()
-                    ->withErrors('Folder upload logo sekolah gagal dibuat.')
-                    ->withInput();
-            }
-
-            $logo->move($targetDirectory, $fileName);
-
-            $logoPath = 'uploads/school-logos/'.$fileName;
-
-            if ($school->logo_path && is_file(public_path($school->logo_path))) {
-                unlink(public_path($school->logo_path));
-            }
+            $logoPath = SchoolFileStorage::store($logo, $folderSchool, 'logos', 'logo-sekolah');
+            SchoolFileStorage::delete($school->logo_path);
         }
 
         $school->update([
@@ -84,10 +75,6 @@ class SchoolProfileController extends Controller
 
     private function activeSchool(Request $request)
     {
-        return $request->user()
-            ->schools()
-            ->wherePivot('status', 'active')
-            ->where('schools.status', 'active')
-            ->first();
+        return EffectiveAccess::school($request);
     }
 }

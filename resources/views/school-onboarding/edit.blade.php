@@ -30,7 +30,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">1. Profil Sekolah</h5>
+                        <h5 class="mb-0">Profil Sekolah</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-4">
@@ -67,7 +67,7 @@
                                 <div class="d-flex flex-wrap align-items-center gap-4">
                                     <div class="border rounded d-flex align-items-center justify-content-center bg-light" style="width: 96px; height: 96px;">
                                         @if($school->logo_path)
-                                            <img id="logoPreview" src="{{ asset($school->logo_path) }}" alt="Logo sekolah" class="img-fluid rounded" style="max-width: 88px; max-height: 88px;">
+                                            <img id="logoPreview" src="{{ \App\Support\SchoolFileStorage::url($school->logo_path) }}" alt="Logo sekolah" class="img-fluid rounded" style="max-width: 88px; max-height: 88px;">
                                         @else
                                             <img id="logoPreview" src="" alt="Preview logo sekolah" class="img-fluid rounded d-none" style="max-width: 88px; max-height: 88px;">
                                             <i id="logoPlaceholder" class="bx bx-image text-muted fs-1"></i>
@@ -86,75 +86,10 @@
 
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">2. Tahun Ajaran & Semester Aktif</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <label class="form-label" for="academic_year_name">Nama Tahun Ajaran</label>
-                                <input class="form-control" id="academic_year_name" name="academic_year_name" value="{{ old('academic_year_name', '2025/2026') }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="academic_year_starts_at">Mulai Tahun Ajaran</label>
-                                <input type="date" class="form-control" id="academic_year_starts_at" name="academic_year_starts_at" value="{{ old('academic_year_starts_at') }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="academic_year_ends_at">Selesai Tahun Ajaran</label>
-                                <input type="date" class="form-control" id="academic_year_ends_at" name="academic_year_ends_at" value="{{ old('academic_year_ends_at') }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="semester_name">Semester Aktif</label>
-                                <select class="form-select" id="semester_name" name="semester_name" required>
-                                    <option value="Ganjil" @selected(old('semester_name') === 'Ganjil')>Ganjil</option>
-                                    <option value="Genap" @selected(old('semester_name') === 'Genap')>Genap</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="semester_starts_at">Mulai Semester</label>
-                                <input type="date" class="form-control" id="semester_starts_at" name="semester_starts_at" value="{{ old('semester_starts_at') }}" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label" for="semester_ends_at">Selesai Semester</label>
-                                <input type="date" class="form-control" id="semester_ends_at" name="semester_ends_at" value="{{ old('semester_ends_at') }}" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="mb-0">3. Kelas Awal</h5>
-                    </div>
-                    <div class="card-body">
-                        <label class="form-label" for="classes">Daftar Kelas</label>
-                        <textarea class="form-control" id="classes" name="classes" rows="8" required placeholder="X RPL 1 | X&#10;X RPL 2 | X&#10;XI TKJ 1 | XI">{{ old('classes') }}</textarea>
-                        <div class="form-text">Satu baris satu kelas. Format: nama kelas | tingkat.</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="mb-0">4. Mata Pelajaran Awal</h5>
-                    </div>
-                    <div class="card-body">
-                        <label class="form-label" for="subjects">Daftar Mata Pelajaran</label>
-                        <textarea class="form-control" id="subjects" name="subjects" rows="8" required placeholder="Matematika | MTK&#10;Bahasa Indonesia | BIN&#10;Bahasa Inggris | BIG">{{ old('subjects') }}</textarea>
-                        <div class="form-text">Satu baris satu mata pelajaran. Format: nama mapel | kode.</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12">
-                <div class="card">
                     <div class="card-body d-flex flex-wrap justify-content-between gap-3">
                         <div>
                             <h6 class="mb-1">Selesaikan onboarding</h6>
-                            <p class="text-muted mb-0">Setelah disimpan, Admin Sekolah akan masuk ke dashboard utama.</p>
+                            <p class="text-muted mb-0">Setelah disimpan, lanjutkan setup akademik dari dashboard sekolah.</p>
                         </div>
                         <button type="submit" class="btn btn-primary">Selesaikan Onboarding</button>
                     </div>

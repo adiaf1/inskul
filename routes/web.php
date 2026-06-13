@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RoomController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ViewAsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +46,9 @@ Route::middleware(['auth', 'active.user'])->group(function () {
 
 // Route hanya untuk Super Admin
 Route::middleware(['auth', 'active.user', 'role:super_admin'])->group(function () {
+    Route::get('/view-as', [ViewAsController::class, 'index'])->name('view-as.index');
+    Route::post('/view-as', [ViewAsController::class, 'store'])->name('view-as.store');
+    Route::delete('/view-as', [ViewAsController::class, 'destroy'])->name('view-as.destroy');
     Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::get('/schools', [SchoolController::class, 'index'])->name('schools.index');
@@ -52,7 +57,7 @@ Route::middleware(['auth', 'active.user', 'role:super_admin'])->group(function (
 });
 
 // Route untuk Admin Sekolah
-Route::middleware(['auth', 'active.user', 'role:school_admin'])->group(function () {
+Route::middleware(['auth', 'active.user', 'effective.role:school_admin'])->group(function () {
     Route::get('/school-onboarding', [SchoolOnboardingController::class, 'edit'])->name('school-onboarding.edit');
     Route::post('/school-onboarding', [SchoolOnboardingController::class, 'update'])->name('school-onboarding.update');
 
@@ -61,6 +66,11 @@ Route::middleware(['auth', 'active.user', 'role:school_admin'])->group(function 
         Route::patch('/school-profile', [SchoolProfileController::class, 'update'])->name('school-profile.update');
         Route::get('/school-users', [SchoolUserController::class, 'index'])->name('school-users.index');
         Route::post('/school-users', [SchoolUserController::class, 'store'])->name('school-users.store');
+        Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
+        Route::get('/attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
+        Route::post('/attendances/daily/open', [AttendanceController::class, 'openDaily'])->name('attendances.daily.open');
+        Route::get('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'editDaily'])->name('attendances.daily.edit');
+        Route::put('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'updateDaily'])->name('attendances.daily.update');
         Route::resource('academic-years', AcademicYearController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('semesters', SemesterController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('school-classes', SchoolClassController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -73,6 +83,8 @@ Route::middleware(['auth', 'active.user', 'role:school_admin'])->group(function 
         Route::resource('teachers', TeacherController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/students/import/template', [StudentController::class, 'downloadTemplate'])->name('students.import-template');
         Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
+        Route::get('/students/nametags', [StudentController::class, 'printNametags'])->name('students.nametags');
+        Route::get('/students/{student}/nametag', [StudentController::class, 'printNametag'])->name('students.nametag');
         Route::resource('students', StudentController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 });

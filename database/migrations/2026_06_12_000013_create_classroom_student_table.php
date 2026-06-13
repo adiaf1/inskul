@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('classroom_student', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('classroom_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('student_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('classroom_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('student_id')->constrained()->cascadeOnDelete();
             $table->string('status')->default('active');
             $table->timestamps();
 

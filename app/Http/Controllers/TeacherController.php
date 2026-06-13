@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Teacher;
 use App\Models\User;
+use App\Support\EffectiveAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class TeacherController extends Controller
 {
@@ -360,11 +361,7 @@ class TeacherController extends Controller
 
     private function activeSchool(Request $request)
     {
-        return $request->user()
-            ->schools()
-            ->wherePivot('status', 'active')
-            ->where('schools.status', 'active')
-            ->first();
+        return EffectiveAccess::school($request);
     }
 
     private function readCsvRows(string $path): array

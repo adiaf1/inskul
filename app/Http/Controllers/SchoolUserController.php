@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\EffectiveAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class SchoolUserController extends Controller
 {
@@ -22,7 +22,7 @@ class SchoolUserController extends Controller
 
     public function index(Request $request): View|RedirectResponse
     {
-        $school = $this->activeSchool();
+        $school = $this->activeSchool($request);
 
         if (! $school) {
             return redirect()
@@ -51,7 +51,7 @@ class SchoolUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $school = $this->activeSchool();
+        $school = $this->activeSchool($request);
 
         if (! $school) {
             return back()->withErrors('Akun admin sekolah belum terhubung ke sekolah aktif.');
@@ -85,12 +85,8 @@ class SchoolUserController extends Controller
             ->with('success', 'Akun pengguna sekolah berhasil dibuat.');
     }
 
-    private function activeSchool()
+    private function activeSchool(Request $request)
     {
-        return Auth::user()
-            ->schools()
-            ->wherePivot('status', 'active')
-            ->where('schools.status', 'active')
-            ->first();
+        return EffectiveAccess::school($request);
     }
 }

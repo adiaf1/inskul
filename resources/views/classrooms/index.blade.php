@@ -100,7 +100,7 @@
                                     <form method="POST" action="{{ route('classrooms.destroy', $classroom) }}" class="d-inline" id="delete-classroom-{{ $classroom->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteClassroom({{ $classroom->id }})" title="Hapus" aria-label="Hapus">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteClassroom(@js($classroom->id))" title="Hapus" aria-label="Hapus">
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </form>

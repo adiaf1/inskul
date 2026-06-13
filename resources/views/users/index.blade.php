@@ -137,7 +137,7 @@
                                             <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline" id="delete-form-{{ $user->id }}">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="dropdown-item" onclick="confirmDelete({{ $user->id }})">
+                                                <button type="button" class="dropdown-item" onclick="confirmDelete(@js($user->id))">
                                                     <i class="bx bx-trash me-1"></i> Hapus
                                                 </button>
                                             </form>

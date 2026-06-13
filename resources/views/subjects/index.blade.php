@@ -71,7 +71,7 @@
                                     <form method="POST" action="{{ route('subjects.destroy', $subject) }}" class="d-inline" id="delete-subject-{{ $subject->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteSubject({{ $subject->id }})" title="Hapus" aria-label="Hapus">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeleteSubject(@js($subject->id))" title="Hapus" aria-label="Hapus">
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </form>

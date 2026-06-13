@@ -93,7 +93,7 @@
                                         <form method="POST" action="{{ route('teachers.destroy', $teacher) }}" class="d-inline" id="deactivate-teacher-{{ $teacher->id }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeactivateTeacher({{ $teacher->id }})" title="Nonaktifkan" aria-label="Nonaktifkan">
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDeactivateTeacher(@js($teacher->id))" title="Nonaktifkan" aria-label="Nonaktifkan">
                                                 <i class="bx bx-power-off"></i>
                                             </button>
                                         </form>

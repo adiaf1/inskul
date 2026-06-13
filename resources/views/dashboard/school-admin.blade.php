@@ -4,6 +4,35 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-4 mb-6">Dashboard Admin Sekolah</h4>
 
+    @if($school)
+        @php
+            $setupItems = [
+                ['label' => 'Tahun Ajaran', 'count' => $school->academic_years_count, 'route' => route('academic-years.index')],
+                ['label' => 'Semester', 'count' => $school->semesters_count, 'route' => route('semesters.index')],
+                ['label' => 'Kelas', 'count' => $school->classes_count, 'route' => route('school-classes.index')],
+                ['label' => 'Mata Pelajaran', 'count' => $school->subjects_count, 'route' => route('subjects.index')],
+                ['label' => 'Ruangan', 'count' => $school->rooms_count, 'route' => route('rooms.index')],
+                ['label' => 'Guru', 'count' => $school->teachers_count, 'route' => route('teachers.index')],
+                ['label' => 'Murid', 'count' => $school->students_count, 'route' => route('students.index')],
+                ['label' => 'Rombel', 'count' => $school->classrooms_count, 'route' => route('classrooms.index')],
+                ['label' => 'Jadwal', 'count' => $school->schedules_count, 'route' => route('schedules.index')],
+            ];
+            $unfinishedSetup = collect($setupItems)->filter(fn ($item) => (int) $item['count'] === 0);
+        @endphp
+
+        @if($unfinishedSetup->isNotEmpty())
+            <div class="alert alert-warning mb-4">
+                <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="alert-heading mb-1">Setup akademik belum lengkap</h6>
+                        <div>Lengkapi data dasar berikut agar modul presensi, rombel, dan jadwal bisa digunakan dengan baik.</div>
+                    </div>
+                    <span class="badge bg-label-warning">{{ $unfinishedSetup->count() }} belum selesai</span>
+                </div>
+            </div>
+        @endif
+    @endif
+
     <div class="card">
         <div class="card-header">
             Admin Sekolah
@@ -81,5 +110,32 @@
             </div>
         </div>
     </div>
+
+    @if($school)
+        <div class="card mt-4">
+            <div class="card-header">
+                Checklist Setup Sekolah
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach($setupItems as $item)
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100 d-flex align-items-center justify-content-between gap-3">
+                                <div>
+                                    <div class="fw-semibold">{{ $item['label'] }}</div>
+                                    <div class="text-muted small">{{ $item['count'] }} data</div>
+                                </div>
+                                @if((int) $item['count'] > 0)
+                                    <span class="badge bg-label-success">Selesai</span>
+                                @else
+                                    <a href="{{ $item['route'] }}" class="btn btn-sm btn-label-primary">Isi Data</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 @endsection
