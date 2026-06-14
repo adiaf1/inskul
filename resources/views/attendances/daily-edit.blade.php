@@ -110,13 +110,21 @@
 
         <div class="card">
             <div class="card-body">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                    <span class="text-muted small me-1">Keterangan:</span>
-                    <span class="badge bg-label-primary">H = Hadir</span>
-                    <span class="badge bg-label-info">S = Sakit</span>
-                    <span class="badge bg-label-danger">A = Alpa</span>
-                    <span class="badge bg-label-warning">I = Izin</span>
-                    <span class="badge bg-label-secondary">T = Terlambat</span>
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="text-muted small me-1">Keterangan:</span>
+                        <span class="badge bg-label-primary">H = Hadir</span>
+                        <span class="badge bg-label-info">S = Sakit</span>
+                        <span class="badge bg-label-danger">A = Alpa</span>
+                        <span class="badge bg-label-warning">I = Izin</span>
+                        <span class="badge bg-label-secondary">T = Terlambat</span>
+                    </div>
+
+                    @if($session->status !== 'locked')
+                        <button type="button" class="btn btn-sm btn-label-success" id="markAllPresent">
+                            <i class="bx bx-check-double me-1"></i> Hadir Semua
+                        </button>
+                    @endif
                 </div>
 
                 <div class="table-responsive text-nowrap">
@@ -227,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const video = document.getElementById('qrScannerVideo');
     const html5QrReader = document.getElementById('html5QrReader');
     const message = document.getElementById('qrScannerMessage');
+    const markAllPresentButton = document.getElementById('markAllPresent');
     const scanUrl = @json(route('attendances.daily.scan', $session));
     const csrfToken = @json(csrf_token());
     const isLocked = @json($session->status === 'locked');
@@ -495,6 +504,14 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', () => {
             setAttendanceStatus(button.dataset.attendanceStatusButton, button.dataset.statusValue);
         });
+    });
+
+    markAllPresentButton?.addEventListener('click', () => {
+        document.querySelectorAll('[data-attendance-status]').forEach((input) => {
+            setAttendanceStatus(input.dataset.attendanceStatus, 'present');
+        });
+
+        showMessage('success', 'Semua murid ditandai hadir. Silakan ubah manual jika ada yang sakit, izin, alpa, atau terlambat.');
     });
 
     window.addEventListener('beforeunload', stopScanner);
