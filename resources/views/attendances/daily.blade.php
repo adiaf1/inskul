@@ -26,6 +26,12 @@
 
     <div class="card mb-4">
         <div class="card-body">
+            @if($classrooms->isEmpty())
+                <div class="alert alert-warning mb-4">
+                    Belum ada rombel yang bisa dipresensi. Jika Anda login sebagai guru, pastikan akun guru sudah ditetapkan sebagai wali kelas pada data rombel.
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('attendances.daily.open') }}">
                 @csrf
                 <div class="row g-3 align-items-end">

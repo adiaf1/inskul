@@ -273,6 +273,10 @@
                             <span class="filter-label">Ruangan</span><br>
                             <strong>{{ $selectedRoom?->name ?? 'Semua Ruangan' }}</strong>
                         </div>
+                        <div>
+                            <span class="filter-label">Guru</span><br>
+                            <strong>{{ $selectedTeacher?->user?->name ?? 'Semua Guru' }}</strong>
+                        </div>
                     </div>
                 </div>
 

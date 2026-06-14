@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('attendance_session_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('student_id')->constrained()->cascadeOnDelete();
-            $table->string('status')->default('present');
+            $table->string('status')->nullable();
             $table->timestamp('checked_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

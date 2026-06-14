@@ -34,6 +34,7 @@ class ScheduleController extends Controller
         $semesterId = $request->input('semester_id');
         $classroomId = $request->input('classroom_id');
         $roomId = $request->input('room_id');
+        $teacherId = $request->input('teacher_id');
         $dayOfWeek = $request->input('day_of_week');
         $status = $request->input('status');
 
@@ -51,6 +52,7 @@ class ScheduleController extends Controller
             ->when($semesterId, fn ($query) => $query->where('semester_id', $semesterId))
             ->when($classroomId, fn ($query) => $query->where('classroom_id', $classroomId))
             ->when($roomId, fn ($query) => $query->where('room_id', $roomId))
+            ->when($teacherId, fn ($query) => $query->where('teacher_id', $teacherId))
             ->when($dayOfWeek, fn ($query) => $query->where('day_of_week', $dayOfWeek))
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
             ->orderBy('day_of_week')
@@ -72,6 +74,7 @@ class ScheduleController extends Controller
             'semesterId',
             'classroomId',
             'roomId',
+            'teacherId',
             'dayOfWeek',
             'status'
         ));
@@ -89,6 +92,7 @@ class ScheduleController extends Controller
         $semesterId = $request->input('semester_id');
         $classroomId = $request->input('classroom_id');
         $roomId = $request->input('room_id');
+        $teacherId = $request->input('teacher_id');
         $dayOfWeek = $request->input('day_of_week');
         $status = $request->input('status');
         $days = self::DAYS;
@@ -99,6 +103,7 @@ class ScheduleController extends Controller
             ->when($semesterId, fn ($query) => $query->where('semester_id', $semesterId))
             ->when($classroomId, fn ($query) => $query->where('classroom_id', $classroomId))
             ->when($roomId, fn ($query) => $query->where('room_id', $roomId))
+            ->when($teacherId, fn ($query) => $query->where('teacher_id', $teacherId))
             ->when($dayOfWeek, fn ($query) => $query->where('day_of_week', $dayOfWeek))
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
             ->get()
@@ -115,6 +120,7 @@ class ScheduleController extends Controller
         $selectedSemester = $semesterId ? $school->semesters()->find($semesterId) : null;
         $selectedClassroom = $classroomId ? $school->classrooms()->find($classroomId) : null;
         $selectedRoom = $roomId ? $school->rooms()->find($roomId) : null;
+        $selectedTeacher = $teacherId ? $school->teachers()->with('user')->find($teacherId) : null;
 
         return view('schedules.print', compact(
             'school',
@@ -124,6 +130,7 @@ class ScheduleController extends Controller
             'selectedSemester',
             'selectedClassroom',
             'selectedRoom',
+            'selectedTeacher',
             'dayOfWeek',
             'status'
         ));

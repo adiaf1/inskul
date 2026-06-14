@@ -10,7 +10,7 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3 mb-3">
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3 mb-3">
@@ -41,7 +41,28 @@
                             <div class="text-muted small">Absensi per sesi pelajaran berdasarkan jadwal.</div>
                         </div>
                     </div>
-                    <span class="badge bg-label-secondary">Segera dibangun</span>
+                    <a href="{{ route('attendances.schedule') }}" class="btn btn-info">
+                        Buka Presensi Per Jadwal
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="avatar rounded bg-label-success">
+                            <i class="bx bx-bar-chart-alt-2"></i>
+                        </span>
+                        <div>
+                            <h5 class="mb-1">Report Presensi</h5>
+                            <div class="text-muted small">Lihat, filter, dan cetak hasil presensi.</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.report') }}" class="btn btn-success">
+                        Buka Report Presensi
+                    </a>
                 </div>
             </div>
         </div>

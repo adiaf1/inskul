@@ -71,6 +71,7 @@
     @php($authUser = Auth::user())
     @php($effectiveRole = \App\Support\EffectiveAccess::role(request()))
     @php($viewAs = \App\Support\EffectiveAccess::payload(request()))
+    @php($pendingSchoolCount = $authUser?->hasRole('super_admin') ? \App\Models\School::where('status', 'pending')->count() : 0)
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
         <div class="layout-container">
@@ -146,15 +147,45 @@
 
                     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
                         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-                            <!-- Search -->
-                            <li class="nav-item navbar-search-wrapper me-2 me-xl-0">
-                                <a class="nav-item nav-link search-toggler px-0" href="javascript:void(0);">
-                                    <span class="d-inline-block text-body-secondary fw-normal" id="autocomplete"></span>
+                            @hasanyrole('super_admin')
+                            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
+                                <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                                    title="Notifikasi registrasi sekolah">
+                                    <i class="icon-base bx bx-bell icon-md"></i>
+                                    @if($pendingSchoolCount > 0)
+                                        <span class="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
+                                    @endif
                                 </a>
+                                <ul class="dropdown-menu dropdown-menu-end p-0">
+                                    <li class="dropdown-menu-header border-bottom">
+                                        <div class="dropdown-header d-flex align-items-center py-3">
+                                            <h6 class="mb-0 me-auto">Notifikasi</h6>
+                                            @if($pendingSchoolCount > 0)
+                                                <span class="badge bg-label-primary">{{ $pendingSchoolCount }} baru</span>
+                                            @endif
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-start gap-3 py-3" href="{{ route('schools.index') }}">
+                                            <span class="avatar rounded bg-label-warning">
+                                                <i class="bx bx-building-house"></i>
+                                            </span>
+                                            <span class="flex-grow-1">
+                                                <span class="d-block fw-medium">Registrasi Sekolah</span>
+                                                <small class="text-muted">
+                                                    @if($pendingSchoolCount > 0)
+                                                        {{ $pendingSchoolCount }} sekolah menunggu approve.
+                                                    @else
+                                                        Tidak ada sekolah yang menunggu approve.
+                                                    @endif
+                                                </small>
+                                            </span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
-                            <!-- /Search -->
-
-                        
+                            @endhasanyrole
 
                             <!-- Style Switcher -->
                             <li class="nav-item dropdown me-2 me-xl-0">
@@ -189,6 +220,7 @@
                             </li>
                             <!-- / Style Switcher-->
 
+                            @hasanyrole('super_admin')
                             <!-- Quick links  -->
                             <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown me-2 me-xl-0">
                                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
@@ -209,74 +241,40 @@
                                         <div class="row row-bordered overflow-visible g-0">
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i class="icon-base bx bx-calendar icon-26px text-heading"></i>
+                                                    <i class="icon-base bx bx-building icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="app-calendar.html" class="stretched-link">Kalender</a>
-                                                <small>Jadwal</small>
+                                                <a href="{{ route('schools.index') }}" class="stretched-link">Registrasi Sekolah</a>
+                                                <small>Kelola persetujuan sekolah</small>
                                             </div>
-                                            <div class="dropdown-shortcuts-item col">
-                                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i class="icon-base bx bx-food-menu icon-26px text-heading"></i>
-                                                </span>
-                                                <a href="app-invoice-list.html" class="stretched-link">Invoice</a>
-                                                <small>Kelola akun</small>
-                                            </div>
-                                        </div>
-                                        <div class="row row-bordered overflow-visible g-0">
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-user icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="app-user-list.html" class="stretched-link">Pengguna</a>
-                                                <small>Kelola pengguna</small>
-                                            </div>
-                                            <div class="dropdown-shortcuts-item col">
-                                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i class="icon-base bx bx-check-shield icon-26px text-heading"></i>
-                                                </span>
-                                                <a href="app-access-roles.html" class="stretched-link">Manajemen
-                                                    Role</a>
-                                                <small>Hak akses</small>
+                                                <a href="{{ route('users.index') }}" class="stretched-link">Pengguna</a>
+                                                <small>Kelola akun sistem</small>
                                             </div>
                                         </div>
                                         <div class="row row-bordered overflow-visible g-0">
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i
-                                                        class="icon-base bx bx-pie-chart-alt-2 icon-26px text-heading"></i>
+                                                    <i class="icon-base bx bx-show icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="index.html" class="stretched-link">Dashboard</a>
-                                                <small>Dashboard pengguna</small>
+                                                <a href="{{ route('view-as.index') }}" class="stretched-link">Mode Lihat</a>
+                                                <small>Lihat sebagai sekolah</small>
                                             </div>
                                             <div class="dropdown-shortcuts-item col">
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i class="icon-base bx bx-cog icon-26px text-heading"></i>
+                                                    <i class="icon-base bx bx-home-smile icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="pages-account-settings-account.html"
-                                                    class="stretched-link">Pengaturan</a>
-                                                <small>Pengaturan akun</small>
-                                            </div>
-                                        </div>
-                                        <div class="row row-bordered overflow-visible g-0">
-                                            <div class="dropdown-shortcuts-item col">
-                                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i class="icon-base bx bx-help-circle icon-26px text-heading"></i>
-                                                </span>
-                                                <a href="pages-faq.html" class="stretched-link">FAQ</a>
-                                                <small>Pertanyaan dan artikel</small>
-                                            </div>
-                                            <div class="dropdown-shortcuts-item col">
-                                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                                    <i class="icon-base bx bx-window-open icon-26px text-heading"></i>
-                                                </span>
-                                                <a href="modal-examples.html" class="stretched-link">Modals</a>
-                                                <small>Popup berguna</small>
+                                                <a href="{{ route('dashboard') }}" class="stretched-link">Dashboard</a>
+                                                <small>Ringkasan sistem</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </li>
                             <!-- Quick links -->
+                            @endhasanyrole
 
                             
                             <!-- User -->
@@ -370,36 +368,6 @@
                                     </a>
                                 </li>
 
-                                @hasanyrole('super_admin')
-                                <!-- Users -->
-                                <li class="menu-item {{ request()->is('schools','users','roles','permissions') ? 'active' : '' }}">
-                                    <a href="javascript:void(0)" class="menu-link menu-toggle">
-                                        <i class="menu-icon tf-icons bx bx-user"></i>
-                                        <div data-i18n="Super Admin">Super Admin</div>
-                                    </a>
-                                    <ul class="menu-sub">
-                                        <li class="menu-item {{ request()->is('schools') ? 'active' : '' }}">
-                                            <a href="{{ route('schools.index') }}" class="menu-link">
-                                                <i class="menu-icon tf-icons bx bx-building"></i>
-                                                <div data-i18n="Schools">Registrasi Sekolah</div>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item {{ request()->is('users') ? 'active' : '' }}">
-                                            <a href="{{ url('/users') }}" class="menu-link">
-                                                <i class="menu-icon tf-icons bx bx-user"></i>
-                                                <div data-i18n="Users">Pengguna</div>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item {{ request()->is('view-as*') ? 'active' : '' }}">
-                                            <a href="{{ route('view-as.index') }}" class="menu-link">
-                                                <i class="menu-icon tf-icons bx bx-show"></i>
-                                                <div data-i18n="Mode Lihat">Mode Lihat</div>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                @endhasanyrole
-
                                 @if($effectiveRole === 'school_admin')
                                 <li class="menu-item {{ request()->is('school-profile') ? 'active' : '' }}">
                                     <a href="{{ route('school-profile.edit') }}" class="menu-link">
@@ -407,12 +375,27 @@
                                         <div data-i18n="Profil Sekolah">Profil Sekolah</div>
                                     </a>
                                 </li>
+                                @endif
+
+                                @if(in_array($effectiveRole, ['school_admin', 'teacher'], true))
                                 <li class="menu-item {{ request()->is('attendances*') ? 'active' : '' }}">
                                     <a href="{{ route('attendances.index') }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                                         <div data-i18n="Presensi">Presensi</div>
                                     </a>
                                 </li>
+                                @endif
+
+                                @if($effectiveRole === 'teacher')
+                                <li class="menu-item {{ request()->is('teacher-schedules*') ? 'active' : '' }}">
+                                    <a href="{{ route('teacher-schedules.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                                        <div data-i18n="Jadwal">Jadwal</div>
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if($effectiveRole === 'school_admin')
                                 <li class="menu-item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','rooms*','schedules*','subjects*','teachers*','students*') ? 'active' : '' }}">
                                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                                         <i class="menu-icon tf-icons bx bx-book-open"></i>

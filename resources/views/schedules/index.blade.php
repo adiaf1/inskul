@@ -67,6 +67,14 @@
                             </option>
                         @endforeach
                     </select>
+                    <select name="teacher_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Guru</option>
+                        @foreach($teachers as $teacher)
+                            <option value="{{ $teacher->id }}" @selected((string) $teacherId === (string) $teacher->id)>
+                                {{ $teacher->user?->name }}
+                            </option>
+                        @endforeach
+                    </select>
                     <select name="day_of_week" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Hari</option>
                         @foreach($days as $dayValue => $dayLabel)

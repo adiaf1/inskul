@@ -32,16 +32,16 @@
 
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
-            <h4 class="mb-1">Input Presensi Harian</h4>
+            <h4 class="mb-1">Input Presensi Per Jadwal</h4>
             <p class="text-muted mb-0">
-                {{ $session->classroom?->name }} - {{ $session->attendance_date->format('d M Y') }}
+                {{ $session->classroom?->name }} - {{ $session->subject?->name ?? '-' }} - {{ $session->attendance_date->format('d M Y') }}
             </p>
         </div>
 
-        <a href="{{ route('attendances.daily') }}" class="btn btn-label-secondary">Kembali</a>
+        <a href="{{ route('attendances.schedule') }}" class="btn btn-label-secondary">Kembali</a>
     </div>
 
-    <form method="POST" action="{{ route('attendances.daily.update', $session) }}">
+    <form method="POST" action="{{ route('attendances.schedule.update', $session) }}">
         @csrf
         @method('PUT')
 
@@ -49,16 +49,17 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <div class="text-muted small">Rombel</div>
-                        <strong>{{ $session->classroom?->name ?? '-' }}</strong>
-                    </div>
-                    <div class="col-md-3">
                         <div class="text-muted small">Tanggal</div>
                         <strong>{{ $session->attendance_date->format('d M Y') }}</strong>
                     </div>
                     <div class="col-md-3">
-                        <div class="text-muted small">Wali Kelas</div>
-                        <strong>{{ $session->teacher?->user?->name ?? '-' }}</strong>
+                        <div class="text-muted small">Hari/Jam</div>
+                        <strong>{{ $session->schedule ? ($days[$session->schedule->day_of_week] ?? '-') : '-' }}</strong>
+                        <div class="text-muted small">{{ substr($session->starts_at, 0, 5) }} - {{ substr($session->ends_at, 0, 5) }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Rombel</div>
+                        <strong>{{ $session->classroom?->name ?? '-' }}</strong>
                     </div>
                     <div class="col-md-3">
                         <div class="text-muted small">Status</div>
@@ -70,6 +71,18 @@
                         ])>
                             {{ ['draft' => 'Draft', 'submitted' => 'Submitted', 'locked' => 'Dikunci'][$session->status] ?? ucfirst($session->status) }}
                         </span>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Mata Pelajaran</div>
+                        <strong>{{ $session->subject?->name ?? '-' }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Guru</div>
+                        <strong>{{ $session->teacher?->user?->name ?? '-' }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Ruangan</div>
+                        <strong>{{ $session->schedule?->physicalRoom?->name ?: ($session->schedule?->room ?: '-') }}</strong>
                     </div>
                 </div>
 
@@ -85,7 +98,7 @@
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
                     <div>
                         <h6 class="mb-1">Scan QR Nametag</h6>
-                        <div class="text-muted small">Arahkan kamera ke QR Code pada nametag murid untuk menandai hadir.</div>
+                        <div class="text-muted small">Arahkan kamera ke QR Code pada nametag murid untuk menandai hadir pada jadwal ini.</div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-label-primary" id="startQrScanner" @disabled($session->status === 'locked')>
@@ -160,7 +173,7 @@
                                             $statusButtonOrder = ['present', 'sick', 'absent', 'permit', 'late'];
                                         @endphp
                                         <input type="hidden" name="records[{{ $record->id }}][status]" value="{{ $currentStatus }}" data-attendance-status="{{ $record->student_id }}">
-                                        <div class="attendance-status-group" data-attendance-status-group="{{ $record->student_id }}">
+                                        <div class="attendance-status-group">
                                             @foreach($statusButtonOrder as $value)
                                                 @php
                                                     $label = $recordStatuses[$value] ?? $value;
@@ -212,7 +225,7 @@
                             Submit Presensi
                         </button>
                     @endif
-                    <a href="{{ route('attendances.daily') }}" class="btn btn-label-secondary">Kembali</a>
+                    <a href="{{ route('attendances.schedule') }}" class="btn btn-label-secondary">Kembali</a>
                 </div>
             </div>
         </div>
@@ -227,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const video = document.getElementById('qrScannerVideo');
     const html5QrReader = document.getElementById('html5QrReader');
     const message = document.getElementById('qrScannerMessage');
-    const scanUrl = @json(route('attendances.daily.scan', $session));
+    const scanUrl = @json(route('attendances.schedule.scan', $session));
     const csrfToken = @json(csrf_token());
     const isLocked = @json($session->status === 'locked');
 
@@ -280,6 +293,26 @@ document.addEventListener('DOMContentLoaded', function () {
         startButton?.classList.remove('d-none');
     };
 
+    const setAttendanceStatus = (studentId, status) => {
+        const input = document.querySelector('[data-attendance-status="' + studentId + '"]');
+        const buttons = document.querySelectorAll('[data-attendance-status-button="' + studentId + '"]');
+
+        if (input) {
+            input.value = status;
+        }
+
+        buttons.forEach((button) => {
+            const isActive = button.dataset.statusValue === status;
+            const activeClass = button.dataset.activeClass;
+            const inactiveClass = button.dataset.inactiveClass;
+
+            if (activeClass && inactiveClass) {
+                button.classList.toggle(activeClass, isActive);
+                button.classList.toggle(inactiveClass, !isActive);
+            }
+        });
+    };
+
     const markStudentRow = (data) => {
         const studentId = data?.student?.id;
 
@@ -303,26 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.classList.remove('table-success');
             }, 1800);
         }
-    };
-
-    const setAttendanceStatus = (studentId, status) => {
-        const input = document.querySelector('[data-attendance-status="' + studentId + '"]');
-        const buttons = document.querySelectorAll('[data-attendance-status-button="' + studentId + '"]');
-
-        if (input) {
-            input.value = status;
-        }
-
-        buttons.forEach((button) => {
-            const isActive = button.dataset.statusValue === status;
-            const activeClass = button.dataset.activeClass;
-            const inactiveClass = button.dataset.inactiveClass;
-
-            if (activeClass && inactiveClass) {
-                button.classList.toggle(activeClass, isActive);
-                button.classList.toggle(inactiveClass, !isActive);
-            }
-        });
     };
 
     const submitScan = async (rawValue) => {
