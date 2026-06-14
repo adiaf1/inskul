@@ -149,10 +149,10 @@
                     <div class="text-muted small" data-visible-student-count="{{ $mode }}">0 murid tampil</div>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-sm btn-label-primary" data-select-visible-students="{{ $mode }}">
-                            Pilih Semua yang Tampil
+                            Pilih Sesuai Filter
                         </button>
                         <button type="button" class="btn btn-sm btn-label-secondary" data-unselect-visible-students="{{ $mode }}">
-                            Batal Pilih yang Tampil
+                            Batal Pilih Sesuai Filter
                         </button>
                     </div>
                 </div>
@@ -162,7 +162,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 48px;">
-                                    <input class="form-check-input" type="checkbox" data-check-all-modal-students="{{ $mode }}" title="Pilih semua murid yang tampil" aria-label="Pilih semua murid yang tampil">
+                                    <input class="form-check-input" type="checkbox" data-check-all-modal-students="{{ $mode }}" title="Pilih semua murid sesuai filter" aria-label="Pilih semua murid sesuai filter">
                                 </th>
                                 <th>Murid</th>
                                 <th>NIS/NISN</th>
@@ -353,7 +353,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const totalPages = () => Math.max(1, Math.ceil(filteredRows.length / perPage));
 
-    const visibleCheckboxes = () => checkboxes.filter((checkbox) => !checkbox.closest('tr').classList.contains('d-none'));
+    const filteredCheckboxes = () => filteredRows
+        .map((row) => row.querySelector('[data-student-checkbox="' + mode + '"]'))
+        .filter(Boolean);
 
     const createPageItem = ({ label, page, active = false, disabled = false, icon = null, ariaLabel = null }) => {
         const item = document.createElement('li');
@@ -430,9 +432,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const visible = visibleCheckboxes();
-        checkAllModal.checked = visible.length > 0 && visible.every((checkbox) => checkbox.checked);
-        checkAllModal.indeterminate = visible.some((checkbox) => checkbox.checked) && !checkAllModal.checked;
+        const filtered = filteredCheckboxes();
+        checkAllModal.checked = filtered.length > 0 && filtered.every((checkbox) => checkbox.checked);
+        checkAllModal.indeterminate = filtered.some((checkbox) => checkbox.checked) && !checkAllModal.checked;
     };
 
     const renderStudentPage = () => {
@@ -564,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (selectVisibleButton) {
         selectVisibleButton.addEventListener('click', () => {
-            visibleCheckboxes().forEach((checkbox) => {
+            filteredCheckboxes().forEach((checkbox) => {
                 checkbox.checked = true;
                 selected.set(checkbox.value, checkbox.dataset);
             });
@@ -576,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (unselectVisibleButton) {
         unselectVisibleButton.addEventListener('click', () => {
-            visibleCheckboxes().forEach((checkbox) => {
+            filteredCheckboxes().forEach((checkbox) => {
                 checkbox.checked = false;
                 selected.delete(checkbox.value);
             });
@@ -588,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (checkAllModal) {
         checkAllModal.addEventListener('change', () => {
-            visibleCheckboxes().forEach((checkbox) => {
+            filteredCheckboxes().forEach((checkbox) => {
                 checkbox.checked = checkAllModal.checked;
 
                 if (checkbox.checked) {
