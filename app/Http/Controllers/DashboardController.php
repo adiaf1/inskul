@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceSession;
+use App\Models\AttendanceRecord;
 use App\Models\School;
 use App\Models\Student;
 use App\Models\Teacher;
@@ -178,7 +179,88 @@ class DashboardController extends Controller
                 'attendanceSummary'
             ));
         } elseif ($role === 'student') {
-            return view('dashboard.student');
+            $school = EffectiveAccess::school(request());
+            $effectiveUser = EffectiveAccess::user(request());
+            $today = now()->toDateString();
+            $todayDay = now()->isoWeekday();
+            $student = null;
+            $activeClassrooms = collect();
+            $todaySchedules = collect();
+            $todayAttendanceRecords = collect();
+            $recentAttendanceRecords = collect();
+            $attendanceSummary = [
+                'month_present' => 0,
+                'month_sick' => 0,
+                'month_permit' => 0,
+                'month_absent' => 0,
+                'month_late' => 0,
+            ];
+
+            if ($school && $effectiveUser) {
+                $student = Student::query()
+                    ->with('school')
+                    ->where('school_id', $school->id)
+                    ->where('user_id', $effectiveUser->id)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($student) {
+                    $activeClassrooms = $student->classrooms()
+                        ->with(['academicYear', 'semester', 'homeroomTeacher.user'])
+                        ->wherePivot('status', 'active')
+                        ->where('classrooms.is_active', true)
+                        ->orderByDesc('classroom_student.created_at')
+                        ->get();
+
+                    $todaySchedules = $school->schedules()
+                        ->with(['classroom', 'subject', 'teacher.user', 'physicalRoom'])
+                        ->whereIn('classroom_id', $activeClassrooms->pluck('id'))
+                        ->where('is_active', true)
+                        ->where('day_of_week', $todayDay)
+                        ->orderBy('starts_at')
+                        ->get();
+
+                    $todayAttendanceRecords = $student->attendanceRecords()
+                        ->with(['session.classroom', 'session.subject', 'session.teacher.user'])
+                        ->whereHas('session', fn ($query) => $query->whereDate('attendance_date', $today))
+                        ->get()
+                        ->sortBy(fn ($record) => ($record->session?->type ?? '').($record->session?->starts_at ?? ''));
+
+                    $monthRecords = $student->attendanceRecords()
+                        ->whereHas('session', fn ($query) => $query->whereBetween('attendance_date', [
+                            now()->startOfMonth()->toDateString(),
+                            now()->endOfMonth()->toDateString(),
+                        ]))
+                        ->get();
+
+                    $attendanceSummary = [
+                        'month_present' => $monthRecords->where('status', 'present')->count(),
+                        'month_sick' => $monthRecords->where('status', 'sick')->count(),
+                        'month_permit' => $monthRecords->where('status', 'permit')->count(),
+                        'month_absent' => $monthRecords->where('status', 'absent')->count(),
+                        'month_late' => $monthRecords->where('status', 'late')->count(),
+                    ];
+
+                    $recentAttendanceRecords = $student->attendanceRecords()
+                        ->with(['session.classroom', 'session.subject', 'session.teacher.user'])
+                        ->whereHas('session')
+                        ->latest('checked_at')
+                        ->latest()
+                        ->limit(6)
+                        ->get()
+                        ->sortByDesc(fn ($record) => $record->session?->attendance_date?->timestamp ?? 0);
+                }
+            }
+
+            return view('dashboard.student', compact(
+                'school',
+                'student',
+                'activeClassrooms',
+                'todaySchedules',
+                'todayAttendanceRecords',
+                'recentAttendanceRecords',
+                'attendanceSummary'
+            ));
         } elseif ($role === 'parent') {
             return view('dashboard.parent');
         }
