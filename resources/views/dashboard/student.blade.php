@@ -17,9 +17,17 @@
             <h4 class="mb-1">Dashboard Siswa</h4>
             <p class="text-muted mb-0">Selamat datang, {{ Auth::user()->name }}. Pantau jadwal dan kehadiranmu di sini.</p>
         </div>
-        <a href="{{ route('profile.edit') }}" class="btn btn-label-primary">
-            <i class="bx bx-user me-1"></i> Profil Saya
-        </a>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('student-schedules.index') }}" class="btn btn-primary">
+                <i class="bx bx-calendar-event me-1"></i> Jadwal
+            </a>
+            <a href="{{ route('students.own-nametag') }}" target="_blank" class="btn btn-label-success">
+                <i class="bx bx-id-card me-1"></i> Print Nametag
+            </a>
+            <a href="{{ route('profile.edit') }}" class="btn btn-label-primary">
+                <i class="bx bx-user me-1"></i> Profil Saya
+            </a>
+        </div>
     </div>
 
     @if(! $school)
@@ -139,8 +147,9 @@
         <div class="row g-4">
             <div class="col-xl-7">
                 <div class="card h-100">
-                    <div class="card-header">
+                    <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="mb-0">Jadwal Hari Ini</h5>
+                        <a href="{{ route('student-schedules.index') }}" class="btn btn-sm btn-label-primary">Semua Jadwal</a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive text-nowrap">

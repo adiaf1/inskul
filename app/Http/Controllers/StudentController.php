@@ -324,6 +324,31 @@ class StudentController extends Controller
         return view('students.nametags', compact('school', 'students'));
     }
 
+    public function printOwnNametag(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+        $user = EffectiveAccess::user($request);
+
+        if (! $school || ! $user) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $student = Student::query()
+            ->with('user')
+            ->where('school_id', $school->id)
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $student) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke data murid aktif.');
+        }
+
+        $students = collect([$student]);
+
+        return view('students.nametags', compact('school', 'students'));
+    }
+
 
     public function update(Request $request, Student $student): RedirectResponse
     {

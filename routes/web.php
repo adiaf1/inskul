@@ -15,6 +15,7 @@ use App\Http\Controllers\SchoolUserController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherScheduleController;
@@ -67,6 +68,11 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::middleware('school.onboarded')->group(function () {
         Route::middleware('effective.role:teacher')->group(function () {
             Route::get('/teacher-schedules', [TeacherScheduleController::class, 'index'])->name('teacher-schedules.index');
+        });
+
+        Route::middleware('effective.role:student')->group(function () {
+            Route::get('/student-schedules', [StudentScheduleController::class, 'index'])->name('student-schedules.index');
+            Route::get('/student-nametag', [StudentController::class, 'printOwnNametag'])->name('students.own-nametag');
         });
 
         Route::middleware('effective.role:school_admin,teacher')->group(function () {

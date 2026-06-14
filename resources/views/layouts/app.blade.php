@@ -421,6 +421,21 @@
                                 </li>
                                 @endif
 
+                                @if($effectiveRole === 'student')
+                                <li class="menu-item {{ request()->is('student-schedules*') ? 'active' : '' }}">
+                                    <a href="{{ route('student-schedules.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                                        <div data-i18n="Jadwal">Jadwal</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ request()->is('student-nametag') ? 'active' : '' }}">
+                                    <a href="{{ route('students.own-nametag') }}" target="_blank" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-id-card"></i>
+                                        <div data-i18n="Nametag">Nametag</div>
+                                    </a>
+                                </li>
+                                @endif
+
                                 @if($effectiveRole === 'school_admin')
                                 <li class="menu-item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','rooms*','schedules*','subjects*','teachers*','students*') ? 'active' : '' }}">
                                     <a href="javascript:void(0)" class="menu-link menu-toggle">
