@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceSession;
+use App\Models\School;
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\User;
 use App\Support\EffectiveAccess;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -15,7 +20,53 @@ class DashboardController extends Controller
         $role = EffectiveAccess::role(request());
 
         if ($role === 'super_admin') {
-            return view('dashboard.super-admin');
+            $schoolStatusCounts = School::query()
+                ->select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status');
+
+            $schoolLevelCounts = School::query()
+                ->select('level', DB::raw('count(*) as total'))
+                ->whereNotNull('level')
+                ->groupBy('level')
+                ->pluck('total', 'level');
+
+            $summary = [
+                'schools_total' => School::count(),
+                'schools_active' => (int) ($schoolStatusCounts['active'] ?? 0),
+                'schools_pending' => (int) ($schoolStatusCounts['pending'] ?? 0),
+                'schools_inactive' => (int) ($schoolStatusCounts['inactive'] ?? 0),
+                'schools_rejected' => (int) ($schoolStatusCounts['rejected'] ?? 0),
+                'users_total' => User::count(),
+                'users_active' => User::where('status', 'active')->count(),
+                'teachers_total' => Teacher::count(),
+                'students_total' => Student::count(),
+                'attendance_today' => AttendanceSession::whereDate('attendance_date', now()->toDateString())->count(),
+                'attendance_submitted_today' => AttendanceSession::whereDate('attendance_date', now()->toDateString())
+                    ->where('status', 'submitted')
+                    ->count(),
+            ];
+
+            $pendingSchools = School::query()
+                ->with(['users.roles'])
+                ->where('status', 'pending')
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            $activeSchools = School::query()
+                ->withCount(['teachers', 'students', 'classrooms', 'schedules'])
+                ->where('status', 'active')
+                ->latest('approved_at')
+                ->limit(6)
+                ->get();
+
+            return view('dashboard.super-admin', compact(
+                'summary',
+                'schoolLevelCounts',
+                'pendingSchools',
+                'activeSchools'
+            ));
         } elseif ($role === 'school_admin') {
             $school = EffectiveAccess::school(request());
             $today = now()->toDateString();
