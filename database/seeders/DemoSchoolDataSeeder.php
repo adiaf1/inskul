@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\AcademicYear;
+use App\Models\AttendanceRecord;
+use App\Models\AttendanceSession;
 use App\Models\Classroom;
 use App\Models\Role;
 use App\Models\Room;
@@ -41,6 +43,7 @@ class DemoSchoolDataSeeder extends Seeder
                 $classrooms = $this->seedClassrooms($school, $academicYear, $semester, $schoolData['levels'], $schoolClasses, $teachers, $studentsByEntryYear);
 
                 $this->seedSchedules($school, $academicYear, $semester, $classrooms, $subjects, $teachers, $rooms);
+                $this->seedDailyAttendances($school, $classrooms);
             }
         });
     }
@@ -377,6 +380,59 @@ class DemoSchoolDataSeeder extends Seeder
         }
     }
 
+    private function seedDailyAttendances(School $school, array $classrooms): void
+    {
+        $statusPool = [
+            'present', 'present', 'present', 'present', 'present',
+            'present', 'present', 'present', 'late', 'sick',
+            'permit', 'absent',
+        ];
+
+        foreach ($classrooms as $classroomIndex => $classroom) {
+            $students = $classroom->students()
+                ->wherePivot('status', 'active')
+                ->where('students.is_active', true)
+                ->orderBy('students.id')
+                ->get();
+
+            for ($day = 1; $day <= 31; $day++) {
+                $attendanceDate = '2026-05-'.str_pad((string) $day, 2, '0', STR_PAD_LEFT);
+
+                $session = AttendanceSession::updateOrCreate([
+                    'school_id' => $school->id,
+                    'classroom_id' => $classroom->id,
+                    'attendance_date' => $attendanceDate,
+                    'type' => 'daily',
+                    'schedule_id' => null,
+                ], [
+                    'teacher_id' => $classroom->homeroom_teacher_id,
+                    'subject_id' => null,
+                    'starts_at' => null,
+                    'ends_at' => null,
+                    'status' => 'submitted',
+                    'notes' => 'Data demo presensi harian bulan Mei 2026.',
+                ]);
+
+                foreach ($students as $studentIndex => $student) {
+                    $statusIndex = ($classroomIndex + $studentIndex + $day) % count($statusPool);
+                    $status = $statusPool[$statusIndex];
+                    $checkedAt = $status
+                        ? $attendanceDate.' '.str_pad((string) (7 + (($studentIndex + $day) % 2)), 2, '0', STR_PAD_LEFT).':'.str_pad((string) (5 + (($studentIndex * 3 + $day) % 45)), 2, '0', STR_PAD_LEFT).':00'
+                        : null;
+
+                    AttendanceRecord::updateOrCreate([
+                        'attendance_session_id' => $session->id,
+                        'student_id' => $student->id,
+                    ], [
+                        'status' => $status,
+                        'checked_at' => $checkedAt,
+                        'notes' => $status === 'present' ? null : $this->attendanceNote($status),
+                    ]);
+                }
+            }
+        }
+    }
+
     private function schools(): array
     {
         return [
@@ -515,5 +571,15 @@ class DemoSchoolDataSeeder extends Seeder
         $birthYear = $entryYear - $ageAtEntry;
 
         return $birthYear.'-'.str_pad((string) (($number % 12) + 1), 2, '0', STR_PAD_LEFT).'-'.str_pad((string) (($number % 27) + 1), 2, '0', STR_PAD_LEFT);
+    }
+
+    private function attendanceNote(string $status): ?string
+    {
+        return [
+            'sick' => 'Sakit.',
+            'permit' => 'Izin keluarga.',
+            'absent' => 'Tanpa keterangan.',
+            'late' => 'Datang terlambat.',
+        ][$status] ?? null;
     }
 }
