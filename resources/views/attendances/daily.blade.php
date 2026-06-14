@@ -21,7 +21,6 @@
             <p class="text-muted mb-0">{{ $school->name }} - absensi satu kali per hari berdasarkan rombel.</p>
         </div>
 
-        <a href="{{ route('attendances.index') }}" class="btn btn-label-secondary">Kembali</a>
     </div>
 
     <div class="card mb-4">
