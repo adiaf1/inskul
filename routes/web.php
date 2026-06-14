@@ -75,6 +75,8 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::get('/attendances/reports/print', [AttendanceController::class, 'printReport'])->name('attendances.report.print');
             Route::get('/attendances/reports/daily', [AttendanceController::class, 'dailyReport'])->name('attendances.report.daily');
             Route::get('/attendances/reports/daily/print', [AttendanceController::class, 'printDailyReport'])->name('attendances.report.daily.print');
+            Route::get('/attendances/reports/schedules', [AttendanceController::class, 'scheduleReport'])->name('attendances.report.schedule');
+            Route::get('/attendances/reports/schedules/print', [AttendanceController::class, 'printScheduleReport'])->name('attendances.report.schedule.print');
             Route::get('/attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
             Route::post('/attendances/daily/open', [AttendanceController::class, 'openDaily'])->name('attendances.daily.open');
             Route::get('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'editDaily'])->name('attendances.daily.edit');

@@ -402,6 +402,12 @@
                                                 <div data-i18n="Report Presensi Harian">Report Presensi Harian</div>
                                             </a>
                                         </li>
+                                        <li class="menu-item {{ request()->is('attendances/reports/schedules*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.report.schedule') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-file"></i>
+                                                <div data-i18n="Report Presensi Per Jadwal">Report Presensi Per Jadwal</div>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                                 @endif

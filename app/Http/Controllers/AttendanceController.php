@@ -167,6 +167,124 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function scheduleReport(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $filters = $this->scheduleReportFilters($request);
+        $teacher = $this->activeTeacher($request, $school->id);
+        $isTeacher = $this->effectiveRole($request) === 'teacher';
+
+        $teacherScheduleQuery = $teacher
+            ? $teacher->schedules()
+                ->where('school_id', $school->id)
+                ->where('is_active', true)
+            : null;
+
+        $teacherClassroomIds = $isTeacher && $teacherScheduleQuery
+            ? (clone $teacherScheduleQuery)->pluck('classroom_id')->filter()->unique()
+            : collect();
+        $teacherSubjectIds = $isTeacher && $teacherScheduleQuery
+            ? (clone $teacherScheduleQuery)->pluck('subject_id')->filter()->unique()
+            : collect();
+
+        $classrooms = $school->classrooms()
+            ->where('is_active', true)
+            ->when($isTeacher, fn ($query) => $query->whereIn('id', $teacherClassroomIds))
+            ->orderBy('name')
+            ->get();
+        $subjects = $school->subjects()
+            ->where('is_active', true)
+            ->when($isTeacher, fn ($query) => $query->whereIn('id', $teacherSubjectIds))
+            ->orderBy('name')
+            ->get();
+        $records = $this->scheduleReportRecordsQuery($school, $filters, $teacher, $isTeacher)
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('attendances.schedule-report', [
+            'school' => $school,
+            'records' => $records,
+            'classrooms' => $classrooms,
+            'subjects' => $subjects,
+            'filters' => $filters,
+            'recordStatuses' => self::RECORD_STATUSES,
+        ]);
+    }
+
+    public function printScheduleReport(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $filters = $this->scheduleReportFilters($request);
+        $teacher = $this->activeTeacher($request, $school->id);
+        $isTeacher = $this->effectiveRole($request) === 'teacher';
+        $records = $this->scheduleReportRecordsQuery($school, $filters, $teacher, $isTeacher)->get();
+        $selectedClassroom = $filters['classroom_id']
+            ? $school->classrooms()
+                ->with(['academicYear', 'semester'])
+                ->find($filters['classroom_id'])
+            : null;
+        $selectedSubject = $filters['subject_id'] ? $school->subjects()->find($filters['subject_id']) : null;
+        $selectedTeacher = $isTeacher ? $teacher : null;
+        $dateColumns = collect();
+
+        $currentDate = Carbon::parse($filters['date_from']);
+        $endDate = Carbon::parse($filters['date_to']);
+
+        while ($currentDate->lte($endDate)) {
+            $dateColumns->push($currentDate->copy());
+            $currentDate->addDay();
+        }
+
+        $subjectSheets = $records
+            ->groupBy(fn ($record) => $record->session?->subject_id ?? 'unknown')
+            ->map(function ($subjectRecords) {
+                $firstRecord = $subjectRecords->first();
+
+                return [
+                    'subject' => $firstRecord->session?->subject ?? $firstRecord->session?->schedule?->subject,
+                    'teacher' => $firstRecord->session?->teacher,
+                    'classroom' => $firstRecord->session?->classroom,
+                    'records' => $subjectRecords,
+                    'student_rows' => $subjectRecords
+                        ->groupBy('student_id')
+                        ->map(function ($studentRecords) {
+                            $firstRecord = $studentRecords->first();
+
+                            return [
+                                'student' => $firstRecord->student,
+                                'records_by_date' => $studentRecords->groupBy(fn ($record) => $record->session?->attendance_date?->format('Y-m-d')),
+                            ];
+                        })
+                        ->sortBy(fn ($row) => $row['student']?->user?->name)
+                        ->values(),
+                ];
+            })
+            ->sortBy(fn ($sheet) => $sheet['subject']?->name ?? '-')
+            ->values();
+
+        return view('attendances.schedule-report-print', [
+            'school' => $school,
+            'records' => $records,
+            'filters' => $filters,
+            'selectedClassroom' => $selectedClassroom,
+            'selectedSubject' => $selectedSubject,
+            'selectedTeacher' => $selectedTeacher,
+            'dateColumns' => $dateColumns,
+            'subjectSheets' => $subjectSheets,
+            'recordStatuses' => self::RECORD_STATUSES,
+        ]);
+    }
+
     public function daily(Request $request): View|RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -691,6 +809,44 @@ class AttendanceController extends Controller
             ->join('users', 'students.user_id', '=', 'users.id')
             ->orderByDesc('attendance_sessions.attendance_date')
             ->orderBy('attendance_sessions.classroom_id')
+            ->orderBy('users.name')
+            ->select('attendance_records.*');
+    }
+
+    private function scheduleReportFilters(Request $request): array
+    {
+        return [
+            'date_from' => $request->input('date_from', now()->startOfMonth()->format('Y-m-d')),
+            'date_to' => $request->input('date_to', now()->format('Y-m-d')),
+            'classroom_id' => $request->input('classroom_id', ''),
+            'subject_id' => $request->input('subject_id', ''),
+            'status' => $request->input('status', ''),
+        ];
+    }
+
+    private function scheduleReportRecordsQuery($school, array $filters, ?Teacher $teacher = null, bool $isTeacher = false)
+    {
+        return AttendanceRecord::query()
+            ->with(['student.user', 'session.classroom.academicYear', 'session.classroom.semester', 'session.subject', 'session.teacher.user', 'session.schedule.subject'])
+            ->whereHas('session', function ($query) use ($school, $filters, $teacher, $isTeacher) {
+                $query->where('school_id', $school->id)
+                    ->where('type', 'schedule')
+                    ->when($filters['date_from'], fn ($inner) => $inner->whereDate('attendance_date', '>=', $filters['date_from']))
+                    ->when($filters['date_to'], fn ($inner) => $inner->whereDate('attendance_date', '<=', $filters['date_to']))
+                    ->when($filters['classroom_id'], fn ($inner) => $inner->where('classroom_id', $filters['classroom_id']))
+                    ->when($filters['subject_id'], fn ($inner) => $inner->where('subject_id', $filters['subject_id']))
+                    ->when($isTeacher, fn ($inner) => $teacher
+                        ? $inner->where('teacher_id', $teacher->id)
+                        : $inner->whereRaw('1 = 0'));
+            })
+            ->when($filters['status'] === 'unfilled', fn ($query) => $query->whereNull('attendance_records.status'))
+            ->when($filters['status'] && $filters['status'] !== 'unfilled', fn ($query) => $query->where('attendance_records.status', $filters['status']))
+            ->join('attendance_sessions', 'attendance_records.attendance_session_id', '=', 'attendance_sessions.id')
+            ->join('students', 'attendance_records.student_id', '=', 'students.id')
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->orderByDesc('attendance_sessions.attendance_date')
+            ->orderBy('attendance_sessions.classroom_id')
+            ->orderBy('attendance_sessions.starts_at')
             ->orderBy('users.name')
             ->select('attendance_records.*');
     }

@@ -118,6 +118,9 @@
                         <a href="{{ route('attendances.report.daily') }}" class="btn btn-label-secondary text-start">
                             <i class="bx bx-file me-1"></i> Report Presensi Harian
                         </a>
+                        <a href="{{ route('attendances.report.schedule') }}" class="btn btn-label-secondary text-start">
+                            <i class="bx bx-file me-1"></i> Report Presensi Per Jadwal
+                        </a>
                     </div>
                 </div>
             </div>
