@@ -96,7 +96,7 @@ class SchoolClassController extends Controller
         return redirect()->route('school-classes.index')->with('success', 'Kelas berhasil dihapus.');
     }
 
-    private function rules(int $schoolId): array
+    private function rules(string $schoolId): array
     {
         return [
             'academic_year_id' => [

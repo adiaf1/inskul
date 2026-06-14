@@ -105,7 +105,7 @@ class SemesterController extends Controller
         return redirect()->route('semesters.index')->with('success', 'Semester berhasil dihapus.');
     }
 
-    private function rules(int $schoolId): array
+    private function rules(string $schoolId): array
     {
         return [
             'academic_year_id' => [

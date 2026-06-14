@@ -46,6 +46,14 @@
                             </option>
                         @endforeach
                     </select>
+                    <select name="teacher_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Wali Kelas</option>
+                        @foreach($teachers as $teacher)
+                            <option value="{{ $teacher->id }}" @selected((string) $teacherId === (string) $teacher->id)>
+                                {{ $teacher->user?->name }}
+                            </option>
+                        @endforeach
+                    </select>
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
                         <option value="active" @selected($status === 'active')>Aktif</option>

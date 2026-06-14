@@ -23,10 +23,12 @@ class ClassroomController extends Controller
         $search = $request->input('search');
         $academicYearId = $request->input('academic_year_id');
         $semesterId = $request->input('semester_id');
+        $teacherId = $request->input('teacher_id');
         $status = $request->input('status');
 
         $academicYears = $school->academicYears()->orderByDesc('is_active')->orderBy('name')->get();
         $semesters = $school->semesters()->with('academicYear')->orderByDesc('is_active')->orderBy('name')->get();
+        $teachers = $school->teachers()->with('user')->where('is_active', true)->get()->sortBy('user.name');
 
         $classrooms = $school->classrooms()
             ->with(['academicYear', 'semester', 'schoolClass', 'homeroomTeacher.user', 'students'])
@@ -39,6 +41,7 @@ class ClassroomController extends Controller
             })
             ->when($academicYearId, fn ($query) => $query->where('academic_year_id', $academicYearId))
             ->when($semesterId, fn ($query) => $query->where('semester_id', $semesterId))
+            ->when($teacherId, fn ($query) => $query->where('homeroom_teacher_id', $teacherId))
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
             ->latest()
             ->paginate(10)
@@ -49,8 +52,10 @@ class ClassroomController extends Controller
             'classrooms',
             'academicYears',
             'semesters',
+            'teachers',
             'academicYearId',
             'semesterId',
+            'teacherId',
             'status'
         ));
     }
@@ -157,7 +162,7 @@ class ClassroomController extends Controller
         return redirect()->route('classrooms.index')->with('success', 'Rombel berhasil dihapus.');
     }
 
-    private function rules(int $schoolId, ?int $classroomId = null): array
+    private function rules(string $schoolId, ?string $classroomId = null): array
     {
         return [
             'academic_year_id' => ['required', Rule::exists('academic_years', 'id')->where('school_id', $schoolId)],

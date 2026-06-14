@@ -108,7 +108,7 @@ class RoomController extends Controller
         return redirect()->route('rooms.index')->with('success', 'Ruangan berhasil dihapus.');
     }
 
-    private function rules(int $schoolId, ?int $roomId = null): array
+    private function rules(string $schoolId, ?string $roomId = null): array
     {
         return [
             'name' => ['required', 'string', 'max:100'],
