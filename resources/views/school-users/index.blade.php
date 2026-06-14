@@ -29,9 +29,37 @@
     <div class="card">
         <div class="card-body">
             <form method="GET" action="{{ route('school-users.index') }}" class="mb-4">
-                <div class="input-group">
-                    <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama atau email">
-                    <button class="btn btn-outline-primary" type="submit">Cari</button>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label" for="search">Pencarian</label>
+                        <input type="search" id="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama atau email">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="role">Jenis Akun</label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="">Semua Jenis Akun</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}" @selected($roleFilter === $role->name)>
+                                    {{ [
+                                        'principal' => 'Kepala Sekolah',
+                                        'teacher' => 'Guru',
+                                        'student' => 'Murid',
+                                        'parent' => 'Wali Murid',
+                                    ][$role->name] ?? $role->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-fill" type="submit">
+                                <i class="bx bx-filter-alt me-1"></i> Filter
+                            </button>
+                            <a href="{{ route('school-users.index') }}" class="btn btn-label-secondary" title="Reset Filter" aria-label="Reset Filter">
+                                <i class="bx bx-reset"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </form>
 

@@ -31,11 +31,13 @@ class SchoolUserController extends Controller
         }
 
         $search = $request->input('search');
+        $roleFilter = $request->input('role');
         $roles = Role::whereIn('name', self::SCHOOL_ROLES)->orderBy('name')->get();
 
         $users = $school->users()
             ->with('roles')
             ->whereHas('roles', fn ($query) => $query->whereIn('name', self::SCHOOL_ROLES))
+            ->when($roleFilter, fn ($query) => $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', $roleFilter)))
             ->when($search, function ($query, $search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('name', 'like', "%{$search}%")
@@ -46,7 +48,7 @@ class SchoolUserController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('school-users.index', compact('school', 'users', 'roles'));
+        return view('school-users.index', compact('school', 'users', 'roles', 'roleFilter'));
     }
 
     public function store(Request $request): RedirectResponse
