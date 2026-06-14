@@ -22,7 +22,7 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
-            <a href="{{ route('students.nametags', request()->only(['search', 'status'])) }}" class="btn btn-label-info" target="_blank">
+            <a href="{{ route('students.nametags', request()->only(['search', 'status', 'entry_year'])) }}" class="btn btn-label-info" target="_blank">
                 <i class="bx bx-printer me-1"></i> Cetak Nametag
             </a>
             <a href="{{ route('students.import-template') }}" class="btn btn-label-primary">
@@ -45,6 +45,12 @@
                         <option value="">Semua Status</option>
                         <option value="active" @selected($status === 'active')>Aktif</option>
                         <option value="inactive" @selected($status === 'inactive')>Tidak Aktif</option>
+                    </select>
+                    <select name="entry_year" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Angkatan</option>
+                        @foreach($entryYears as $year)
+                            <option value="{{ $year }}" @selected((string) $entryYear === (string) $year)>Angkatan {{ $year }}</option>
+                        @endforeach
                     </select>
                     <div class="input-group">
                         <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama, email, NIS, NISN">

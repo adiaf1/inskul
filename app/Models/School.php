@@ -22,6 +22,7 @@ class School extends Model
         'phone',
         'email',
         'logo_path',
+        'nametag_background_path',
         'status',
         'approved_at',
         'approved_by',

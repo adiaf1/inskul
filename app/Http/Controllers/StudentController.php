@@ -43,6 +43,14 @@ class StudentController extends Controller
 
         $search = $request->input('search');
         $status = $request->input('status');
+        $entryYear = $request->input('entry_year');
+
+        $entryYears = $school->students()
+            ->whereNotNull('entry_year')
+            ->select('entry_year')
+            ->distinct()
+            ->orderByDesc('entry_year')
+            ->pluck('entry_year');
 
         $students = $school->students()
             ->with('user')
@@ -57,11 +65,12 @@ class StudentController extends Controller
                 });
             })
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
+            ->when($entryYear !== null && $entryYear !== '', fn ($query) => $query->where('entry_year', $entryYear))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('students.index', compact('school', 'students', 'status'));
+        return view('students.index', compact('school', 'students', 'status', 'entryYear', 'entryYears'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -278,6 +287,7 @@ class StudentController extends Controller
 
         $search = $request->input('search');
         $status = $request->input('status');
+        $entryYear = $request->input('entry_year');
 
         $students = $school->students()
             ->with('user')
@@ -292,6 +302,7 @@ class StudentController extends Controller
                 });
             })
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
+            ->when($entryYear !== null && $entryYear !== '', fn ($query) => $query->where('entry_year', $entryYear))
             ->join('users', 'students.user_id', '=', 'users.id')
             ->orderBy('users.name')
             ->select('students.*')

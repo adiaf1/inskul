@@ -55,19 +55,33 @@
         .nametag {
             width: 54mm;
             height: 86mm;
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 5mm 4mm;
             overflow: hidden;
             background: #ffffff;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
             border: 1px solid #d9dee3;
             border-radius: 4mm;
             page-break-inside: avoid;
         }
 
+        .nametag-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .school-name {
-            min-height: 12mm;
+            min-height: 10mm;
             width: 100%;
             display: flex;
             align-items: center;
@@ -80,9 +94,9 @@
         }
 
         .school-logo {
-            width: 12mm;
-            height: 12mm;
-            margin-bottom: 2mm;
+            width: 9mm;
+            height: 9mm;
+            margin-bottom: 1mm;
             object-fit: contain;
         }
 
@@ -133,16 +147,6 @@
             margin-top: auto;
         }
 
-        .uuid {
-            width: 100%;
-            margin-top: 1mm;
-            overflow: hidden;
-            text-align: center;
-            color: #697a8d;
-            font-size: 5.5px;
-            white-space: nowrap;
-        }
-
         @page {
             size: A4;
             margin: 10mm;
@@ -176,23 +180,29 @@
 
     <main class="sheet">
         @forelse($students as $student)
-            <section class="nametag">
-                @if($school->logo_path)
-                    <img class="school-logo" src="{{ \App\Support\SchoolFileStorage::url($school->logo_path) }}" alt="Logo {{ $school->name }}">
+            <section
+                class="nametag"
+                @if($school->nametag_background_path)
+                    style="background-image: url('{{ \App\Support\SchoolFileStorage::url($school->nametag_background_path) }}');"
                 @endif
-                <div class="school-name">{{ $school->name }}</div>
+            >
+                <div class="nametag-content">
+                    @if($school->logo_path)
+                        <img class="school-logo" src="{{ \App\Support\SchoolFileStorage::url($school->logo_path) }}" alt="Logo {{ $school->name }}">
+                    @endif
+                    <div class="school-name">{{ $school->name }}</div>
 
-                @if($student->photo_path)
-                    <img class="photo" src="{{ \App\Support\SchoolFileStorage::url($student->photo_path) }}" alt="Foto {{ $student->user?->name }}">
-                @else
-                    <div class="photo-placeholder">{{ strtoupper(substr($student->user?->name ?? 'M', 0, 1)) }}</div>
-                @endif
+                    @if($student->photo_path)
+                        <img class="photo" src="{{ \App\Support\SchoolFileStorage::url($student->photo_path) }}" alt="Foto {{ $student->user?->name }}">
+                    @else
+                        <div class="photo-placeholder">{{ strtoupper(substr($student->user?->name ?? 'M', 0, 1)) }}</div>
+                    @endif
 
-                <div class="student-name">{{ $student->user?->name }}</div>
-                <div class="student-nisn">NISN: {{ $student->nisn ?: '-' }}</div>
+                    <div class="student-name">{{ $student->user?->name }}</div>
+                    <div class="student-nisn">NISN: {{ $student->nisn ?: '-' }}</div>
 
-                <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=1&data={{ rawurlencode($student->id) }}" alt="QR {{ $student->id }}">
-                <div class="uuid">{{ $student->id }}</div>
+                    <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=1&data={{ rawurlencode($student->id) }}" alt="QR {{ $student->id }}">
+                </div>
             </section>
         @empty
             <p>Tidak ada data murid untuk dicetak.</p>

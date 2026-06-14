@@ -21,9 +21,14 @@
             <p class="text-muted mb-0">{{ $school->name }} - kelola jadwal pelajaran per rombel.</p>
         </div>
 
-        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddSchedule">
-            <i class="bx bx-plus me-1"></i> Tambah Jadwal
-        </button>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('schedules.print', request()->query()) }}" target="_blank" class="btn btn-label-secondary">
+                <i class="bx bx-printer me-1"></i> Cetak Jadwal
+            </a>
+            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddSchedule">
+                <i class="bx bx-plus me-1"></i> Tambah Jadwal
+            </button>
+        </div>
     </div>
 
     <div class="card">

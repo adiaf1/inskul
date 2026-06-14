@@ -76,6 +76,7 @@ Route::middleware(['auth', 'active.user', 'effective.role:school_admin'])->group
         Route::resource('school-classes', SchoolClassController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('classrooms', ClassroomController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('rooms', RoomController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::get('/schedules/print', [ScheduleController::class, 'print'])->name('schedules.print');
         Route::resource('schedules', ScheduleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('subjects', SubjectController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/teachers/import/template', [TeacherController::class, 'downloadTemplate'])->name('teachers.import-template');

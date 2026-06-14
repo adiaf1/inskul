@@ -75,6 +75,31 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label" for="nametag_background">Background Nametag</label>
+                        <div class="d-flex flex-wrap align-items-center gap-4">
+                            <div class="border rounded d-flex align-items-center justify-content-center bg-light overflow-hidden" style="width: 108px; height: 172px;">
+                                @if($school->nametag_background_path)
+                                    <img id="nametagBackgroundPreview" src="{{ \App\Support\SchoolFileStorage::url($school->nametag_background_path) }}" alt="Background nametag" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <img id="nametagBackgroundPreview" src="" alt="Preview background nametag" class="img-fluid d-none" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <i id="nametagBackgroundPlaceholder" class="bx bx-id-card text-muted fs-1"></i>
+                                @endif
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="file" class="form-control" id="nametag_background" name="nametag_background" accept="image/png,image/jpeg,image/webp" onchange="previewNametagBackground(event)">
+                                <div class="form-text">Format JPG, PNG, atau WebP. Disarankan portrait ukuran ID card 54 x 86 mm. Maksimal 5MB.</div>
+                                @if($school->nametag_background_path)
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox" id="remove_nametag_background" name="remove_nametag_background" value="1">
+                                        <label class="form-check-label text-danger" for="remove_nametag_background">
+                                            Hapus background nametag saat disimpan
+                                        </label>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-4">
@@ -91,6 +116,23 @@ function previewSchoolLogo(event) {
     const file = event.target.files[0];
     const preview = document.getElementById('logoPreview');
     const placeholder = document.getElementById('logoPlaceholder');
+
+    if (!file || !preview) {
+        return;
+    }
+
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove('d-none');
+
+    if (placeholder) {
+        placeholder.classList.add('d-none');
+    }
+}
+
+function previewNametagBackground(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('nametagBackgroundPreview');
+    const placeholder = document.getElementById('nametagBackgroundPlaceholder');
 
     if (!file || !preview) {
         return;

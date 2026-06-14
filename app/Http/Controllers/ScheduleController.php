@@ -77,6 +77,58 @@ class ScheduleController extends Controller
         ));
     }
 
+    public function print(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $academicYearId = $request->input('academic_year_id');
+        $semesterId = $request->input('semester_id');
+        $classroomId = $request->input('classroom_id');
+        $roomId = $request->input('room_id');
+        $dayOfWeek = $request->input('day_of_week');
+        $status = $request->input('status');
+        $days = self::DAYS;
+
+        $schedules = $school->schedules()
+            ->with(['academicYear', 'semester', 'classroom.schoolClass', 'subject', 'teacher.user', 'physicalRoom'])
+            ->when($academicYearId, fn ($query) => $query->where('academic_year_id', $academicYearId))
+            ->when($semesterId, fn ($query) => $query->where('semester_id', $semesterId))
+            ->when($classroomId, fn ($query) => $query->where('classroom_id', $classroomId))
+            ->when($roomId, fn ($query) => $query->where('room_id', $roomId))
+            ->when($dayOfWeek, fn ($query) => $query->where('day_of_week', $dayOfWeek))
+            ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
+            ->get()
+            ->sortBy(fn ($schedule) => sprintf(
+                '%s-%02d-%s',
+                $schedule->classroom?->name ?? '',
+                $schedule->day_of_week,
+                $schedule->starts_at
+            ))
+            ->values();
+
+        $groupedSchedules = $schedules->groupBy('classroom_id');
+        $selectedAcademicYear = $academicYearId ? $school->academicYears()->find($academicYearId) : null;
+        $selectedSemester = $semesterId ? $school->semesters()->find($semesterId) : null;
+        $selectedClassroom = $classroomId ? $school->classrooms()->find($classroomId) : null;
+        $selectedRoom = $roomId ? $school->rooms()->find($roomId) : null;
+
+        return view('schedules.print', compact(
+            'school',
+            'groupedSchedules',
+            'days',
+            'selectedAcademicYear',
+            'selectedSemester',
+            'selectedClassroom',
+            'selectedRoom',
+            'dayOfWeek',
+            'status'
+        ));
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -137,7 +189,7 @@ class ScheduleController extends Controller
         return redirect()->route('schedules.index')->with('success', 'Jadwal berhasil dihapus.');
     }
 
-    private function rules(int $schoolId): array
+    private function rules(string $schoolId): array
     {
         return [
             'academic_year_id' => ['required', Rule::exists('academic_years', 'id')->where('school_id', $schoolId)],
@@ -155,7 +207,7 @@ class ScheduleController extends Controller
         ];
     }
 
-    private function ensureNoConflicts(int $schoolId, array $data, ?int $ignoreId = null): void
+    private function ensureNoConflicts(string $schoolId, array $data, ?string $ignoreId = null): void
     {
         $baseQuery = Schedule::query()
             ->where('school_id', $schoolId)

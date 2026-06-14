@@ -37,9 +37,15 @@ class SchoolProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'nametag_background' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_nametag_background' => ['nullable', 'boolean'],
         ]);
 
         $logoPath = $school->logo_path;
+        $nametagBackgroundPath = $school->nametag_background_path;
+        $folderSchool = clone $school;
+        $folderSchool->name = $validated['school_name'];
+        $folderSchool->npsn = $validated['npsn'] ?? null;
 
         if ($request->hasFile('logo')) {
             $logo = $request->file('logo');
@@ -50,12 +56,24 @@ class SchoolProfileController extends Controller
                     ->withInput();
             }
 
-            $folderSchool = clone $school;
-            $folderSchool->name = $validated['school_name'];
-            $folderSchool->npsn = $validated['npsn'] ?? null;
-
             $logoPath = SchoolFileStorage::store($logo, $folderSchool, 'logos', 'logo-sekolah');
             SchoolFileStorage::delete($school->logo_path);
+        }
+
+        if ($request->hasFile('nametag_background')) {
+            $background = $request->file('nametag_background');
+
+            if (! $background->isValid() || empty($background->getPathname()) || ! is_file($background->getPathname())) {
+                return back()
+                    ->withErrors('Background nametag gagal diunggah. Silakan pilih ulang file background.')
+                    ->withInput();
+            }
+
+            $nametagBackgroundPath = SchoolFileStorage::store($background, $folderSchool, 'nametags', 'background-nametag');
+            SchoolFileStorage::delete($school->nametag_background_path);
+        } elseif ($request->boolean('remove_nametag_background')) {
+            SchoolFileStorage::delete($school->nametag_background_path);
+            $nametagBackgroundPath = null;
         }
 
         $school->update([
@@ -66,6 +84,7 @@ class SchoolProfileController extends Controller
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,
             'logo_path' => $logoPath,
+            'nametag_background_path' => $nametagBackgroundPath,
         ]);
 
         return redirect()
