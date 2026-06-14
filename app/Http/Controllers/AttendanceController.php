@@ -305,6 +305,10 @@ class AttendanceController extends Controller
             abort(403);
         }
 
+        if ($attendanceSession->status !== 'draft') {
+            return back()->withErrors('Presensi yang sudah disubmit atau dikunci tidak dapat diperbarui.');
+        }
+
         return $this->updateAttendanceSession(
             $request,
             $attendanceSession,
@@ -341,6 +345,12 @@ class AttendanceController extends Controller
             abort(403);
         }
 
+        if ($attendanceSession->status !== 'draft') {
+            return response()->json([
+                'message' => 'Presensi yang sudah disubmit atau dikunci tidak dapat discan.',
+            ], 422);
+        }
+
         return $this->scanAttendanceSession($request, $attendanceSession, 'daily');
     }
 
@@ -348,6 +358,12 @@ class AttendanceController extends Controller
     {
         if (! $this->canManageScheduleSession($request, $attendanceSession)) {
             abort(403);
+        }
+
+        if ($attendanceSession->status !== 'draft') {
+            return response()->json([
+                'message' => 'Presensi yang sudah disubmit atau dikunci tidak dapat discan.',
+            ], 422);
         }
 
         return $this->scanAttendanceSession($request, $attendanceSession, 'schedule');
@@ -361,9 +377,9 @@ class AttendanceController extends Controller
             abort(403);
         }
 
-        if ($attendanceSession->status === 'locked') {
+        if ($attendanceSession->status !== 'draft') {
             return response()->json([
-                'message' => 'Presensi yang sudah dikunci tidak dapat diperbarui.',
+                'message' => 'Presensi yang sudah disubmit atau dikunci tidak dapat diperbarui.',
             ], 422);
         }
 
@@ -457,8 +473,8 @@ class AttendanceController extends Controller
             abort(403);
         }
 
-        if ($attendanceSession->status === 'locked') {
-            return back()->withErrors('Presensi yang sudah dikunci tidak dapat diperbarui.');
+        if ($attendanceSession->status !== 'draft') {
+            return back()->withErrors('Presensi yang sudah disubmit atau dikunci tidak dapat diperbarui.');
         }
 
         return $this->updateAttendanceSession(
@@ -477,8 +493,8 @@ class AttendanceController extends Controller
         string $submittedMessage,
         string $draftMessage
     ): RedirectResponse {
-        if ($attendanceSession->status === 'locked') {
-            return back()->withErrors('Presensi yang sudah dikunci tidak dapat diperbarui.');
+        if ($attendanceSession->status !== 'draft') {
+            return back()->withErrors('Presensi yang sudah disubmit atau dikunci tidak dapat diperbarui.');
         }
 
         $validated = $request->validate([

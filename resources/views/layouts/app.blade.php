@@ -379,10 +379,30 @@
 
                                 @if(in_array($effectiveRole, ['school_admin', 'teacher'], true))
                                 <li class="menu-item {{ request()->is('attendances*') ? 'active' : '' }}">
-                                    <a href="{{ route('attendances.index') }}" class="menu-link">
+                                    <a href="javascript:void(0)" class="menu-link menu-toggle">
                                         <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                                         <div data-i18n="Presensi">Presensi</div>
                                     </a>
+                                    <ul class="menu-sub">
+                                        <li class="menu-item {{ request()->is('attendances/daily*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.daily') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                                                <div data-i18n="Presensi Harian">Presensi Harian</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('attendances/schedules*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.schedule') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-time-five"></i>
+                                                <div data-i18n="Presensi Per Jadwal">Presensi Per Jadwal</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('attendances/reports*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.report') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-file"></i>
+                                                <div data-i18n="Report Presensi">Report Presensi</div>
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                                 @endif
 

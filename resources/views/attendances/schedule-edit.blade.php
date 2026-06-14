@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $isEditable = $session->status === 'draft';
+@endphp
+
 <div class="container-xxl flex-grow-1 container-p-y">
     @if(session('success') || $errors->any())
         <script>
@@ -47,6 +51,12 @@
 
         <div class="card mb-4">
             <div class="card-body">
+                @if(! $isEditable)
+                    <div class="alert alert-info mb-4">
+                        Presensi sudah {{ $session->status === 'submitted' ? 'disubmit' : 'dikunci' }}. Data presensi hanya dapat dilihat dan tidak dapat diubah.
+                    </div>
+                @endif
+
                 <div class="row g-3">
                     <div class="col-md-3">
                         <div class="text-muted small">Tanggal</div>
@@ -88,7 +98,7 @@
 
                 <div class="mt-4">
                     <label class="form-label" for="notes">Catatan Sesi</label>
-                    <textarea class="form-control" id="notes" name="notes" rows="2">{{ old('notes', $session->notes) }}</textarea>
+                    <textarea class="form-control" id="notes" name="notes" rows="2" @disabled(! $isEditable)>{{ old('notes', $session->notes) }}</textarea>
                 </div>
             </div>
         </div>
@@ -101,7 +111,7 @@
                         <div class="text-muted small">Arahkan kamera ke QR Code pada nametag murid untuk menandai hadir pada jadwal ini.</div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-label-primary" id="startQrScanner" @disabled($session->status === 'locked')>
+                        <button type="button" class="btn btn-label-primary" id="startQrScanner" @disabled(! $isEditable)>
                             <i class="bx bx-camera me-1"></i> Buka Kamera
                         </button>
                         <button type="button" class="btn btn-label-secondary d-none" id="stopQrScanner">
@@ -111,7 +121,7 @@
                 </div>
 
                 <div id="qrScannerMessage" class="alert alert-info mb-3">
-                    Kamera belum aktif.
+                    {{ $isEditable ? 'Kamera belum aktif.' : 'Kamera tidak tersedia karena presensi sudah disubmit atau dikunci.' }}
                 </div>
 
                 <div id="qrScannerPanel" class="border rounded overflow-hidden bg-dark d-none" style="max-width: 520px;">
@@ -133,7 +143,7 @@
                         <span class="badge bg-label-secondary">T = Terlambat</span>
                     </div>
 
-                    @if($session->status !== 'locked')
+                    @if($isEditable)
                         <button type="button" class="btn btn-sm btn-label-success" id="markAllPresent">
                             <i class="bx bx-check-double me-1"></i> Hadir Semua
                         </button>
@@ -201,7 +211,7 @@
                                                     data-inactive-class="{{ $inactiveClass }}"
                                                     title="{{ $label }}"
                                                     aria-label="{{ $label }}"
-                                                    @disabled($session->status === 'locked')
+                                                    @disabled(! $isEditable)
                                                 >
                                                     {{ $statusShortLabels[$value] ?? strtoupper(substr($label, 0, 1)) }}
                                                 </button>
@@ -212,7 +222,7 @@
                                         </div>
                                     </td>
                                     <td style="min-width: 240px;">
-                                        <input class="form-control" name="records[{{ $record->id }}][notes]" value="{{ old("records.{$record->id}.notes", $record->notes) }}" placeholder="Opsional" @disabled($session->status === 'locked')>
+                                        <input class="form-control" name="records[{{ $record->id }}][notes]" value="{{ old("records.{$record->id}.notes", $record->notes) }}" placeholder="Opsional" @disabled(! $isEditable)>
                                     </td>
                                 </tr>
                             @empty
@@ -225,7 +235,7 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2 mt-4">
-                    @if($session->status !== 'locked')
+                    @if($isEditable)
                         <button type="submit" name="action" value="draft" class="btn btn-label-primary">
                             Simpan Draft
                         </button>
@@ -251,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const markAllPresentButton = document.getElementById('markAllPresent');
     const scanUrl = @json(route('attendances.schedule.scan', $session));
     const csrfToken = @json(csrf_token());
-    const isLocked = @json($session->status === 'locked');
+    const isEditable = @json($isEditable);
 
     let stream = null;
     let detector = null;
@@ -467,8 +477,8 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     startButton?.addEventListener('click', async () => {
-        if (isLocked) {
-            showMessage('warning', 'Presensi yang sudah dikunci tidak dapat discan.');
+        if (!isEditable) {
+            showMessage('warning', 'Presensi yang sudah disubmit atau dikunci tidak dapat discan.');
             return;
         }
 
