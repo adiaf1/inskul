@@ -115,8 +115,8 @@
                         <a href="{{ route('teacher-schedules.index') }}" class="btn btn-label-success text-start">
                             <i class="bx bx-calendar-event me-1"></i> Lihat Jadwal Mengajar
                         </a>
-                        <a href="{{ route('attendances.report') }}" class="btn btn-label-secondary text-start">
-                            <i class="bx bx-file me-1"></i> Report Presensi
+                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-label-secondary text-start">
+                            <i class="bx bx-file me-1"></i> Report Presensi Harian
                         </a>
                     </div>
                 </div>
@@ -197,7 +197,7 @@
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="mb-0">Aktivitas Presensi Terbaru</h5>
-                        <a href="{{ route('attendances.report') }}" class="btn btn-sm btn-label-secondary">Report</a>
+                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-secondary">Report Harian</a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive text-nowrap">

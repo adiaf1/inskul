@@ -396,10 +396,10 @@
                                                 <div data-i18n="Presensi Per Jadwal">Presensi Per Jadwal</div>
                                             </a>
                                         </li>
-                                        <li class="menu-item {{ request()->is('attendances/reports*') ? 'active' : '' }}">
-                                            <a href="{{ route('attendances.report') }}" class="menu-link">
+                                        <li class="menu-item {{ request()->is('attendances/reports/daily*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.report.daily') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-file"></i>
-                                                <div data-i18n="Report Presensi">Report Presensi</div>
+                                                <div data-i18n="Report Presensi Harian">Report Presensi Harian</div>
                                             </a>
                                         </li>
                                     </ul>

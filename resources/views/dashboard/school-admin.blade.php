@@ -198,7 +198,7 @@
                 <div class="card h-100">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="mb-0">Aktivitas Presensi Terbaru</h5>
-                        <a href="{{ route('attendances.report') }}" class="btn btn-sm btn-label-primary">Report</a>
+                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-primary">Report Harian</a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive text-nowrap">

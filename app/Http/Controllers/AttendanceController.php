@@ -83,6 +83,90 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function dailyReport(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $filters = $this->dailyReportFilters($request);
+        $teacher = $this->activeTeacher($request, $school->id);
+        $isTeacher = $this->effectiveRole($request) === 'teacher';
+
+        $classrooms = $school->classrooms()
+            ->where('is_active', true)
+            ->when($isTeacher, fn ($query) => $teacher
+                ? $query->where('homeroom_teacher_id', $teacher->id)
+                : $query->whereRaw('1 = 0'))
+            ->orderBy('name')
+            ->get();
+
+        $records = $this->dailyReportRecordsQuery($school, $filters, $teacher, $isTeacher)
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('attendances.daily-report', [
+            'school' => $school,
+            'records' => $records,
+            'classrooms' => $classrooms,
+            'filters' => $filters,
+            'recordStatuses' => self::RECORD_STATUSES,
+        ]);
+    }
+
+    public function printDailyReport(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $filters = $this->dailyReportFilters($request);
+        $teacher = $this->activeTeacher($request, $school->id);
+        $isTeacher = $this->effectiveRole($request) === 'teacher';
+        $records = $this->dailyReportRecordsQuery($school, $filters, $teacher, $isTeacher)->get();
+        $selectedClassroom = $filters['classroom_id']
+            ? $school->classrooms()
+                ->with(['academicYear', 'semester', 'homeroomTeacher.user'])
+                ->find($filters['classroom_id'])
+            : null;
+        $dateColumns = collect();
+
+        $currentDate = Carbon::parse($filters['date_from']);
+        $endDate = Carbon::parse($filters['date_to']);
+
+        while ($currentDate->lte($endDate)) {
+            $dateColumns->push($currentDate->copy());
+            $currentDate->addDay();
+        }
+
+        $studentRows = $records
+            ->groupBy('student_id')
+            ->map(function ($studentRecords) {
+                $firstRecord = $studentRecords->first();
+
+                return [
+                    'student' => $firstRecord->student,
+                    'records_by_date' => $studentRecords->keyBy(fn ($record) => $record->session?->attendance_date?->format('Y-m-d')),
+                ];
+            })
+            ->sortBy(fn ($row) => $row['student']?->user?->name)
+            ->values();
+
+        return view('attendances.daily-report-print', [
+            'school' => $school,
+            'records' => $records,
+            'filters' => $filters,
+            'selectedClassroom' => $selectedClassroom,
+            'dateColumns' => $dateColumns,
+            'studentRows' => $studentRows,
+            'recordStatuses' => self::RECORD_STATUSES,
+        ]);
+    }
+
     public function daily(Request $request): View|RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -574,6 +658,41 @@ class AttendanceController extends Controller
             'classroom_id' => $request->input('classroom_id', ''),
             'status' => $request->input('status', ''),
         ];
+    }
+
+    private function dailyReportFilters(Request $request): array
+    {
+        return [
+            'date_from' => $request->input('date_from', now()->startOfMonth()->format('Y-m-d')),
+            'date_to' => $request->input('date_to', now()->format('Y-m-d')),
+            'classroom_id' => $request->input('classroom_id', ''),
+            'status' => $request->input('status', ''),
+        ];
+    }
+
+    private function dailyReportRecordsQuery($school, array $filters, ?Teacher $teacher = null, bool $isTeacher = false)
+    {
+        return AttendanceRecord::query()
+            ->with(['student.user', 'session.classroom', 'session.teacher.user'])
+            ->whereHas('session', function ($query) use ($school, $filters, $teacher, $isTeacher) {
+                $query->where('school_id', $school->id)
+                    ->where('type', 'daily')
+                    ->when($filters['date_from'], fn ($inner) => $inner->whereDate('attendance_date', '>=', $filters['date_from']))
+                    ->when($filters['date_to'], fn ($inner) => $inner->whereDate('attendance_date', '<=', $filters['date_to']))
+                    ->when($filters['classroom_id'], fn ($inner) => $inner->where('classroom_id', $filters['classroom_id']))
+                    ->when($isTeacher, fn ($inner) => $teacher
+                        ? $inner->where('teacher_id', $teacher->id)
+                        : $inner->whereRaw('1 = 0'));
+            })
+            ->when($filters['status'] === 'unfilled', fn ($query) => $query->whereNull('attendance_records.status'))
+            ->when($filters['status'] && $filters['status'] !== 'unfilled', fn ($query) => $query->where('attendance_records.status', $filters['status']))
+            ->join('attendance_sessions', 'attendance_records.attendance_session_id', '=', 'attendance_sessions.id')
+            ->join('students', 'attendance_records.student_id', '=', 'students.id')
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->orderByDesc('attendance_sessions.attendance_date')
+            ->orderBy('attendance_sessions.classroom_id')
+            ->orderBy('users.name')
+            ->select('attendance_records.*');
     }
 
     private function reportRecordsQuery($school, array $filters)

@@ -56,12 +56,12 @@
                             <i class="bx bx-bar-chart-alt-2"></i>
                         </span>
                         <div>
-                            <h5 class="mb-1">Report Presensi</h5>
-                            <div class="text-muted small">Lihat, filter, dan cetak hasil presensi.</div>
+                            <h5 class="mb-1">Report Presensi Harian</h5>
+                            <div class="text-muted small">Lihat, filter, dan cetak hasil presensi harian.</div>
                         </div>
                     </div>
-                    <a href="{{ route('attendances.report') }}" class="btn btn-success">
-                        Buka Report Presensi
+                    <a href="{{ route('attendances.report.daily') }}" class="btn btn-success">
+                        Buka Report Harian
                     </a>
                 </div>
             </div>
