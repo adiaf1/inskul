@@ -111,7 +111,72 @@ class DashboardController extends Controller
         } elseif ($role === 'principal') {
             return view('dashboard.principal');
         } elseif ($role === 'teacher') {
-            return view('dashboard.teacher');
+            $school = EffectiveAccess::school(request());
+            $effectiveUser = EffectiveAccess::user(request());
+            $today = now()->toDateString();
+            $todayDay = now()->isoWeekday();
+            $teacher = null;
+            $todaySchedules = collect();
+            $homeroomClassrooms = collect();
+            $recentAttendanceSessions = collect();
+            $attendanceSummary = [
+                'today_total' => 0,
+                'today_submitted' => 0,
+                'today_draft' => 0,
+                'month_total' => 0,
+            ];
+
+            if ($school && $effectiveUser) {
+                $teacher = Teacher::query()
+                    ->with('school')
+                    ->where('school_id', $school->id)
+                    ->where('user_id', $effectiveUser->id)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($teacher) {
+                    $todaySchedules = $teacher->schedules()
+                        ->with(['classroom', 'subject', 'physicalRoom'])
+                        ->where('school_id', $school->id)
+                        ->where('is_active', true)
+                        ->where('day_of_week', $todayDay)
+                        ->orderBy('starts_at')
+                        ->get();
+
+                    $homeroomClassrooms = $teacher->homeroomClassrooms()
+                        ->with(['academicYear', 'semester'])
+                        ->withCount(['students' => fn ($query) => $query->where('classroom_student.status', 'active')->where('students.is_active', true)])
+                        ->where('school_id', $school->id)
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->get();
+
+                    $attendanceSummary = [
+                        'today_total' => $teacher->attendanceSessions()->whereDate('attendance_date', $today)->count(),
+                        'today_submitted' => $teacher->attendanceSessions()->whereDate('attendance_date', $today)->where('status', 'submitted')->count(),
+                        'today_draft' => $teacher->attendanceSessions()->whereDate('attendance_date', $today)->where('status', 'draft')->count(),
+                        'month_total' => $teacher->attendanceSessions()
+                            ->whereBetween('attendance_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+                            ->count(),
+                    ];
+
+                    $recentAttendanceSessions = $teacher->attendanceSessions()
+                        ->with(['classroom', 'subject'])
+                        ->latest('attendance_date')
+                        ->latest()
+                        ->limit(5)
+                        ->get();
+                }
+            }
+
+            return view('dashboard.teacher', compact(
+                'school',
+                'teacher',
+                'todaySchedules',
+                'homeroomClassrooms',
+                'recentAttendanceSessions',
+                'attendanceSummary'
+            ));
         } elseif ($role === 'student') {
             return view('dashboard.student');
         } elseif ($role === 'parent') {
