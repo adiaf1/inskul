@@ -112,6 +112,21 @@
             border-collapse: collapse;
         }
 
+        .summary-table {
+            width: max-content;
+            min-width: 0;
+            table-layout: auto;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            white-space: nowrap;
+        }
+
+        .summary-table .student-column {
+            min-width: 0;
+        }
+
         th,
         td {
             padding: 4px;
@@ -213,7 +228,7 @@
                 <thead>
                     <tr>
                         <th style="width: 26px;">No</th>
-                        <th class="student-column">Murid</th>
+                        <th class="student-column">Nama</th>
                         @foreach($dateColumns as $date)
                             <th class="date-column">{{ $date->format('d/m') }}</th>
                         @endforeach
@@ -246,6 +261,41 @@
             <div class="muted" style="margin-top: 8px;">
                 Keterangan: H = Hadir, S = Sakit, A = Alpa, I = Izin, T = Terlambat, - = Belum ada data/belum diisi.
             </div>
+
+            <h2 style="margin: 14px 0 8px; font-size: 13px;">Rekap Jumlah Presensi</h2>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th style="width: 26px;">No</th>
+                        <th>Nama</th>
+                        <th class="date-column">H</th>
+                        <th class="date-column">S</th>
+                        <th class="date-column">A</th>
+                        <th class="date-column">I</th>
+                        <th class="date-column">T</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($studentRows as $row)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td class="student-column">
+                                {{ $row['student']?->user?->name ?? '-' }}
+                                <div class="muted">{{ $row['student']?->nis ?: '-' }}{{ $row['student']?->nisn ? ' / '.$row['student']?->nisn : '' }}</div>
+                            </td>
+                            <td class="status">{{ $row['present'] }}</td>
+                            <td class="status">{{ $row['sick'] }}</td>
+                            <td class="status">{{ $row['absent'] }}</td>
+                            <td class="status">{{ $row['permit'] }}</td>
+                            <td class="status">{{ $row['late'] }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="empty">Tidak ada data rekap sesuai filter.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </section>
     </main>
 </body>

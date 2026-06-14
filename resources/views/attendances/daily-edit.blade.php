@@ -141,7 +141,7 @@
                     <table class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th>Murid</th>
+                                <th>Nama</th>
                                 <th>NIS/NISN</th>
                                 <th>Status</th>
                                 <th>Catatan</th>

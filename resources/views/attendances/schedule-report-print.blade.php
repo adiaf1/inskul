@@ -223,7 +223,7 @@
                     <thead>
                         <tr>
                             <th style="width: 26px;">No</th>
-                            <th class="student-column">Murid</th>
+                            <th class="student-column">Nama</th>
                             @foreach($dateColumns as $date)
                                 <th class="date-column">{{ $date->format('d/m') }}</th>
                             @endforeach

@@ -73,7 +73,7 @@
                             <th>Rombel</th>
                             <th>Periode</th>
                             <th>Wali Kelas</th>
-                            <th>Murid</th>
+                            <th>Nama</th>
                             <th>Status</th>
                             <th class="text-end">Aksi</th>
                         </tr>

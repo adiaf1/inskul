@@ -63,7 +63,7 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Murid</th>
+                            <th>Nama</th>
                             <th>NIS/NISN</th>
                             <th>Kontak</th>
                             <th>Status</th>

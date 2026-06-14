@@ -105,7 +105,7 @@
                 <th style="width: 48px;">
                     <input class="form-check-input border-danger" type="checkbox" data-check-all-selected-students="{{ $mode }}" title="Pilih semua anggota yang tampil" aria-label="Pilih semua anggota yang tampil">
                 </th>
-                <th>Murid Terpilih</th>
+                <th>Nama Terpilih</th>
                 <th>NIS</th>
                 <th>Angkatan</th>
                 <th class="text-end">Aksi</th>
@@ -164,7 +164,7 @@
                                 <th style="width: 48px;">
                                     <input class="form-check-input" type="checkbox" data-check-all-modal-students="{{ $mode }}" title="Pilih semua murid sesuai filter" aria-label="Pilih semua murid sesuai filter">
                                 </th>
-                                <th>Murid</th>
+                                <th>Nama</th>
                                 <th>NIS/NISN</th>
                                 <th>Angkatan</th>
                             </tr>

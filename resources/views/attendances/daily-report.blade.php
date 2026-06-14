@@ -75,7 +75,7 @@
                             <th>Tanggal</th>
                             <th>Rombel</th>
                             <th>Wali Kelas</th>
-                            <th>Murid</th>
+                            <th>Nama</th>
                             <th>Status</th>
                             <th>Catatan</th>
                             <th class="text-end">Aksi</th>
@@ -133,6 +133,58 @@
             </div>
 
             <x-table-pagination :paginator="$records" label="data presensi harian" />
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Rekap Jumlah Presensi</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span class="text-muted small me-1">Keterangan:</span>
+                <span class="badge bg-label-primary">H = Hadir</span>
+                <span class="badge bg-label-info">S = Sakit</span>
+                <span class="badge bg-label-danger">A = Alpa</span>
+                <span class="badge bg-label-warning">I = Izin</span>
+                <span class="badge bg-label-secondary">T = Terlambat</span>
+            </div>
+
+            <div class="table-responsive text-nowrap">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">No</th>
+                            <th>Nama</th>
+                            <th class="text-center">H</th>
+                            <th class="text-center">S</th>
+                            <th class="text-center">A</th>
+                            <th class="text-center">I</th>
+                            <th class="text-center">T</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($summaryRows as $row)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>
+                                    <strong>{{ $row['student']?->user?->name ?? '-' }}</strong>
+                                    <div class="text-muted small">{{ $row['student']?->nis ?: '-' }}{{ $row['student']?->nisn ? ' / '.$row['student']?->nisn : '' }}</div>
+                                </td>
+                                <td class="text-center">{{ $row['present'] }}</td>
+                                <td class="text-center">{{ $row['sick'] }}</td>
+                                <td class="text-center">{{ $row['absent'] }}</td>
+                                <td class="text-center">{{ $row['permit'] }}</td>
+                                <td class="text-center">{{ $row['late'] }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">Tidak ada data rekap sesuai filter.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -87,7 +87,7 @@
                             <th>Rombel</th>
                             <th>Mata Pelajaran</th>
                             <th>Guru</th>
-                            <th>Murid</th>
+                            <th>Nama</th>
                             <th>Status</th>
                             <th>Catatan</th>
                             <th class="text-end">Aksi</th>
