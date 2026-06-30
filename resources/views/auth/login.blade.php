@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <title>Masuk - {{ config('app.name') }}</title>
     <meta name="description" content="" />
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/branding/logo.png') }}?v=inskul-20260630" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,6 +27,9 @@
 <body>
     <div class="authentication-wrapper authentication-cover">
         <a href="{{ route('home') }}" class="app-brand auth-cover-brand gap-2">
+            <span class="app-brand-logo demo">
+                <img src="{{ asset('assets/img/branding/logo.png') }}" alt="{{ config('app.name') }}" style="height: 34px; width: auto;">
+            </span>
             <span class="app-brand-text demo text-heading fw-bold">{{ config('app.name') }}</span>
         </a>
         <div class="authentication-inner row m-0">
@@ -60,6 +63,9 @@
 
             <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg p-sm-12 p-6">
                 <div class="w-px-400 mx-auto mt-12 pt-5">
+                    <div class="mb-6">
+                        <img src="{{ asset('assets/img/branding/logo.png') }}" alt="{{ config('app.name') }}" style="height: 64px; width: auto;">
+                    </div>
                     <h4 class="mb-1">Selamat Datang di {{ config('app.name') }}!</h4>
                     <p class="mb-6">Silakan masuk ke dalam sistem</p>
 

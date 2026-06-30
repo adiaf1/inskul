@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Inskul') }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/branding/logo.png') }}?v=inskul-20260630">
     <style>
         :root {
             color-scheme: light;
@@ -51,12 +52,17 @@
         .brand-mark {
             width: 34px;
             height: 34px;
-            display: inline-grid;
-            place-items: center;
-            border-radius: 8px;
-            color: #ffffff;
-            background: #2563eb;
-            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .brand-mark img {
+            width: auto;
+            height: 34px;
+            object-fit: contain;
+            display: block;
         }
 
         .nav {
@@ -232,7 +238,9 @@
     <div class="page">
         <header class="topbar">
             <a class="brand" href="{{ route('home') }}">
-                <span class="brand-mark">I</span>
+                <span class="brand-mark">
+                    <img src="{{ asset('assets/img/branding/logo.png') }}" alt="{{ config('app.name', 'Inskul') }}">
+                </span>
                 <span>{{ config('app.name', 'Inskul') }}</span>
             </a>
 
