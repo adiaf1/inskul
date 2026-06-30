@@ -36,6 +36,11 @@
                     </span>
                 </div>
                 <p>{{ $question->question_text }}</p>
+                @if($question->image_path)
+                    <div class="mb-3">
+                        <img src="{{ \App\Support\SchoolFileStorage::url($question->image_path) }}" alt="Gambar soal {{ $loop->iteration }}" class="img-fluid rounded border" style="max-height: 360px;">
+                    </div>
+                @endif
                 <div class="row g-2">
                     @foreach($question->options as $option)
                         <div class="col-md-6">

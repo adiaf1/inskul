@@ -9,6 +9,7 @@ use App\Models\ExamQuestion;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Support\EffectiveAccess;
+use App\Support\SchoolFileStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -179,10 +180,12 @@ class ExamController extends Controller
         $this->authorizeExam($request, $exam);
 
         $validated = $request->validate($this->questionRules());
+        $school = $this->activeSchool($request);
 
-        DB::transaction(function () use ($exam, $validated) {
+        DB::transaction(function () use ($exam, $validated, $request, $school) {
             $question = $exam->questions()->create([
                 'question_text' => $validated['question_text'],
+                'image_path' => $request->hasFile('image') ? SchoolFileStorage::store($request->file('image'), $school, 'exams/questions', 'soal-ujian') : null,
                 'points' => $validated['points'],
                 'sort_order' => $validated['sort_order'],
             ]);
@@ -205,10 +208,24 @@ class ExamController extends Controller
         $this->authorizeQuestion($exam, $question);
 
         $validated = $request->validate($this->questionRules());
+        $school = $this->activeSchool($request);
 
-        DB::transaction(function () use ($question, $validated) {
+        DB::transaction(function () use ($question, $validated, $request, $school) {
+            $imagePath = $question->image_path;
+
+            if ($request->boolean('remove_image')) {
+                SchoolFileStorage::delete($imagePath);
+                $imagePath = null;
+            }
+
+            if ($request->hasFile('image')) {
+                SchoolFileStorage::delete($imagePath);
+                $imagePath = SchoolFileStorage::store($request->file('image'), $school, 'exams/questions', 'soal-ujian');
+            }
+
             $question->update([
                 'question_text' => $validated['question_text'],
+                'image_path' => $imagePath,
                 'points' => $validated['points'],
                 'sort_order' => $validated['sort_order'],
             ]);
@@ -232,6 +249,7 @@ class ExamController extends Controller
         $this->authorizeExam($request, $exam);
         $this->authorizeQuestion($exam, $question);
 
+        SchoolFileStorage::delete($question->image_path);
         $question->delete();
 
         return back()->with('success', 'Soal berhasil dihapus.');
@@ -412,6 +430,8 @@ class ExamController extends Controller
     {
         return [
             'question_text' => ['required', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
             'points' => ['required', 'integer', 'min:1', 'max:100'],
             'sort_order' => ['required', 'integer', 'min:1', 'max:1000'],
             'correct_option' => ['required', Rule::in(self::OPTION_LABELS)],

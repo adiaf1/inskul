@@ -59,7 +59,7 @@
             <h5 class="mb-0">Tambah Soal</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('exams.questions.store', $exam) }}">
+            <form method="POST" action="{{ route('exams.questions.store', $exam) }}" enctype="multipart/form-data">
                 @csrf
                 @include('exams.partials.question-form', ['question' => null, 'buttonText' => 'Tambah Soal'])
             </form>
@@ -74,7 +74,7 @@
     @forelse($exam->questions as $question)
         <div class="card mb-3">
             <div class="card-body">
-                <form method="POST" action="{{ route('exams.questions.update', [$exam, $question]) }}">
+                <form method="POST" action="{{ route('exams.questions.update', [$exam, $question]) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     @include('exams.partials.question-form', ['question' => $question, 'buttonText' => 'Simpan Soal'])
