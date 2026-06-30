@@ -12,14 +12,37 @@ use App\Support\EffectiveAccess;
 use App\Support\SchoolFileStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class ExamController extends Controller
 {
     private const OPTION_LABELS = ['A', 'B', 'C', 'D'];
+    private const QUESTION_IMPORT_HEADERS = [
+        'question_text',
+        'image_file',
+        'option_a',
+        'option_b',
+        'option_c',
+        'option_d',
+        'correct_option',
+        'points',
+        'sort_order',
+    ];
+    private const QUESTION_IMPORT_REQUIRED_HEADERS = [
+        'question_text',
+        'option_a',
+        'option_b',
+        'option_c',
+        'option_d',
+        'correct_option',
+    ];
+    private const QUESTION_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -255,6 +278,115 @@ class ExamController extends Controller
         return back()->with('success', 'Soal berhasil dihapus.');
     }
 
+    public function downloadQuestionImportTemplate(Request $request, Exam $exam)
+    {
+        $this->authorizeExam($request, $exam);
+
+        $filename = 'template-import-soal-'.$exam->id.'.csv';
+
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, self::QUESTION_IMPORT_HEADERS);
+            fputcsv($handle, [
+                'Ibukota Indonesia adalah?',
+                '',
+                'Jakarta',
+                'Bandung',
+                'Surabaya',
+                'Medan',
+                'A',
+                '1',
+                '1',
+            ]);
+            fputcsv($handle, [
+                'Perhatikan gambar pada soal.',
+                'contoh-gambar.png',
+                'Pilihan A',
+                'Pilihan B',
+                'Pilihan C',
+                'Pilihan D',
+                'B',
+                '1',
+                '2',
+            ]);
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function importQuestions(Request $request, Exam $exam): RedirectResponse
+    {
+        $this->authorizeExam($request, $exam);
+
+        $validated = $request->validate([
+            'questions_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'images_zip' => ['nullable', 'file', 'mimes:zip', 'max:51200'],
+        ]);
+
+        $csvPath = $this->uploadedFilePath($request->file('questions_file'));
+
+        if (! $csvPath) {
+            return back()->withErrors('File CSV soal tidak bisa dibaca. Silakan upload ulang file template CSV.');
+        }
+
+        [$rows, $errors] = $this->parseQuestionImportRows($csvPath);
+
+        if ($errors) {
+            return back()->withErrors(implode(' ', $errors));
+        }
+
+        if (empty($rows)) {
+            return back()->withErrors('File import tidak memiliki baris soal.');
+        }
+
+        [$zip, $zipEntries, $zipErrors] = $this->prepareQuestionImageZip($rows, $request->file('images_zip'));
+
+        if ($zipErrors) {
+            return back()->withErrors(implode(' ', $zipErrors));
+        }
+
+        $school = $this->activeSchool($request);
+        $storedImagePaths = [];
+
+        try {
+            DB::transaction(function () use ($exam, $rows, $zip, $zipEntries, $school, &$storedImagePaths) {
+                $nextSortOrder = ((int) $exam->questions()->max('sort_order')) + 1;
+
+                foreach ($rows as $row) {
+                    $question = $exam->questions()->create([
+                        'question_text' => $row['question_text'],
+                        'image_path' => $this->storeImportedQuestionImage($zip, $zipEntries, $row['image_file'], $school, $storedImagePaths),
+                        'points' => $row['points'],
+                        'sort_order' => $row['sort_order'] ?: $nextSortOrder,
+                    ]);
+
+                    foreach (self::OPTION_LABELS as $label) {
+                        $question->options()->create([
+                            'label' => $label,
+                            'option_text' => $row['option_'.strtolower($label)],
+                            'is_correct' => $row['correct_option'] === $label,
+                        ]);
+                    }
+
+                    $nextSortOrder = max($nextSortOrder + 1, $question->sort_order + 1);
+                }
+            });
+        } catch (Throwable $exception) {
+            foreach ($storedImagePaths as $path) {
+                SchoolFileStorage::delete($path);
+            }
+
+            throw $exception;
+        } finally {
+            $zip?->close();
+        }
+
+        return back()->with('success', count($rows).' soal berhasil diimport.');
+    }
+
     public function take(Request $request, Exam $exam): View|RedirectResponse
     {
         $student = $this->authorizeStudentExam($request, $exam);
@@ -441,6 +573,207 @@ class ExamController extends Controller
             'options.C' => ['required', 'string'],
             'options.D' => ['required', 'string'],
         ];
+    }
+
+    private function parseQuestionImportRows(?string $path): array
+    {
+        if (! $path || ! is_file($path)) {
+            return [[], ['File import tidak bisa dibaca. Silakan upload ulang file CSV.']];
+        }
+
+        $handle = fopen($path, 'r');
+
+        if (! $handle) {
+            return [[], ['File import tidak bisa dibaca.']];
+        }
+
+        $headers = fgetcsv($handle);
+
+        if (! $headers) {
+            fclose($handle);
+
+            return [[], ['File import kosong.']];
+        }
+
+        $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+        $headers = array_map(fn ($header) => $this->normalizeImportHeader((string) $header), $headers);
+        $headerMap = array_flip($headers);
+        $missingHeaders = array_values(array_diff(self::QUESTION_IMPORT_REQUIRED_HEADERS, $headers));
+
+        if ($missingHeaders) {
+            fclose($handle);
+
+            return [[], ['Format header belum lengkap. Kolom wajib yang belum ada: '.implode(', ', $missingHeaders).'.']];
+        }
+
+        $rows = [];
+        $errors = [];
+        $lineNumber = 1;
+
+        while (($values = fgetcsv($handle)) !== false) {
+            $lineNumber++;
+
+            if ($values === [null] || collect($values)->filter(fn ($value) => trim((string) $value) !== '')->isEmpty()) {
+                continue;
+            }
+
+            $row = [];
+
+            foreach (self::QUESTION_IMPORT_HEADERS as $header) {
+                $row[$header] = isset($headerMap[$header]) ? ($values[$headerMap[$header]] ?? '') : '';
+            }
+
+            $row = array_map(fn ($value) => trim((string) $value), $row);
+            $row['image_file'] = basename(str_replace('\\', '/', $row['image_file']));
+            $row['correct_option'] = strtoupper($row['correct_option']);
+            $row['points'] = $row['points'] === '' ? 1 : (int) $row['points'];
+            $row['sort_order'] = $row['sort_order'] === '' ? null : (int) $row['sort_order'];
+
+            foreach (['question_text', 'option_a', 'option_b', 'option_c', 'option_d'] as $field) {
+                if ($row[$field] === '') {
+                    $errors[] = "Baris {$lineNumber}: kolom {$field} wajib diisi.";
+                }
+            }
+
+            if (! in_array($row['correct_option'], self::OPTION_LABELS, true)) {
+                $errors[] = "Baris {$lineNumber}: jawaban benar harus A, B, C, atau D.";
+            }
+
+            if ($row['points'] < 1 || $row['points'] > 100) {
+                $errors[] = "Baris {$lineNumber}: poin harus antara 1 sampai 100.";
+            }
+
+            if ($row['sort_order'] !== null && ($row['sort_order'] < 1 || $row['sort_order'] > 1000)) {
+                $errors[] = "Baris {$lineNumber}: urutan harus antara 1 sampai 1000.";
+            }
+
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        return [$rows, array_slice($errors, 0, 10)];
+    }
+
+    private function prepareQuestionImageZip(array $rows, ?UploadedFile $zipFile): array
+    {
+        $imageNames = collect($rows)
+            ->pluck('image_file')
+            ->filter()
+            ->map(fn ($name) => strtolower($name))
+            ->unique()
+            ->values();
+
+        if ($imageNames->isEmpty()) {
+            return [null, [], []];
+        }
+
+        if (! $zipFile) {
+            return [null, [], []];
+        }
+
+        $zipPath = $this->uploadedFilePath($zipFile);
+
+        if (! $zipPath) {
+            return [null, [], []];
+        }
+
+        if (! class_exists(\ZipArchive::class)) {
+            return [null, [], ['Server belum mendukung ZipArchive untuk membaca file ZIP gambar.']];
+        }
+
+        $zip = new \ZipArchive();
+
+        if ($zip->open($zipPath) !== true) {
+            return [null, [], ['File ZIP gambar tidak bisa dibuka.']];
+        }
+
+        $entries = [];
+
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $stat = $zip->statIndex($index);
+            $entryName = $stat['name'] ?? '';
+
+            if ($entryName === '' || str_ends_with($entryName, '/')) {
+                continue;
+            }
+
+            $filename = basename(str_replace('\\', '/', $entryName));
+            $normalizedFilename = strtolower($filename);
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+            if (! in_array($extension, self::QUESTION_IMAGE_EXTENSIONS, true)) {
+                continue;
+            }
+
+            if (($stat['size'] ?? 0) > 2 * 1024 * 1024) {
+                continue;
+            }
+
+            if (isset($entries[$normalizedFilename])) {
+                continue;
+            }
+
+            $entries[$normalizedFilename] = [
+                'index' => $index,
+                'filename' => $filename,
+            ];
+        }
+
+        return [$zip, $entries, []];
+    }
+
+    private function storeImportedQuestionImage(?\ZipArchive $zip, array $zipEntries, ?string $imageFile, $school, array &$storedImagePaths): ?string
+    {
+        if (! $zip || ! $imageFile) {
+            return null;
+        }
+
+        $entry = $zipEntries[strtolower($imageFile)] ?? null;
+
+        if (! $entry) {
+            return null;
+        }
+
+        $content = $zip->getFromIndex($entry['index']);
+
+        if ($content === false) {
+            return null;
+        }
+
+        $temporaryDirectory = storage_path('app/tmp/exam-question-import');
+        File::ensureDirectoryExists($temporaryDirectory);
+
+        $temporaryPath = $temporaryDirectory.'/'.uniqid('question-image-', true).'-'.$entry['filename'];
+        file_put_contents($temporaryPath, $content);
+
+        $uploadedFile = new UploadedFile($temporaryPath, $entry['filename'], null, null, true);
+        $storedPath = SchoolFileStorage::store($uploadedFile, $school, 'exams/questions', 'soal-ujian');
+        $storedImagePaths[] = $storedPath;
+
+        return $storedPath;
+    }
+
+    private function normalizeImportHeader(string $header): string
+    {
+        $header = strtolower(trim($header));
+
+        return str_replace([' ', '-'], '_', $header);
+    }
+
+    private function uploadedFilePath(?UploadedFile $file): ?string
+    {
+        if (! $file) {
+            return null;
+        }
+
+        foreach ([$file->getRealPath(), $file->getPathname(), $file->path()] as $path) {
+            if (is_string($path) && $path !== '' && is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     private function formOptions(Request $request, $school): array

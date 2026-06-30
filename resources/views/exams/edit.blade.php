@@ -55,6 +55,37 @@
     </div>
 
     <div class="card mb-4">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h5 class="mb-0">Import Soal</h5>
+            <a href="{{ route('exams.questions.import-template', $exam) }}" class="btn btn-label-secondary">
+                <i class="bx bx-download me-1"></i> Download Template
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('exams.questions.import', $exam) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label" for="questions_file">File CSV Soal</label>
+                        <input type="file" class="form-control" id="questions_file" name="questions_file" accept=".csv,text/csv" required>
+                        <div class="form-text">Gunakan template CSV. Kolom boleh tidak berurutan selama nama header sesuai.</div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label" for="images_zip">ZIP Gambar Soal</label>
+                        <input type="file" class="form-control" id="images_zip" name="images_zip" accept=".zip,application/zip">
+                        <div class="form-text">Opsional. Jika tidak diupload atau gambar tidak ditemukan, soal tetap masuk tanpa gambar.</div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary">
+                            <i class="bx bx-upload me-1"></i> Import Soal
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">Tambah Soal</h5>
         </div>

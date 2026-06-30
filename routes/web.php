@@ -93,6 +93,8 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::patch('/exams/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
             Route::patch('/exams/{exam}/close', [ExamController::class, 'close'])->name('exams.close');
             Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
+            Route::get('/exams/{exam}/questions/import-template', [ExamController::class, 'downloadQuestionImportTemplate'])->name('exams.questions.import-template');
+            Route::post('/exams/{exam}/questions/import', [ExamController::class, 'importQuestions'])->name('exams.questions.import');
             Route::post('/exams/{exam}/questions', [ExamController::class, 'storeQuestion'])->name('exams.questions.store');
             Route::put('/exams/{exam}/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
             Route::delete('/exams/{exam}/questions/{question}', [ExamController::class, 'destroyQuestion'])->name('exams.questions.destroy');
