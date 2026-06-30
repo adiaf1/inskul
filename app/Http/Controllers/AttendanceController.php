@@ -228,10 +228,28 @@ class AttendanceController extends Controller
         $records = $this->scheduleReportRecordsQuery($school, $filters, $teacher, $isTeacher)
             ->paginate(20)
             ->withQueryString();
+        $summaryRows = $this->scheduleReportRecordsQuery($school, $filters, $teacher, $isTeacher)
+            ->get()
+            ->groupBy('student_id')
+            ->map(function ($studentRecords) {
+                $firstRecord = $studentRecords->first();
+
+                return [
+                    'student' => $firstRecord->student,
+                    'present' => $studentRecords->where('status', 'present')->count(),
+                    'sick' => $studentRecords->where('status', 'sick')->count(),
+                    'absent' => $studentRecords->where('status', 'absent')->count(),
+                    'permit' => $studentRecords->where('status', 'permit')->count(),
+                    'late' => $studentRecords->where('status', 'late')->count(),
+                ];
+            })
+            ->sortBy(fn ($row) => $row['student']?->user?->name)
+            ->values();
 
         return view('attendances.schedule-report', [
             'school' => $school,
             'records' => $records,
+            'summaryRows' => $summaryRows,
             'classrooms' => $classrooms,
             'subjects' => $subjects,
             'filters' => $filters,
