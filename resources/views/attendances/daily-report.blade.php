@@ -66,7 +66,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <!-- <div class="card">
         <div class="card-body">
             <div class="table-responsive text-nowrap">
                 <table class="table table-hover align-middle">
@@ -134,7 +134,7 @@
 
             <x-table-pagination :paginator="$records" label="data presensi harian" />
         </div>
-    </div>
+    </div> -->
 
     <div class="card mt-4">
         <div class="card-header">
