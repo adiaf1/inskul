@@ -455,6 +455,15 @@
                                 </li>
                                 @endif
 
+                                @if(in_array($effectiveRole, ['school_admin', 'teacher'], true))
+                                <li class="menu-item {{ request()->is('exams*') ? 'active' : '' }}">
+                                    <a href="{{ route('exams.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-task"></i>
+                                        <div data-i18n="Ujian">Ujian</div>
+                                    </a>
+                                </li>
+                                @endif
+
                                 @if($effectiveRole === 'teacher')
                                 <li class="menu-item {{ request()->is('teacher-schedules*') ? 'active' : '' }}">
                                     <a href="{{ route('teacher-schedules.index') }}" class="menu-link">
@@ -469,6 +478,12 @@
                                     <a href="{{ route('student-schedules.index') }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-calendar-event"></i>
                                         <div data-i18n="Jadwal">Jadwal</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ request()->is('exams*') ? 'active' : '' }}">
+                                    <a href="{{ route('exams.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-task"></i>
+                                        <div data-i18n="Ujian">Ujian</div>
                                     </a>
                                 </li>
                                 <li class="menu-item {{ request()->is('student-nametag') ? 'active' : '' }}">

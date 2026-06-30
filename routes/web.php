@@ -6,6 +6,7 @@ use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExamController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolOnboardingController;
@@ -73,9 +74,28 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::middleware('effective.role:student')->group(function () {
             Route::get('/student-schedules', [StudentScheduleController::class, 'index'])->name('student-schedules.index');
             Route::get('/student-nametag', [StudentController::class, 'printOwnNametag'])->name('students.own-nametag');
+            Route::get('/exams/{exam}/take', [ExamController::class, 'take'])->name('exams.take');
+            Route::post('/exams/{exam}/answers', [ExamController::class, 'saveAnswer'])->name('exams.answers.save');
+            Route::post('/exams/{exam}/submit', [ExamController::class, 'submit'])->name('exams.submit');
+            Route::get('/exams/{exam}/result', [ExamController::class, 'result'])->name('exams.result');
+        });
+
+        Route::middleware('effective.role:school_admin,teacher,student')->group(function () {
+            Route::get('/exams', [ExamController::class, 'index'])->name('exams.index');
         });
 
         Route::middleware('effective.role:school_admin,teacher')->group(function () {
+            Route::get('/exams/create', [ExamController::class, 'create'])->name('exams.create');
+            Route::post('/exams', [ExamController::class, 'store'])->name('exams.store');
+            Route::get('/exams/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
+            Route::put('/exams/{exam}', [ExamController::class, 'update'])->name('exams.update');
+            Route::delete('/exams/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
+            Route::patch('/exams/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
+            Route::patch('/exams/{exam}/close', [ExamController::class, 'close'])->name('exams.close');
+            Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
+            Route::post('/exams/{exam}/questions', [ExamController::class, 'storeQuestion'])->name('exams.questions.store');
+            Route::put('/exams/{exam}/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
+            Route::delete('/exams/{exam}/questions/{question}', [ExamController::class, 'destroyQuestion'])->name('exams.questions.destroy');
             Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
             Route::get('/attendances/reports', [AttendanceController::class, 'report'])->name('attendances.report');
             Route::get('/attendances/reports/print', [AttendanceController::class, 'printReport'])->name('attendances.report.print');
