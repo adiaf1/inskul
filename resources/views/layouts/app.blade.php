@@ -70,6 +70,7 @@
 <body>
     @php($authUser = Auth::user())
     @php($effectiveRole = \App\Support\EffectiveAccess::role(request()))
+    @php($activeSchool = \App\Support\EffectiveAccess::school(request()))
     @php($viewAs = \App\Support\EffectiveAccess::payload(request()))
     @php($pendingSchoolCount = $authUser?->hasRole('super_admin') ? \App\Models\School::where('status', 'pending')->count() : 0)
     <!-- Layout wrapper -->
@@ -144,6 +145,24 @@
                             <i class="icon-base bx bx-menu icon-md"></i>
                         </a>
                     </div>
+
+                    @if($activeSchool)
+                        <div class="d-flex align-items-center gap-2 min-w-0 me-auto">
+                            <span class="avatar avatar-sm rounded border bg-white d-flex align-items-center justify-content-center flex-shrink-0">
+                                @if($activeSchool->logo_path)
+                                    <img src="{{ \App\Support\SchoolFileStorage::url($activeSchool->logo_path) }}" alt="Logo {{ $activeSchool->name }}" class="rounded" style="width: 100%; height: 100%; object-fit: contain;">
+                                @else
+                                    <i class="bx bx-building-house text-primary"></i>
+                                @endif
+                            </span>
+                            <span class="d-flex flex-column min-w-0">
+                                <small class="text-muted lh-1 d-none d-sm-block">Sekolah aktif</small>
+                                <span class="fw-semibold text-heading text-truncate" style="max-width: min(34vw, 360px);">
+                                    {{ $activeSchool->name }}
+                                </span>
+                            </span>
+                        </div>
+                    @endif
 
                     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
                         <ul class="navbar-nav flex-row align-items-center ms-md-auto">
@@ -301,6 +320,30 @@
                                               </div>
                                         </a>
                                     </li>
+                                    @if($activeSchool)
+                                        <li>
+                                            <div class="dropdown-divider my-1"></div>
+                                        </li>
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-shrink-0 me-3">
+                                                        <span class="avatar avatar-sm rounded border bg-white d-flex align-items-center justify-content-center">
+                                                            @if($activeSchool->logo_path)
+                                                                <img src="{{ \App\Support\SchoolFileStorage::url($activeSchool->logo_path) }}" alt="Logo {{ $activeSchool->name }}" class="rounded" style="width: 100%; height: 100%; object-fit: contain;">
+                                                            @else
+                                                                <i class="bx bx-building-house text-primary"></i>
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1 min-w-0">
+                                                        <small class="text-muted d-block">Sekolah aktif</small>
+                                                        <span class="fw-medium text-truncate d-block">{{ $activeSchool->name }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    @endif
                                     <li>
                                         <div class="dropdown-divider my-1"></div>
                                     </li>
