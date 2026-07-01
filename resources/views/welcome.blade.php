@@ -263,10 +263,10 @@
                         {{ session('error') }}
                     </div>
                 @endif
-                <p class="eyebrow">Sistem sekolah multi-sekolah</p>
+                <p class="eyebrow">Sistem manajemen sekolah terpadu</p>
                 <h1>Kelola sekolah, presensi, dan ujian dari satu platform.</h1>
                 <p class="lead">
-                    Pondasi awal disiapkan untuk banyak sekolah, banyak peran, dan modul yang bisa berkembang bertahap dari data akademik sampai layanan orang tua.
+                    Pondasi awal disiapkan untuk pengelolaan peran, data akademik, presensi, dan modul sekolah yang bisa berkembang bertahap.
                 </p>
                 <div class="actions">
                     @auth
