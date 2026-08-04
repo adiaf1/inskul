@@ -1,0 +1,103 @@
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-bs-theme="dark"] body,
+[data-bs-theme="dark"] .layout-wrapper,
+[data-bs-theme="dark"] .layout-page,
+[data-bs-theme="dark"] .content-wrapper {
+  background-color: var(--bs-body-bg) !important;
+  color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .layout-navbar,
+[data-bs-theme="dark"] .layout-menu,
+[data-bs-theme="dark"] .menu-horizontal-wrapper,
+[data-bs-theme="dark"] .dropdown-menu,
+[data-bs-theme="dark"] .offcanvas,
+[data-bs-theme="dark"] .modal-content,
+[data-bs-theme="dark"] .authentication-bg {
+  background-color: var(--bs-paper-bg) !important;
+  color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .card,
+[data-bs-theme="dark"] .accordion-item,
+[data-bs-theme="dark"] .list-group-item,
+[data-bs-theme="dark"] .table-responsive,
+[data-bs-theme="dark"] .swal2-popup {
+  background-color: var(--bs-paper-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .bg-body,
+[data-bs-theme="dark"] .table-light,
+[data-bs-theme="dark"] .dropdown-shortcuts-icon,
+[data-bs-theme="dark"] .avatar.bg-white {
+  background-color: var(--bs-paper-bg) !important;
+  color: var(--bs-body-color) !important;
+}
+
+[data-bs-theme="dark"] .text-heading,
+[data-bs-theme="dark"] .text-dark,
+[data-bs-theme="dark"] h1,
+[data-bs-theme="dark"] h2,
+[data-bs-theme="dark"] h3,
+[data-bs-theme="dark"] h4,
+[data-bs-theme="dark"] h5,
+[data-bs-theme="dark"] h6 {
+  color: var(--bs-heading-color) !important;
+}
+
+[data-bs-theme="dark"] .text-muted,
+[data-bs-theme="dark"] small,
+[data-bs-theme="dark"] .form-text {
+  color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme="dark"] .table,
+[data-bs-theme="dark"] .table > :not(caption) > * > * {
+  color: var(--bs-body-color);
+  background-color: transparent;
+  border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select,
+[data-bs-theme="dark"] .input-group-text,
+[data-bs-theme="dark"] .select2-container--default .select2-selection--single,
+[data-bs-theme="dark"] .select2-container--default .select2-selection--multiple {
+  background-color: var(--bs-body-bg) !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: var(--bs-secondary-color);
+}
+
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-end,
+[data-bs-theme="dark"] .border-bottom,
+[data-bs-theme="dark"] .border-start {
+  border-color: var(--bs-border-color) !important;
+}
+
+[data-bs-theme="dark"] .btn-label-secondary,
+[data-bs-theme="dark"] .btn-outline-secondary {
+  color: var(--bs-body-color);
+  border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .mobile-bottom-nav {
+  background: color-mix(in srgb, var(--bs-paper-bg) 92%, transparent);
+  border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] img[src*="boy-with-rocket-light"] {
+  filter: saturate(0.92) brightness(0.82);
+}

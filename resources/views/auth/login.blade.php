@@ -14,7 +14,9 @@
 
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/rtl/core.css') }}" class="template-customizer-core-css" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/rtl/theme-default.css') }}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/inskul-theme.css') }}?v=20260804" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/pages/page-auth.css') }}" />
 
@@ -79,7 +81,9 @@
                             <label class="form-label" for="password">Kata Sandi</label>
                             <div class="input-group input-group-merge">
                                 <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" required />
-                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                                <span class="input-group-text cursor-pointer" aria-label="Tampilkan kata sandi">
+                                    <i class="bx bx-hide"></i>
+                                </span>
                             </div>
                         </div>
                         <div class="my-8">
