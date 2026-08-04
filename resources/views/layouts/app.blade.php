@@ -11,6 +11,9 @@
     <title>{{ config('app.name', 'Inskul') }}</title>
 
     <meta name="description" content="" />
+    <meta name="theme-color" content="#696cff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('assets/img/branding/logo.png') }}?v=inskul-20260630" />
@@ -23,6 +26,7 @@
         rel="stylesheet" />
 
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/iconify-icons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />
 
     <!-- Core CSS -->
     <!-- build:css assets/vendor/css/theme.css  -->
@@ -31,6 +35,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/inskul-mobile.css') }}?v=20260803" />
 
     <!-- Vendors CSS -->
 
@@ -93,8 +98,10 @@
                         </a>
                     </div>
 
-                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-                        <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                    <div class="navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link mobile-menu-trigger px-0 me-xl-6" href="javascript:void(0)"
+                            data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu"
+                            aria-label="Buka menu">
                             <i class="icon-base bx bx-menu icon-md"></i>
                         </a>
                     </div>
@@ -115,6 +122,11 @@
                                 </span>
                             </span>
                         </div>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="mobile-brand d-xl-none me-auto">
+                            <img src="{{ asset('assets/img/branding/logo.png') }}" alt="{{ config('app.name', 'Inskul') }}">
+                            <span>{{ config('app.name', 'Inskul') }}</span>
+                        </a>
                     @endif
 
                     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
@@ -543,6 +555,83 @@
                         </div>
                     @endif
                     @yield('content')
+                    @auth
+                    <nav class="mobile-bottom-nav d-xl-none" aria-label="Navigasi utama mobile">
+                        @if($effectiveRole === 'super_admin')
+                            <a href="{{ route('dashboard') }}" class="mobile-bottom-nav__item {{ request()->is('dashboard') ? 'active' : '' }}">
+                                <i class="bx bx-home-smile"></i><span>Home</span>
+                            </a>
+                            <a href="{{ route('schools.index') }}" class="mobile-bottom-nav__item {{ request()->is('schools*') ? 'active' : '' }}">
+                                <i class="bx bx-building-house"></i><span>Sekolah</span>
+                            </a>
+                            <a href="{{ route('users.index') }}" class="mobile-bottom-nav__item {{ request()->is('users*') ? 'active' : '' }}">
+                                <i class="bx bx-user"></i><span>User</span>
+                            </a>
+                            <a href="{{ route('view-as.index') }}" class="mobile-bottom-nav__item {{ request()->is('view-as*') ? 'active' : '' }}">
+                                <i class="bx bx-show"></i><span>View</span>
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
+                                <i class="bx bx-cog"></i><span>Akun</span>
+                            </a>
+                        @elseif($effectiveRole === 'school_admin')
+                            <a href="{{ route('dashboard') }}" class="mobile-bottom-nav__item {{ request()->is('dashboard') ? 'active' : '' }}">
+                                <i class="bx bx-home-smile"></i><span>Home</span>
+                            </a>
+                            <button type="button" class="mobile-bottom-nav__item {{ request()->is('academic-years*','semesters*','school-classes*','classrooms*','rooms*','schedules*','subjects*','teachers*','students*','school-users*','school-profile*') ? 'active' : '' }}"
+                                data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+                                <i class="bx bx-grid-alt"></i><span>Data</span>
+                            </button>
+                            <a href="{{ route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                <i class="bx bx-calendar-check"></i><span>Presensi</span>
+                            </a>
+                            <a href="{{ route('exams.index') }}" class="mobile-bottom-nav__item {{ request()->is('exams*') ? 'active' : '' }}">
+                                <i class="bx bx-task"></i><span>Ujian</span>
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
+                                <i class="bx bx-cog"></i><span>Akun</span>
+                            </a>
+                        @elseif($effectiveRole === 'teacher')
+                            <a href="{{ route('dashboard') }}" class="mobile-bottom-nav__item {{ request()->is('dashboard') ? 'active' : '' }}">
+                                <i class="bx bx-home-smile"></i><span>Home</span>
+                            </a>
+                            <a href="{{ route('teacher-schedules.index') }}" class="mobile-bottom-nav__item {{ request()->is('teacher-schedules*') ? 'active' : '' }}">
+                                <i class="bx bx-calendar-event"></i><span>Jadwal</span>
+                            </a>
+                            <a href="{{ route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                <i class="bx bx-calendar-check"></i><span>Presensi</span>
+                            </a>
+                            <a href="{{ route('exams.index') }}" class="mobile-bottom-nav__item {{ request()->is('exams*') ? 'active' : '' }}">
+                                <i class="bx bx-task"></i><span>Ujian</span>
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
+                                <i class="bx bx-cog"></i><span>Akun</span>
+                            </a>
+                        @elseif($effectiveRole === 'student')
+                            <a href="{{ route('dashboard') }}" class="mobile-bottom-nav__item {{ request()->is('dashboard') ? 'active' : '' }}">
+                                <i class="bx bx-home-smile"></i><span>Home</span>
+                            </a>
+                            <a href="{{ route('student-schedules.index') }}" class="mobile-bottom-nav__item {{ request()->is('student-schedules*') ? 'active' : '' }}">
+                                <i class="bx bx-calendar-event"></i><span>Jadwal</span>
+                            </a>
+                            <a href="{{ route('exams.index') }}" class="mobile-bottom-nav__item {{ request()->is('exams*') ? 'active' : '' }}">
+                                <i class="bx bx-task"></i><span>Ujian</span>
+                            </a>
+                            <a href="{{ route('students.own-nametag') }}" target="_blank" class="mobile-bottom-nav__item {{ request()->is('student-nametag') ? 'active' : '' }}">
+                                <i class="bx bx-id-card"></i><span>Kartu</span>
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
+                                <i class="bx bx-cog"></i><span>Akun</span>
+                            </a>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="mobile-bottom-nav__item {{ request()->is('dashboard') ? 'active' : '' }}">
+                                <i class="bx bx-home-smile"></i><span>Home</span>
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
+                                <i class="bx bx-cog"></i><span>Akun</span>
+                            </a>
+                        @endif
+                    </nav>
+                    @endauth
                     <!--/ Content -->
 
                     <!-- Footer -->
@@ -582,6 +671,111 @@
     <div class="drag-target"></div>
 
     <!--/ Layout wrapper -->
+    @auth
+    <div class="offcanvas offcanvas-start mobile-app-drawer d-xl-none" tabindex="-1" id="mobileMenu"
+        aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <span class="mobile-drawer-logo">
+                    <img src="{{ asset('assets/img/branding/logo.png') }}" alt="{{ config('app.name', 'Inskul') }}">
+                </span>
+                <div class="min-w-0">
+                    <h5 class="offcanvas-title text-truncate mb-0" id="mobileMenuLabel">{{ config('app.name', 'Inskul') }}</h5>
+                    <small class="text-muted text-truncate d-block">{{ $activeSchool?->name ?? ($authUser?->name ?? 'Menu') }}</small>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="mobile-drawer-section">
+                <a href="{{ route('dashboard') }}" class="mobile-drawer-link {{ request()->is('dashboard') ? 'active' : '' }}">
+                    <i class="bx bx-home-smile"></i><span>Dashboard</span>
+                </a>
+
+                @if($effectiveRole === 'super_admin')
+                    <a href="{{ route('schools.index') }}" class="mobile-drawer-link {{ request()->is('schools*') ? 'active' : '' }}">
+                        <i class="bx bx-building-house"></i><span>Registrasi Sekolah</span>
+                    </a>
+                    <a href="{{ route('users.index') }}" class="mobile-drawer-link {{ request()->is('users*') ? 'active' : '' }}">
+                        <i class="bx bx-user"></i><span>Pengguna</span>
+                    </a>
+                    <a href="{{ route('view-as.index') }}" class="mobile-drawer-link {{ request()->is('view-as*') ? 'active' : '' }}">
+                        <i class="bx bx-show"></i><span>Mode Lihat</span>
+                    </a>
+                @endif
+
+                @if($effectiveRole === 'school_admin')
+                    <a href="{{ route('school-profile.edit') }}" class="mobile-drawer-link {{ request()->is('school-profile') ? 'active' : '' }}">
+                        <i class="bx bx-building-house"></i><span>Profil Sekolah</span>
+                    </a>
+                    <a href="{{ route('school-users.index') }}" class="mobile-drawer-link {{ request()->is('school-users') ? 'active' : '' }}">
+                        <i class="bx bx-user-plus"></i><span>Pengguna Sekolah</span>
+                    </a>
+                @endif
+
+                @if(in_array($effectiveRole, ['school_admin', 'teacher'], true))
+                    <a href="{{ route('attendances.daily') }}" class="mobile-drawer-link {{ request()->is('attendances/daily*') ? 'active' : '' }}">
+                        <i class="bx bx-calendar-check"></i><span>Presensi Harian</span>
+                    </a>
+                    <a href="{{ route('attendances.schedule') }}" class="mobile-drawer-link {{ request()->is('attendances/schedules*') ? 'active' : '' }}">
+                        <i class="bx bx-time-five"></i><span>Presensi Per Jadwal</span>
+                    </a>
+                    <a href="{{ route('attendances.report.daily') }}" class="mobile-drawer-link {{ request()->is('attendances/reports/daily*') ? 'active' : '' }}">
+                        <i class="bx bx-file"></i><span>Laporan Harian</span>
+                    </a>
+                    <a href="{{ route('attendances.report.schedule') }}" class="mobile-drawer-link {{ request()->is('attendances/reports/schedules*') ? 'active' : '' }}">
+                        <i class="bx bx-file"></i><span>Laporan Per Jadwal</span>
+                    </a>
+                @endif
+
+                @if(in_array($effectiveRole, ['school_admin', 'teacher', 'student'], true))
+                    <a href="{{ route('exams.index') }}" class="mobile-drawer-link {{ request()->is('exams*') ? 'active' : '' }}">
+                        <i class="bx bx-task"></i><span>Ujian</span>
+                    </a>
+                @endif
+
+                @if($effectiveRole === 'teacher')
+                    <a href="{{ route('teacher-schedules.index') }}" class="mobile-drawer-link {{ request()->is('teacher-schedules*') ? 'active' : '' }}">
+                        <i class="bx bx-calendar-event"></i><span>Jadwal Mengajar</span>
+                    </a>
+                @endif
+
+                @if($effectiveRole === 'student')
+                    <a href="{{ route('student-schedules.index') }}" class="mobile-drawer-link {{ request()->is('student-schedules*') ? 'active' : '' }}">
+                        <i class="bx bx-calendar-event"></i><span>Jadwal Pelajaran</span>
+                    </a>
+                    <a href="{{ route('students.own-nametag') }}" target="_blank" class="mobile-drawer-link {{ request()->is('student-nametag') ? 'active' : '' }}">
+                        <i class="bx bx-id-card"></i><span>Nametag</span>
+                    </a>
+                @endif
+            </div>
+
+            @if($effectiveRole === 'school_admin')
+            <div class="mobile-drawer-heading">Data Akademik</div>
+            <div class="mobile-drawer-grid">
+                <a href="{{ route('academic-years.index') }}" class="{{ request()->is('academic-years*') ? 'active' : '' }}"><i class="bx bx-calendar"></i><span>Tahun Ajaran</span></a>
+                <a href="{{ route('semesters.index') }}" class="{{ request()->is('semesters*') ? 'active' : '' }}"><i class="bx bx-calendar-check"></i><span>Semester</span></a>
+                <a href="{{ route('school-classes.index') }}" class="{{ request()->is('school-classes*') ? 'active' : '' }}"><i class="bx bx-building"></i><span>Kelas</span></a>
+                <a href="{{ route('classrooms.index') }}" class="{{ request()->is('classrooms*') ? 'active' : '' }}"><i class="bx bx-group"></i><span>Rombel</span></a>
+                <a href="{{ route('rooms.index') }}" class="{{ request()->is('rooms*') ? 'active' : '' }}"><i class="bx bx-door-open"></i><span>Ruangan</span></a>
+                <a href="{{ route('schedules.index') }}" class="{{ request()->is('schedules*') ? 'active' : '' }}"><i class="bx bx-calendar-event"></i><span>Jadwal</span></a>
+                <a href="{{ route('subjects.index') }}" class="{{ request()->is('subjects*') ? 'active' : '' }}"><i class="bx bx-book"></i><span>Mapel</span></a>
+                <a href="{{ route('teachers.index') }}" class="{{ request()->is('teachers*') ? 'active' : '' }}"><i class="bx bx-chalkboard"></i><span>Guru</span></a>
+                <a href="{{ route('students.index') }}" class="{{ request()->is('students*') ? 'active' : '' }}"><i class="bx bx-user"></i><span>Siswa</span></a>
+            </div>
+            @endif
+
+            <div class="mobile-drawer-section mt-4">
+                <a href="{{ route('profile.edit') }}" class="mobile-drawer-link {{ request()->is('profile') ? 'active' : '' }}">
+                    <i class="bx bx-cog"></i><span>Profil Saya</span>
+                </a>
+                <button type="button" class="mobile-drawer-link text-danger" onclick="confirmLogout()">
+                    <i class="bx bx-power-off"></i><span>Keluar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    @endauth
 
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/theme.js  -->
