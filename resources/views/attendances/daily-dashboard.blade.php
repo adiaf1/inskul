@@ -56,6 +56,23 @@
         </div>
     </div>
 
+    <div @class(['alert mb-4', 'alert-info' => $isAttendanceDay, 'alert-warning' => ! $isAttendanceDay])>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <strong>{{ $isAttendanceDay ? 'Hari presensi aktif' : 'Bukan hari presensi' }}</strong>
+                <span class="d-block small">
+                    Hari sekolah aktif: {{ implode(', ', $schoolAttendanceDayLabels) }}.
+                    @unless($isAttendanceDay)
+                        Murid yang belum scan pada tanggal ini tidak dihitung sebagai belum hadir.
+                    @endunless
+                </span>
+            </div>
+            <span class="badge {{ $isAttendanceDay ? 'bg-label-primary' : 'bg-label-warning' }}">
+                {{ $selectedDateLabel }}
+            </span>
+        </div>
+    </div>
+
     <div class="row g-4 mb-4">
         <div class="col-6 col-xl-2">
             <div class="card h-100">

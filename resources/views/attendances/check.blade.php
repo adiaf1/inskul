@@ -76,6 +76,11 @@
                         </div>
                     </div>
 
+                    <div @class(['alert mb-3', 'alert-info' => $isAttendanceDay, 'alert-warning' => ! $isAttendanceDay])>
+                        <strong>{{ $isAttendanceDay ? 'Hari presensi aktif' : 'Bukan hari presensi' }}</strong>
+                        <span class="d-block small">Hari sekolah aktif: {{ implode(', ', $schoolAttendanceDayLabels) }}.</span>
+                    </div>
+
                     <div id="qrScannerMessage" class="alert alert-info mb-3">
                         Memulai kamera...
                     </div>

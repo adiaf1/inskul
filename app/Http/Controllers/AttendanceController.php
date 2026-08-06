@@ -57,8 +57,10 @@ class AttendanceController extends Controller
             ->latest('updated_at')
             ->limit(20)
             ->get();
+        $isAttendanceDay = $this->isSchoolAttendanceDay($school, now());
+        $schoolAttendanceDayLabels = $this->schoolAttendanceDayLabels($school);
 
-        return view('attendances.check', compact('school', 'todayAttendances'));
+        return view('attendances.check', compact('school', 'todayAttendances', 'isAttendanceDay', 'schoolAttendanceDayLabels'));
     }
 
     public function scanCheck(Request $request): JsonResponse
@@ -71,6 +73,12 @@ class AttendanceController extends Controller
 
         if ($this->effectiveRole($request) === 'student') {
             abort(403);
+        }
+
+        if (! $this->isSchoolAttendanceDay($school, now())) {
+            return response()->json([
+                'message' => 'Hari ini bukan hari sekolah aktif untuk presensi harian.',
+            ], 422);
         }
 
         $validated = $request->validate([
@@ -232,7 +240,9 @@ class AttendanceController extends Controller
             'date' => $validated['date'] ?? now()->toDateString(),
             'classroom_id' => $validated['classroom_id'] ?? '',
         ];
-        $selectedDate = Carbon::parse($filters['date'])->toDateString();
+        $selectedDateCarbon = Carbon::parse($filters['date']);
+        $selectedDate = $selectedDateCarbon->toDateString();
+        $isAttendanceDay = $this->isSchoolAttendanceDay($school, $selectedDateCarbon);
 
         $classrooms = $school->classrooms()
             ->where('is_active', true)
@@ -262,13 +272,13 @@ class AttendanceController extends Controller
                 ->get();
 
         $presentCount = $attendanceRows->whereNotNull('check_in_at')->pluck('student_id')->unique()->count();
-        $absentCount = max($totalStudents - $presentCount, 0);
+        $absentCount = $isAttendanceDay ? max($totalStudents - $presentCount, 0) : 0;
         $onTimeCount = $attendanceRows->where('check_in_status', 'on_time')->pluck('student_id')->unique()->count();
         $lateCount = $attendanceRows->where('check_in_status', 'late')->pluck('student_id')->unique()->count();
         $checkedOutCount = $attendanceRows->whereNotNull('check_out_at')->pluck('student_id')->unique()->count();
         $earlyLeaveCount = $attendanceRows->where('check_out_status', 'early')->pluck('student_id')->unique()->count();
         $openCount = max($presentCount - $checkedOutCount, 0);
-        $attendancePercent = $totalStudents > 0 ? round(($presentCount / $totalStudents) * 100, 1) : 0;
+        $attendancePercent = $isAttendanceDay && $totalStudents > 0 ? round(($presentCount / $totalStudents) * 100, 1) : 0;
 
         $trendStart = Carbon::parse($selectedDate)->subDays(6)->startOfDay();
         $trendEnd = Carbon::parse($selectedDate)->endOfDay();
@@ -299,7 +309,7 @@ class AttendanceController extends Controller
             $trendLabels[] = $date->format('d M');
             $trendPresent[] = $present;
             $trendLate[] = $late;
-            $trendAbsent[] = max($totalStudents - $present, 0);
+            $trendAbsent[] = $this->isSchoolAttendanceDay($school, $date) ? max($totalStudents - $present, 0) : 0;
         }
 
         $students = $this->dailyDashboardStudentQuery($school, $filters['classroom_id'])
@@ -326,6 +336,8 @@ class AttendanceController extends Controller
             'filters' => $filters,
             'students' => $students,
             'studentAttendances' => $studentAttendances,
+            'isAttendanceDay' => $isAttendanceDay,
+            'schoolAttendanceDayLabels' => $this->schoolAttendanceDayLabels($school),
             'summary' => [
                 'total_students' => $totalStudents,
                 'present' => $presentCount,
@@ -1245,6 +1257,41 @@ class AttendanceController extends Controller
                     ->where('classroom_student.status', 'active')
                     ->where('classrooms.is_active', true);
             }));
+    }
+
+    private function schoolAttendanceDays($school): array
+    {
+        $days = $school->school_attendance_days ?: [1, 2, 3, 4, 5, 6];
+
+        return collect($days)
+            ->map(fn ($day) => (int) $day)
+            ->filter(fn ($day) => $day >= 1 && $day <= 7)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    private function isSchoolAttendanceDay($school, Carbon $date): bool
+    {
+        return in_array($date->isoWeekday(), $this->schoolAttendanceDays($school), true);
+    }
+
+    private function schoolAttendanceDayLabels($school): array
+    {
+        $labels = [
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        ];
+
+        return collect($this->schoolAttendanceDays($school))
+            ->map(fn ($day) => $labels[$day])
+            ->all();
     }
 
     private function dailyCheckInEvaluation($school, Carbon $scanAt): array

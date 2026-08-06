@@ -41,10 +41,19 @@ class SchoolProfileController extends Controller
             'daily_check_out_time' => ['required', 'date_format:H:i'],
             'daily_early_leave_tolerance_minutes' => ['required', 'integer', 'min:0', 'max:240'],
             'daily_min_checkout_minutes' => ['required', 'integer', 'min:0', 'max:720'],
+            'school_attendance_days' => ['required', 'array', 'min:1'],
+            'school_attendance_days.*' => ['required', 'integer', 'between:1,7'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'nametag_background' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_nametag_background' => ['nullable', 'boolean'],
         ]);
+
+        $schoolAttendanceDays = collect($validated['school_attendance_days'])
+            ->map(fn ($day) => (int) $day)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         $logoPath = $school->logo_path;
         $nametagBackgroundPath = $school->nametag_background_path;
@@ -93,6 +102,7 @@ class SchoolProfileController extends Controller
             'daily_check_out_time' => $validated['daily_check_out_time'],
             'daily_early_leave_tolerance_minutes' => $validated['daily_early_leave_tolerance_minutes'],
             'daily_min_checkout_minutes' => $validated['daily_min_checkout_minutes'],
+            'school_attendance_days' => $schoolAttendanceDays,
             'logo_path' => $logoPath,
             'nametag_background_path' => $nametagBackgroundPath,
         ]);

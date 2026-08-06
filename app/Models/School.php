@@ -32,6 +32,7 @@ class School extends Model
         'daily_check_out_time',
         'daily_early_leave_tolerance_minutes',
         'daily_min_checkout_minutes',
+        'school_attendance_days',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class School extends Model
         'daily_late_tolerance_minutes' => 'integer',
         'daily_early_leave_tolerance_minutes' => 'integer',
         'daily_min_checkout_minutes' => 'integer',
+        'school_attendance_days' => 'array',
     ];
 
     public function approvedBy(): BelongsTo

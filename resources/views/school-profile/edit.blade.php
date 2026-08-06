@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $schoolAttendanceDays = old('school_attendance_days', $school->school_attendance_days ?? [1, 2, 3, 4, 5, 6]);
+    $schoolAttendanceDays = collect($schoolAttendanceDays)->map(fn ($day) => (int) $day)->all();
+    $schoolDayLabels = [
+        1 => 'Senin',
+        2 => 'Selasa',
+        3 => 'Rabu',
+        4 => 'Kamis',
+        5 => 'Jumat',
+        6 => 'Sabtu',
+        7 => 'Minggu',
+    ];
+@endphp
+
 <div class="container-xxl flex-grow-1 container-p-y">
     @if(session('success') || $errors->any())
         <script>
@@ -98,6 +112,18 @@
                                         <input type="number" min="0" max="720" class="form-control" id="daily_min_checkout_minutes" name="daily_min_checkout_minutes" value="{{ old('daily_min_checkout_minutes', $school->daily_min_checkout_minutes ?? 60) }}" required>
                                         <span class="input-group-text">menit</span>
                                     </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Hari Sekolah</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($schoolDayLabels as $dayNumber => $dayLabel)
+                                            <input class="btn-check" type="checkbox" id="school_attendance_day_{{ $dayNumber }}" name="school_attendance_days[]" value="{{ $dayNumber }}" @checked(in_array($dayNumber, $schoolAttendanceDays, true))>
+                                            <label class="btn btn-label-primary" for="school_attendance_day_{{ $dayNumber }}">
+                                                {{ $dayLabel }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    <div class="form-text">Tanggal di luar hari sekolah tidak dihitung sebagai hari presensi. Default umum: Senin sampai Sabtu.</div>
                                 </div>
                             </div>
                         </div>
