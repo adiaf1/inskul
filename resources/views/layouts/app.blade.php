@@ -393,6 +393,12 @@
                                         <div data-i18n="Presensi">Presensi</div>
                                     </a>
                                     <ul class="menu-sub">
+                                        <li class="menu-item {{ request()->is('attendances/check*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.check') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-qr-scan"></i>
+                                                <div data-i18n="Datang & Pulang">Datang & Pulang</div>
+                                            </a>
+                                        </li>
                                         <li class="menu-item {{ request()->is('attendances/daily*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.daily') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-calendar-check"></i>
@@ -418,6 +424,15 @@
                                             </a>
                                         </li>
                                     </ul>
+                                </li>
+                                @endif
+
+                                @if(in_array($effectiveRole, ['principal', 'parent'], true))
+                                <li class="menu-item {{ request()->is('attendances/check*') ? 'active' : '' }}">
+                                    <a href="{{ route('attendances.check') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-qr-scan"></i>
+                                        <div data-i18n="Presensi">Presensi</div>
+                                    </a>
                                 </li>
                                 @endif
 
@@ -582,7 +597,7 @@
                                 data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
                                 <i class="bx bx-grid-alt"></i><span>Data</span>
                             </button>
-                            <a href="{{ route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                            <a href="{{ route('attendances.check') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
                                 <i class="bx bx-calendar-check"></i><span>Presensi</span>
                             </a>
                             <a href="{{ route('exams.index') }}" class="mobile-bottom-nav__item {{ request()->is('exams*') ? 'active' : '' }}">
@@ -598,7 +613,7 @@
                             <a href="{{ route('teacher-schedules.index') }}" class="mobile-bottom-nav__item {{ request()->is('teacher-schedules*') ? 'active' : '' }}">
                                 <i class="bx bx-calendar-event"></i><span>Jadwal</span>
                             </a>
-                            <a href="{{ route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                            <a href="{{ route('attendances.check') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
                                 <i class="bx bx-calendar-check"></i><span>Presensi</span>
                             </a>
                             <a href="{{ route('exams.index') }}" class="mobile-bottom-nav__item {{ request()->is('exams*') ? 'active' : '' }}">
@@ -627,6 +642,11 @@
                             <a href="{{ route('dashboard') }}" class="mobile-bottom-nav__item {{ request()->is('dashboard') ? 'active' : '' }}">
                                 <i class="bx bx-home-smile"></i><span>Home</span>
                             </a>
+                            @if(in_array($effectiveRole, ['principal', 'parent'], true))
+                                <a href="{{ route('attendances.check') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                    <i class="bx bx-qr-scan"></i><span>Presensi</span>
+                                </a>
+                            @endif
                             <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
                                 <i class="bx bx-cog"></i><span>Akun</span>
                             </a>
@@ -711,6 +731,12 @@
                     </a>
                     <a href="{{ route('school-users.index') }}" class="mobile-drawer-link {{ request()->is('school-users') ? 'active' : '' }}">
                         <i class="bx bx-user-plus"></i><span>Pengguna Sekolah</span>
+                    </a>
+                @endif
+
+                @if(in_array($effectiveRole, ['school_admin', 'teacher', 'principal', 'parent'], true))
+                    <a href="{{ route('attendances.check') }}" class="mobile-drawer-link {{ request()->is('attendances/check*') ? 'active' : '' }}">
+                        <i class="bx bx-qr-scan"></i><span>Datang & Pulang</span>
                     </a>
                 @endif
 

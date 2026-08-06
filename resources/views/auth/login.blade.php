@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="light-style layout-wide customizer-hide" dir="ltr" data-theme="theme-default" data-assets-path="{{ asset('assets/') }}/" data-template="horizontal-menu-template" data-style="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="light-style layout-wide customizer-hide" dir="ltr" data-theme="theme-default" data-bs-theme="light" data-assets-path="{{ asset('assets/') }}/" data-template="horizontal-menu-template" data-style="light">
 
 <head>
     <meta charset="utf-8" />
@@ -16,9 +16,9 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/rtl/theme-default.css') }}" class="template-customizer-theme-css" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/boxicons.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/inskul-theme.css') }}?v=20260804" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/vendor/css/pages/page-auth.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/inskul-theme.css') }}?v=20260806" />
 
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
     <script src="{{ asset('assets/vendor/js/template-customizer.js') }}"></script>
@@ -44,10 +44,15 @@
             @if(session('success'))
                 <script>
                     Swal.fire({
-                        title: 'Sukses!',
-                        text: '{{ session('success') }}',
-                        icon: 'success',
-                        confirmButtonText: 'OK'
+                        title: @json('Sukses!'),
+                        text: @json(session('success')),
+                        icon: @json('success'),
+                        confirmButtonText: @json('OK'),
+                        customClass: {
+                            popup: 'inskul-swal-popup',
+                            confirmButton: 'btn btn-primary'
+                        },
+                        buttonsStyling: false
                     });
                 </script>
             @endif
@@ -55,10 +60,15 @@
             @if($errors->any())
                 <script>
                     Swal.fire({
-                        title: 'Error!',
-                        text: '{{ $errors->first() }}',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
+                        title: @json('Gagal Masuk'),
+                        text: @json($errors->first()),
+                        icon: @json('error'),
+                        confirmButtonText: @json('OK'),
+                        customClass: {
+                            popup: 'inskul-swal-popup',
+                            confirmButton: 'btn btn-primary'
+                        },
+                        buttonsStyling: false
                     });
                 </script>
             @endif
@@ -75,7 +85,7 @@
                         @csrf
                         <div class="mb-6">
                             <label for="email" class="form-label">Email</label>
-                            <input type="text" class="form-control" id="email" name="email" placeholder="Masukkan email" required autofocus />
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Masukkan email" autocomplete="username" required autofocus />
                         </div>
                         <div class="mb-6 form-password-toggle">
                             <label class="form-label" for="password">Kata Sandi</label>

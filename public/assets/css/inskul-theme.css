@@ -101,3 +101,77 @@
 [data-bs-theme="dark"] img[src*="boy-with-rocket-light"] {
   filter: saturate(0.92) brightness(0.82);
 }
+
+.authentication-wrapper .form-label,
+.authentication-wrapper .form-check-label {
+  color: var(--bs-body-color) !important;
+}
+
+.authentication-wrapper .form-control,
+.authentication-wrapper .input-group-text {
+  background-color: var(--bs-paper-bg, #fff) !important;
+  border-color: var(--bs-border-color, #ced1d5) !important;
+  color: var(--bs-body-color, #384551) !important;
+}
+
+.authentication-wrapper .form-control:focus {
+  background-color: var(--bs-paper-bg, #fff) !important;
+  color: var(--bs-body-color, #384551) !important;
+}
+
+.authentication-wrapper .form-control::placeholder {
+  color: var(--bs-secondary-color, #a7acb2) !important;
+  opacity: 1;
+}
+
+[data-bs-theme="dark"] .authentication-wrapper .form-control,
+[data-bs-theme="dark"] .authentication-wrapper .input-group-text {
+  background-color: var(--bs-body-bg) !important;
+}
+
+.authentication-wrapper input:-webkit-autofill,
+.authentication-wrapper input:-webkit-autofill:hover,
+.authentication-wrapper input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--bs-body-color, #384551) !important;
+  caret-color: var(--bs-body-color, #384551) !important;
+  box-shadow: 0 0 0 1000px var(--bs-paper-bg, #fff) inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+[data-bs-theme="dark"] .authentication-wrapper input:-webkit-autofill,
+[data-bs-theme="dark"] .authentication-wrapper input:-webkit-autofill:hover,
+[data-bs-theme="dark"] .authentication-wrapper input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px var(--bs-body-bg) inset !important;
+}
+
+.swal2-container {
+  z-index: 2000 !important;
+}
+
+.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-noanimation {
+  background: var(--bs-body-bg, #f5f5f9) !important;
+}
+
+.swal2-popup,
+.inskul-swal-popup {
+  background: var(--bs-paper-bg, #fff) !important;
+  color: var(--bs-body-color, #384551) !important;
+  border: 1px solid var(--bs-border-color, #e4e6e8) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 0.75rem 2rem rgba(34, 48, 62, 0.28) !important;
+  opacity: 1 !important;
+}
+
+.swal2-title,
+.swal2-html-container {
+  color: var(--bs-heading-color, #384551) !important;
+}
+
+.swal2-html-container {
+  opacity: 1 !important;
+}
+
+.swal2-icon {
+  opacity: 1 !important;
+}

@@ -6,6 +6,7 @@ use App\Models\AttendanceSession;
 use App\Models\AttendanceRecord;
 use App\Models\Classroom;
 use App\Models\Student;
+use App\Models\StudentDailyAttendance;
 use App\Models\Teacher;
 use App\Support\EffectiveAccess;
 use Illuminate\Support\Carbon;
@@ -35,6 +36,143 @@ class AttendanceController extends Controller
         }
 
         return view('attendances.index', compact('school'));
+    }
+
+    public function check(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        if ($this->effectiveRole($request) === 'student') {
+            abort(403);
+        }
+
+        $todayAttendances = StudentDailyAttendance::query()
+            ->with(['student.user', 'checkInBy', 'checkOutBy'])
+            ->where('school_id', $school->id)
+            ->whereDate('attendance_date', now()->toDateString())
+            ->latest('updated_at')
+            ->limit(20)
+            ->get();
+
+        return view('attendances.check', compact('school', 'todayAttendances'));
+    }
+
+    public function scanCheck(Request $request): JsonResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            abort(403);
+        }
+
+        if ($this->effectiveRole($request) === 'student') {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'student_id' => ['required', 'string', 'max:255'],
+        ]);
+
+        $studentId = $this->extractUuid($validated['student_id']);
+
+        if (! $studentId) {
+            return response()->json([
+                'message' => 'QR Code tidak valid. Pastikan QR berasal dari nametag murid.',
+            ], 422);
+        }
+
+        $student = Student::query()
+            ->with(['user', 'classrooms' => fn ($query) => $query->wherePivot('status', 'active')->where('classrooms.is_active', true)])
+            ->where('school_id', $school->id)
+            ->where('is_active', true)
+            ->whereKey($studentId)
+            ->first();
+
+        if (! $student) {
+            return response()->json([
+                'message' => 'QR Code terbaca, tetapi data tersebut bukan nametag murid aktif pada sekolah ini.',
+            ], 404);
+        }
+
+        $actorId = $request->user()?->id;
+        $today = now()->toDateString();
+        $action = 'complete';
+
+        $attendance = DB::transaction(function () use ($school, $student, $actorId, $today, &$action) {
+            $attendance = StudentDailyAttendance::query()
+                ->where('school_id', $school->id)
+                ->where('student_id', $student->id)
+                ->whereDate('attendance_date', $today)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $attendance) {
+                $action = 'check_in';
+
+                return StudentDailyAttendance::create([
+                    'school_id' => $school->id,
+                    'student_id' => $student->id,
+                    'attendance_date' => $today,
+                    'check_in_at' => now(),
+                    'check_in_by' => $actorId,
+                    'status' => 'open',
+                ]);
+            }
+
+            if (! $attendance->check_in_at) {
+                $action = 'check_in';
+                $attendance->update([
+                    'check_in_at' => now(),
+                    'check_in_by' => $actorId,
+                    'status' => 'open',
+                ]);
+
+                return $attendance;
+            }
+
+            if (! $attendance->check_out_at) {
+                $action = 'check_out';
+                $attendance->update([
+                    'check_out_at' => now(),
+                    'check_out_by' => $actorId,
+                    'status' => 'closed',
+                ]);
+
+                return $attendance;
+            }
+
+            return $attendance;
+        });
+
+        $attendance->load(['student.user', 'checkInBy', 'checkOutBy']);
+        $studentName = $student->user?->name ?? 'Murid';
+
+        return response()->json([
+            'message' => match ($action) {
+                'check_in' => $studentName.' berhasil dicatat datang.',
+                'check_out' => $studentName.' berhasil dicatat pulang.',
+                default => $studentName.' sudah tercatat datang dan pulang hari ini.',
+            },
+            'action' => $action,
+            'student' => [
+                'id' => $student->id,
+                'name' => $studentName,
+                'nis' => $student->nis,
+                'nisn' => $student->nisn,
+                'classroom' => $student->classrooms->first()?->name,
+            ],
+            'attendance' => [
+                'id' => $attendance->id,
+                'attendance_date' => $attendance->attendance_date?->format('d M Y'),
+                'check_in_at' => $attendance->check_in_at?->format('H:i:s'),
+                'check_out_at' => $attendance->check_out_at?->format('H:i:s'),
+                'status' => $attendance->status,
+            ],
+        ]);
     }
 
     public function report(Request $request): View|RedirectResponse

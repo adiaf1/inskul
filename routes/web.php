@@ -84,6 +84,11 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::get('/exams', [ExamController::class, 'index'])->name('exams.index');
         });
 
+        Route::middleware('effective.role:school_admin,principal,teacher,parent')->group(function () {
+            Route::get('/attendances/check', [AttendanceController::class, 'check'])->name('attendances.check');
+            Route::post('/attendances/check/scan', [AttendanceController::class, 'scanCheck'])->name('attendances.check.scan');
+        });
+
         Route::middleware('effective.role:school_admin,teacher')->group(function () {
             Route::get('/exams/create', [ExamController::class, 'create'])->name('exams.create');
             Route::post('/exams', [ExamController::class, 'store'])->name('exams.store');

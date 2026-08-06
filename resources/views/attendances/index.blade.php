@@ -5,11 +5,30 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
             <h4 class="mb-1">Presensi</h4>
-            <p class="text-muted mb-0">{{ $school->name }} - kelola presensi harian dan presensi per jadwal.</p>
+            <p class="text-muted mb-0">{{ $school->name }} - kelola presensi datang/pulang, harian, dan per jadwal.</p>
         </div>
     </div>
 
     <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="avatar rounded bg-label-primary">
+                            <i class="bx bx-qr-scan"></i>
+                        </span>
+                        <div>
+                            <h5 class="mb-1">Datang & Pulang</h5>
+                            <div class="text-muted small">Scan QR nametag tanpa memilih kelas.</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.check') }}" class="btn btn-primary">
+                        Buka Scanner
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
