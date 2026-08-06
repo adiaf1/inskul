@@ -399,7 +399,15 @@
                                                 <div data-i18n="Presensi Harian">Presensi Harian</div>
                                             </a>
                                         </li>
-                                        <li class="menu-item {{ request()->is('attendances/daily*') ? 'active' : '' }}">
+                                        @if($effectiveRole === 'school_admin')
+                                        <li class="menu-item {{ request()->is('attendances/daily-dashboard*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.daily-dashboard') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
+                                                <div data-i18n="Grafik Presensi Harian">Grafik Presensi Harian</div>
+                                            </a>
+                                        </li>
+                                        @endif
+                                        <li class="menu-item {{ (request()->is('attendances/daily') || request()->is('attendances/daily/*')) ? 'active' : '' }}">
                                             <a href="{{ route('attendances.daily') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                                                 <div data-i18n="Presensi Per Kelas">Presensi Per Kelas</div>
@@ -432,6 +440,15 @@
                                     <a href="{{ route('attendances.check') }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-qr-scan"></i>
                                         <div data-i18n="Presensi">Presensi</div>
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if($effectiveRole === 'principal')
+                                <li class="menu-item {{ request()->is('attendances/daily-dashboard*') ? 'active' : '' }}">
+                                    <a href="{{ route('attendances.daily-dashboard') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
+                                        <div data-i18n="Grafik Presensi">Grafik Presensi</div>
                                     </a>
                                 </li>
                                 @endif
@@ -740,8 +757,14 @@
                     </a>
                 @endif
 
+                @if(in_array($effectiveRole, ['school_admin', 'principal'], true))
+                    <a href="{{ route('attendances.daily-dashboard') }}" class="mobile-drawer-link {{ request()->is('attendances/daily-dashboard*') ? 'active' : '' }}">
+                        <i class="bx bx-bar-chart-alt-2"></i><span>Grafik Presensi Harian</span>
+                    </a>
+                @endif
+
                 @if(in_array($effectiveRole, ['school_admin', 'teacher'], true))
-                    <a href="{{ route('attendances.daily') }}" class="mobile-drawer-link {{ request()->is('attendances/daily*') ? 'active' : '' }}">
+                    <a href="{{ route('attendances.daily') }}" class="mobile-drawer-link {{ (request()->is('attendances/daily') || request()->is('attendances/daily/*')) ? 'active' : '' }}">
                         <i class="bx bx-calendar-check"></i><span>Presensi Per Kelas</span>
                     </a>
                     <a href="{{ route('attendances.schedule') }}" class="mobile-drawer-link {{ request()->is('attendances/schedules*') ? 'active' : '' }}">

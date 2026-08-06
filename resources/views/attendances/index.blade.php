@@ -10,6 +10,7 @@
     </div>
 
     <div class="row g-4">
+        @if(\App\Support\EffectiveAccess::role(request()) === 'school_admin')
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
@@ -24,6 +25,26 @@
                     </div>
                     <a href="{{ route('attendances.check') }}" class="btn btn-primary">
                         Buka Scanner
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="avatar rounded bg-label-success">
+                            <i class="bx bx-bar-chart-alt-2"></i>
+                        </span>
+                        <div>
+                            <h5 class="mb-1">Grafik Presensi Harian</h5>
+                            <div class="text-muted small">Pantau hadir, terlambat, belum hadir, dan pulang.</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('attendances.daily-dashboard') }}" class="btn btn-success">
+                        Buka Grafik
                     </a>
                 </div>
             </div>

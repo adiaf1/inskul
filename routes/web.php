@@ -84,6 +84,10 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::get('/exams', [ExamController::class, 'index'])->name('exams.index');
         });
 
+        Route::middleware('effective.role:school_admin,principal')->group(function () {
+            Route::get('/attendances/daily-dashboard', [AttendanceController::class, 'dailyDashboard'])->name('attendances.daily-dashboard');
+        });
+
         Route::middleware('effective.role:school_admin,principal,teacher,parent')->group(function () {
             Route::get('/attendances/check', [AttendanceController::class, 'check'])->name('attendances.check');
             Route::post('/attendances/check/scan', [AttendanceController::class, 'scanCheck'])->name('attendances.check.scan');

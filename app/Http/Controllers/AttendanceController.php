@@ -211,6 +211,155 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function dailyDashboard(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        if (! in_array($this->effectiveRole($request), ['school_admin', 'principal'], true)) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'date' => ['nullable', 'date'],
+            'classroom_id' => ['nullable', 'string'],
+        ]);
+
+        $filters = [
+            'date' => $validated['date'] ?? now()->toDateString(),
+            'classroom_id' => $validated['classroom_id'] ?? '',
+        ];
+        $selectedDate = Carbon::parse($filters['date'])->toDateString();
+
+        $classrooms = $school->classrooms()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $selectedClassroom = $filters['classroom_id']
+            ? $classrooms->firstWhere('id', $filters['classroom_id'])
+            : null;
+
+        if ($filters['classroom_id'] && ! $selectedClassroom) {
+            return redirect()
+                ->route('attendances.daily-dashboard')
+                ->withErrors('Rombel yang dipilih tidak ditemukan pada sekolah aktif.');
+        }
+
+        $studentQuery = $this->dailyDashboardStudentQuery($school, $filters['classroom_id']);
+        $studentIds = (clone $studentQuery)->pluck('students.id');
+        $totalStudents = $studentIds->count();
+
+        $attendanceRows = $studentIds->isEmpty()
+            ? collect()
+            : StudentDailyAttendance::query()
+                ->where('school_id', $school->id)
+                ->whereDate('attendance_date', $selectedDate)
+                ->whereIn('student_id', $studentIds)
+                ->get();
+
+        $presentCount = $attendanceRows->whereNotNull('check_in_at')->pluck('student_id')->unique()->count();
+        $absentCount = max($totalStudents - $presentCount, 0);
+        $onTimeCount = $attendanceRows->where('check_in_status', 'on_time')->pluck('student_id')->unique()->count();
+        $lateCount = $attendanceRows->where('check_in_status', 'late')->pluck('student_id')->unique()->count();
+        $checkedOutCount = $attendanceRows->whereNotNull('check_out_at')->pluck('student_id')->unique()->count();
+        $earlyLeaveCount = $attendanceRows->where('check_out_status', 'early')->pluck('student_id')->unique()->count();
+        $openCount = max($presentCount - $checkedOutCount, 0);
+        $attendancePercent = $totalStudents > 0 ? round(($presentCount / $totalStudents) * 100, 1) : 0;
+
+        $trendStart = Carbon::parse($selectedDate)->subDays(6)->startOfDay();
+        $trendEnd = Carbon::parse($selectedDate)->endOfDay();
+        $trendRows = $studentIds->isEmpty()
+            ? collect()
+            : StudentDailyAttendance::query()
+                ->selectRaw('DATE(attendance_date) as attendance_day')
+                ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_at IS NOT NULL THEN student_id END) as present_count')
+                ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_status = ? THEN student_id END) as late_count', ['late'])
+                ->where('school_id', $school->id)
+                ->whereBetween('attendance_date', [$trendStart->toDateString(), $trendEnd->toDateString()])
+                ->whereIn('student_id', $studentIds)
+                ->groupByRaw('DATE(attendance_date)')
+                ->get()
+                ->keyBy('attendance_day');
+
+        $trendLabels = [];
+        $trendPresent = [];
+        $trendLate = [];
+        $trendAbsent = [];
+
+        for ($date = $trendStart->copy(); $date->lte($trendEnd); $date->addDay()) {
+            $key = $date->toDateString();
+            $row = $trendRows->get($key);
+            $present = (int) ($row?->present_count ?? 0);
+            $late = (int) ($row?->late_count ?? 0);
+
+            $trendLabels[] = $date->format('d M');
+            $trendPresent[] = $present;
+            $trendLate[] = $late;
+            $trendAbsent[] = max($totalStudents - $present, 0);
+        }
+
+        $students = $this->dailyDashboardStudentQuery($school, $filters['classroom_id'])
+            ->with(['user', 'classrooms' => fn ($query) => $query->wherePivot('status', 'active')->where('classrooms.is_active', true)])
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->orderBy('users.name')
+            ->select('students.*')
+            ->paginate(25)
+            ->withQueryString();
+
+        $studentAttendances = $students->getCollection()->isEmpty()
+            ? collect()
+            : StudentDailyAttendance::query()
+                ->where('school_id', $school->id)
+                ->whereDate('attendance_date', $selectedDate)
+                ->whereIn('student_id', $students->getCollection()->pluck('id'))
+                ->get()
+                ->keyBy('student_id');
+
+        return view('attendances.daily-dashboard', [
+            'school' => $school,
+            'classrooms' => $classrooms,
+            'selectedClassroom' => $selectedClassroom,
+            'filters' => $filters,
+            'students' => $students,
+            'studentAttendances' => $studentAttendances,
+            'summary' => [
+                'total_students' => $totalStudents,
+                'present' => $presentCount,
+                'absent' => $absentCount,
+                'on_time' => $onTimeCount,
+                'late' => $lateCount,
+                'checked_out' => $checkedOutCount,
+                'open' => $openCount,
+                'early_leave' => $earlyLeaveCount,
+                'attendance_percent' => $attendancePercent,
+            ],
+            'chartData' => [
+                'attendance' => [
+                    'labels' => ['Hadir', 'Belum Hadir'],
+                    'series' => [$presentCount, $absentCount],
+                ],
+                'punctuality' => [
+                    'labels' => ['Tepat Waktu', 'Terlambat'],
+                    'series' => [$onTimeCount, $lateCount],
+                ],
+                'checkout' => [
+                    'labels' => ['Sudah Pulang', 'Belum Pulang', 'Pulang Cepat'],
+                    'series' => [$checkedOutCount, $openCount, $earlyLeaveCount],
+                ],
+                'trend' => [
+                    'labels' => $trendLabels,
+                    'present' => $trendPresent,
+                    'late' => $trendLate,
+                    'absent' => $trendAbsent,
+                ],
+            ],
+        ]);
+    }
+
     public function report(Request $request): View|RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -1084,6 +1233,18 @@ class AttendanceController extends Controller
             ->orderBy('attendance_sessions.type')
             ->orderBy('attendance_records.created_at')
             ->select('attendance_records.*');
+    }
+
+    private function dailyDashboardStudentQuery($school, ?string $classroomId)
+    {
+        return Student::query()
+            ->where('students.school_id', $school->id)
+            ->where('students.is_active', true)
+            ->when($classroomId, fn ($query) => $query->whereHas('classrooms', function ($inner) use ($classroomId) {
+                $inner->whereKey($classroomId)
+                    ->where('classroom_student.status', 'active')
+                    ->where('classrooms.is_active', true);
+            }));
     }
 
     private function dailyCheckInEvaluation($school, Carbon $scanAt): array
