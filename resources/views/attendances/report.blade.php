@@ -104,7 +104,7 @@
                                         <strong>{{ $session->subject?->name ?? $session->schedule?->subject?->name ?? '-' }}</strong>
                                         <div class="text-muted small">{{ substr($session->starts_at, 0, 5) }} - {{ substr($session->ends_at, 0, 5) }}</div>
                                     @else
-                                        <strong>Presensi Harian</strong>
+                                        <strong>Presensi Per Kelas</strong>
                                     @endif
                                 </td>
                                 <td>

@@ -252,7 +252,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ 2 + $dateColumns->count() }}" class="empty">Tidak ada data presensi harian sesuai filter.</td>
+                            <td colspan="{{ 2 + $dateColumns->count() }}" class="empty">Tidak ada data presensi per kelas sesuai filter.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -27,11 +27,19 @@ class School extends Model
         'approved_at',
         'approved_by',
         'onboarding_completed_at',
+        'daily_check_in_time',
+        'daily_late_tolerance_minutes',
+        'daily_check_out_time',
+        'daily_early_leave_tolerance_minutes',
+        'daily_min_checkout_minutes',
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
+        'daily_late_tolerance_minutes' => 'integer',
+        'daily_early_leave_tolerance_minutes' => 'integer',
+        'daily_min_checkout_minutes' => 'integer',
     ];
 
     public function approvedBy(): BelongsTo

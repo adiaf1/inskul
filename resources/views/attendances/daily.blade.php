@@ -17,7 +17,7 @@
 
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
-            <h4 class="mb-1">Presensi Harian</h4>
+            <h4 class="mb-1">Presensi Per Kelas</h4>
             <p class="text-muted mb-0">{{ $school->name }} - absensi satu kali per hari berdasarkan rombel.</p>
         </div>
 
@@ -96,7 +96,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Belum ada sesi presensi harian.</td>
+                                <td colspan="5" class="text-center py-5 text-muted">Belum ada sesi presensi per kelas.</td>
                             </tr>
                         @endforelse
                     </tbody>

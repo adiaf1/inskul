@@ -8,8 +8,8 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
-            <h4 class="mb-1">Report Presensi Harian</h4>
-            <p class="text-muted mb-0">{{ $school->name }} - laporan presensi harian murid berdasarkan rombel.</p>
+            <h4 class="mb-1">Report Presensi Per Kelas</h4>
+            <p class="text-muted mb-0">{{ $school->name }} - laporan presensi murid berdasarkan rombel.</p>
         </div>
 
         <div class="d-flex flex-wrap gap-2">
@@ -125,14 +125,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">Tidak ada data presensi harian sesuai filter.</td>
+                                <td colspan="7" class="text-center text-muted py-5">Tidak ada data presensi per kelas sesuai filter.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <x-table-pagination :paginator="$records" label="data presensi harian" />
+            <x-table-pagination :paginator="$records" label="data presensi per kelas" />
         </div>
     </div> -->
 

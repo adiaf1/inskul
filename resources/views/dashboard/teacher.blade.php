@@ -107,7 +107,7 @@
                     </div>
                     <div class="card-body d-grid gap-2">
                         <a href="{{ route('attendances.daily') }}" class="btn btn-label-primary text-start">
-                            <i class="bx bx-calendar-check me-1"></i> Presensi Harian
+                            <i class="bx bx-calendar-check me-1"></i> Presensi Per Kelas
                         </a>
                         <a href="{{ route('attendances.schedule') }}" class="btn btn-label-info text-start">
                             <i class="bx bx-time-five me-1"></i> Presensi Per Jadwal
@@ -116,7 +116,7 @@
                             <i class="bx bx-calendar-event me-1"></i> Lihat Jadwal Mengajar
                         </a>
                         <a href="{{ route('attendances.report.daily') }}" class="btn btn-label-secondary text-start">
-                            <i class="bx bx-file me-1"></i> Report Presensi Harian
+                            <i class="bx bx-file me-1"></i> Report Presensi Per Kelas
                         </a>
                         <a href="{{ route('attendances.report.schedule') }}" class="btn btn-label-secondary text-start">
                             <i class="bx bx-file me-1"></i> Report Presensi Per Jadwal
@@ -184,7 +184,7 @@
                                     </div>
                                     <div class="mt-3">
                                         <a href="{{ route('attendances.daily') }}" class="btn btn-sm btn-label-primary">
-                                            <i class="bx bx-calendar-check me-1"></i> Presensi Harian
+                                            <i class="bx bx-calendar-check me-1"></i> Presensi Per Kelas
                                         </a>
                                     </div>
                                 </div>
@@ -200,7 +200,7 @@
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="mb-0">Aktivitas Presensi Terbaru</h5>
-                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-secondary">Report Harian</a>
+                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-secondary">Report Per Kelas</a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive text-nowrap">
@@ -220,7 +220,7 @@
                                             <td>{{ $session->attendance_date?->format('d M Y') }}</td>
                                             <td>{{ $session->type === 'schedule' ? 'Per Jadwal' : 'Harian' }}</td>
                                             <td>{{ $session->classroom?->name ?? '-' }}</td>
-                                            <td>{{ $session->subject?->name ?? 'Presensi Harian' }}</td>
+                                            <td>{{ $session->subject?->name ?? 'Presensi Per Kelas' }}</td>
                                             <td>
                                                 <span @class([
                                                     'badge',

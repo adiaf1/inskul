@@ -99,10 +99,12 @@ class AttendanceController extends Controller
         }
 
         $actorId = $request->user()?->id;
-        $today = now()->toDateString();
+        $scanAt = now();
+        $today = $scanAt->toDateString();
         $action = 'complete';
+        $canCheckoutAfter = null;
 
-        $attendance = DB::transaction(function () use ($school, $student, $actorId, $today, &$action) {
+        $attendance = DB::transaction(function () use ($school, $student, $actorId, $today, $scanAt, &$action, &$canCheckoutAfter) {
             $attendance = StudentDailyAttendance::query()
                 ->where('school_id', $school->id)
                 ->where('student_id', $student->id)
@@ -112,22 +114,29 @@ class AttendanceController extends Controller
 
             if (! $attendance) {
                 $action = 'check_in';
+                $checkInEvaluation = $this->dailyCheckInEvaluation($school, $scanAt);
 
                 return StudentDailyAttendance::create([
                     'school_id' => $school->id,
                     'student_id' => $student->id,
                     'attendance_date' => $today,
-                    'check_in_at' => now(),
+                    'check_in_at' => $scanAt,
                     'check_in_by' => $actorId,
+                    'check_in_status' => $checkInEvaluation['status'],
+                    'late_minutes' => $checkInEvaluation['late_minutes'],
                     'status' => 'open',
                 ]);
             }
 
             if (! $attendance->check_in_at) {
                 $action = 'check_in';
+                $checkInEvaluation = $this->dailyCheckInEvaluation($school, $scanAt);
+
                 $attendance->update([
-                    'check_in_at' => now(),
+                    'check_in_at' => $scanAt,
                     'check_in_by' => $actorId,
+                    'check_in_status' => $checkInEvaluation['status'],
+                    'late_minutes' => $checkInEvaluation['late_minutes'],
                     'status' => 'open',
                 ]);
 
@@ -135,10 +144,23 @@ class AttendanceController extends Controller
             }
 
             if (! $attendance->check_out_at) {
+                $minCheckoutMinutes = (int) ($school->daily_min_checkout_minutes ?? 60);
+                $canCheckoutAfter = $attendance->check_in_at->copy()->addMinutes($minCheckoutMinutes);
+
+                if ($scanAt->lt($canCheckoutAfter)) {
+                    $action = 'duplicate_check_in';
+
+                    return $attendance;
+                }
+
                 $action = 'check_out';
+                $checkOutEvaluation = $this->dailyCheckOutEvaluation($school, $scanAt);
+
                 $attendance->update([
-                    'check_out_at' => now(),
+                    'check_out_at' => $scanAt,
                     'check_out_by' => $actorId,
+                    'check_out_status' => $checkOutEvaluation['status'],
+                    'early_leave_minutes' => $checkOutEvaluation['early_leave_minutes'],
                     'status' => 'closed',
                 ]);
 
@@ -150,11 +172,18 @@ class AttendanceController extends Controller
 
         $attendance->load(['student.user', 'checkInBy', 'checkOutBy']);
         $studentName = $student->user?->name ?? 'Murid';
+        $checkInStatusLabels = $this->dailyCheckInStatusLabels();
+        $checkOutStatusLabels = $this->dailyCheckOutStatusLabels();
 
         return response()->json([
             'message' => match ($action) {
-                'check_in' => $studentName.' berhasil dicatat datang.',
-                'check_out' => $studentName.' berhasil dicatat pulang.',
+                'check_in' => $attendance->check_in_status === 'late'
+                    ? $studentName.' berhasil dicatat datang terlambat '.$attendance->late_minutes.' menit.'
+                    : $studentName.' berhasil dicatat datang tepat waktu.',
+                'check_out' => $attendance->check_out_status === 'early'
+                    ? $studentName.' berhasil dicatat pulang cepat '.$attendance->early_leave_minutes.' menit.'
+                    : $studentName.' berhasil dicatat pulang.',
+                'duplicate_check_in' => $studentName.' sudah tercatat datang pukul '.$attendance->check_in_at?->format('H:i:s').'. Pulang baru dapat dicatat setelah '.$canCheckoutAfter?->format('H:i:s').'.',
                 default => $studentName.' sudah tercatat datang dan pulang hari ini.',
             },
             'action' => $action,
@@ -170,7 +199,14 @@ class AttendanceController extends Controller
                 'attendance_date' => $attendance->attendance_date?->format('d M Y'),
                 'check_in_at' => $attendance->check_in_at?->format('H:i:s'),
                 'check_out_at' => $attendance->check_out_at?->format('H:i:s'),
+                'check_in_status' => $attendance->check_in_status,
+                'check_in_status_label' => $checkInStatusLabels[$attendance->check_in_status] ?? null,
+                'late_minutes' => $attendance->late_minutes,
+                'check_out_status' => $attendance->check_out_status,
+                'check_out_status_label' => $checkOutStatusLabels[$attendance->check_out_status] ?? null,
+                'early_leave_minutes' => $attendance->early_leave_minutes,
                 'status' => $attendance->status,
+                'can_checkout_after' => $canCheckoutAfter?->format('H:i:s'),
             ],
         ]);
     }
@@ -522,7 +558,7 @@ class AttendanceController extends Controller
         if ($isTeacher && (! $teacher || $classroom->homeroom_teacher_id !== $teacher->id)) {
             return back()
                 ->withInput()
-                ->withErrors('Guru hanya dapat membuka presensi harian untuk rombel yang menjadi wali kelasnya.');
+                ->withErrors('Guru hanya dapat membuka presensi per kelas untuk rombel yang menjadi wali kelasnya.');
         }
 
         $session = DB::transaction(function () use ($school, $classroom, $validated) {
@@ -862,8 +898,8 @@ class AttendanceController extends Controller
             $request,
             $attendanceSession,
             'attendances.daily.edit',
-            'Presensi harian berhasil disubmit.',
-            'Draft presensi harian berhasil disimpan.'
+            'Presensi per kelas berhasil disubmit.',
+            'Draft presensi per kelas berhasil disimpan.'
         );
     }
 
@@ -1048,6 +1084,69 @@ class AttendanceController extends Controller
             ->orderBy('attendance_sessions.type')
             ->orderBy('attendance_records.created_at')
             ->select('attendance_records.*');
+    }
+
+    private function dailyCheckInEvaluation($school, Carbon $scanAt): array
+    {
+        $lateLimit = $this->dailyTimeForDate(
+            $scanAt->toDateString(),
+            $school->daily_check_in_time,
+            '07:00:00'
+        )->addMinutes((int) ($school->daily_late_tolerance_minutes ?? 10));
+
+        if ($scanAt->gt($lateLimit)) {
+            return [
+                'status' => 'late',
+                'late_minutes' => $lateLimit->diffInMinutes($scanAt),
+            ];
+        }
+
+        return [
+            'status' => 'on_time',
+            'late_minutes' => 0,
+        ];
+    }
+
+    private function dailyCheckOutEvaluation($school, Carbon $scanAt): array
+    {
+        $earlyLimit = $this->dailyTimeForDate(
+            $scanAt->toDateString(),
+            $school->daily_check_out_time,
+            '14:00:00'
+        )->subMinutes((int) ($school->daily_early_leave_tolerance_minutes ?? 0));
+
+        if ($scanAt->lt($earlyLimit)) {
+            return [
+                'status' => 'early',
+                'early_leave_minutes' => $scanAt->diffInMinutes($earlyLimit),
+            ];
+        }
+
+        return [
+            'status' => 'normal',
+            'early_leave_minutes' => 0,
+        ];
+    }
+
+    private function dailyTimeForDate(string $date, ?string $time, string $fallback): Carbon
+    {
+        return Carbon::parse($date.' '.($time ?: $fallback));
+    }
+
+    private function dailyCheckInStatusLabels(): array
+    {
+        return [
+            'on_time' => 'Tepat waktu',
+            'late' => 'Terlambat',
+        ];
+    }
+
+    private function dailyCheckOutStatusLabels(): array
+    {
+        return [
+            'normal' => 'Normal',
+            'early' => 'Pulang cepat',
+        ];
     }
 
     private function extractUuid(string $value): ?string

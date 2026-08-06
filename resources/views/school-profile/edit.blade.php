@@ -59,6 +59,50 @@
                         <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $school->email) }}">
                     </div>
                     <div class="col-12">
+                        <div class="border rounded p-3">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="avatar avatar-sm rounded bg-label-primary">
+                                    <i class="bx bx-time-five"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0">Pengaturan Presensi Harian</h6>
+                                    <div class="text-muted small">Dipakai untuk scan datang, pulang, dan deteksi keterlambatan.</div>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="daily_check_in_time">Jam Masuk</label>
+                                    <input type="time" class="form-control" id="daily_check_in_time" name="daily_check_in_time" value="{{ old('daily_check_in_time', substr($school->daily_check_in_time ?? '07:00:00', 0, 5)) }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="daily_late_tolerance_minutes">Toleransi Terlambat</label>
+                                    <div class="input-group">
+                                        <input type="number" min="0" max="240" class="form-control" id="daily_late_tolerance_minutes" name="daily_late_tolerance_minutes" value="{{ old('daily_late_tolerance_minutes', $school->daily_late_tolerance_minutes ?? 10) }}" required>
+                                        <span class="input-group-text">menit</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="daily_check_out_time">Jam Pulang</label>
+                                    <input type="time" class="form-control" id="daily_check_out_time" name="daily_check_out_time" value="{{ old('daily_check_out_time', substr($school->daily_check_out_time ?? '14:00:00', 0, 5)) }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="daily_early_leave_tolerance_minutes">Toleransi Pulang Cepat</label>
+                                    <div class="input-group">
+                                        <input type="number" min="0" max="240" class="form-control" id="daily_early_leave_tolerance_minutes" name="daily_early_leave_tolerance_minutes" value="{{ old('daily_early_leave_tolerance_minutes', $school->daily_early_leave_tolerance_minutes ?? 0) }}" required>
+                                        <span class="input-group-text">menit</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="daily_min_checkout_minutes">Minimal Jarak Scan Pulang</label>
+                                    <div class="input-group">
+                                        <input type="number" min="0" max="720" class="form-control" id="daily_min_checkout_minutes" name="daily_min_checkout_minutes" value="{{ old('daily_min_checkout_minutes', $school->daily_min_checkout_minutes ?? 60) }}" required>
+                                        <span class="input-group-text">menit</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
                         <label class="form-label" for="logo">Logo Sekolah</label>
                         <div class="d-flex flex-wrap align-items-center gap-4">
                             <div class="border rounded d-flex align-items-center justify-content-center bg-light" style="width: 104px; height: 104px;">

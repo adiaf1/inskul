@@ -396,13 +396,13 @@
                                         <li class="menu-item {{ request()->is('attendances/check*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.check') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-qr-scan"></i>
-                                                <div data-i18n="Datang & Pulang">Datang & Pulang</div>
+                                                <div data-i18n="Presensi Harian">Presensi Harian</div>
                                             </a>
                                         </li>
                                         <li class="menu-item {{ request()->is('attendances/daily*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.daily') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                                                <div data-i18n="Presensi Harian">Presensi Harian</div>
+                                                <div data-i18n="Presensi Per Kelas">Presensi Per Kelas</div>
                                             </a>
                                         </li>
                                         <li class="menu-item {{ request()->is('attendances/schedules*') ? 'active' : '' }}">
@@ -414,7 +414,7 @@
                                         <li class="menu-item {{ request()->is('attendances/reports/daily*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.report.daily') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-file"></i>
-                                                <div data-i18n="Report Presensi Harian">Report Presensi Harian</div>
+                                                <div data-i18n="Report Presensi Per Kelas">Report Presensi Per Kelas</div>
                                             </a>
                                         </li>
                                         <li class="menu-item {{ request()->is('attendances/reports/schedules*') ? 'active' : '' }}">
@@ -736,19 +736,19 @@
 
                 @if(in_array($effectiveRole, ['school_admin', 'teacher', 'principal', 'parent'], true))
                     <a href="{{ route('attendances.check') }}" class="mobile-drawer-link {{ request()->is('attendances/check*') ? 'active' : '' }}">
-                        <i class="bx bx-qr-scan"></i><span>Datang & Pulang</span>
+                        <i class="bx bx-qr-scan"></i><span>Presensi Harian</span>
                     </a>
                 @endif
 
                 @if(in_array($effectiveRole, ['school_admin', 'teacher'], true))
                     <a href="{{ route('attendances.daily') }}" class="mobile-drawer-link {{ request()->is('attendances/daily*') ? 'active' : '' }}">
-                        <i class="bx bx-calendar-check"></i><span>Presensi Harian</span>
+                        <i class="bx bx-calendar-check"></i><span>Presensi Per Kelas</span>
                     </a>
                     <a href="{{ route('attendances.schedule') }}" class="mobile-drawer-link {{ request()->is('attendances/schedules*') ? 'active' : '' }}">
                         <i class="bx bx-time-five"></i><span>Presensi Per Jadwal</span>
                     </a>
                     <a href="{{ route('attendances.report.daily') }}" class="mobile-drawer-link {{ request()->is('attendances/reports/daily*') ? 'active' : '' }}">
-                        <i class="bx bx-file"></i><span>Laporan Harian</span>
+                        <i class="bx bx-file"></i><span>Laporan Per Kelas</span>
                     </a>
                     <a href="{{ route('attendances.report.schedule') }}" class="mobile-drawer-link {{ request()->is('attendances/reports/schedules*') ? 'active' : '' }}">
                         <i class="bx bx-file"></i><span>Laporan Per Jadwal</span>

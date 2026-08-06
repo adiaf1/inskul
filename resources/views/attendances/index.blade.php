@@ -5,7 +5,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
             <h4 class="mb-1">Presensi</h4>
-            <p class="text-muted mb-0">{{ $school->name }} - kelola presensi datang/pulang, harian, dan per jadwal.</p>
+            <p class="text-muted mb-0">{{ $school->name }} - kelola presensi harian, per kelas, dan per jadwal.</p>
         </div>
     </div>
 
@@ -18,8 +18,8 @@
                             <i class="bx bx-qr-scan"></i>
                         </span>
                         <div>
-                            <h5 class="mb-1">Datang & Pulang</h5>
-                            <div class="text-muted small">Scan QR nametag tanpa memilih kelas.</div>
+                            <h5 class="mb-1">Presensi Harian</h5>
+                            <div class="text-muted small">Scan datang dan pulang tanpa memilih kelas.</div>
                         </div>
                     </div>
                     <a href="{{ route('attendances.check') }}" class="btn btn-primary">
@@ -37,12 +37,12 @@
                             <i class="bx bx-calendar-check"></i>
                         </span>
                         <div>
-                            <h5 class="mb-1">Presensi Harian</h5>
+                            <h5 class="mb-1">Presensi Per Kelas</h5>
                             <div class="text-muted small">Absensi satu kali per hari berdasarkan rombel.</div>
                         </div>
                     </div>
                     <a href="{{ route('attendances.daily') }}" class="btn btn-primary">
-                        Buka Presensi Harian
+                        Buka Presensi Per Kelas
                     </a>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                     </div>
                     <div class="d-grid gap-2">
                         <a href="{{ route('attendances.report.daily') }}" class="btn btn-success">
-                            Report Harian
+                            Report Per Kelas
                         </a>
                         <a href="{{ route('attendances.report.schedule') }}" class="btn btn-label-success">
                             Report Per Jadwal

@@ -201,7 +201,7 @@
                                 <div class="border rounded p-3">
                                     <div class="d-flex align-items-start justify-content-between gap-3">
                                         <div>
-                                            <h6 class="mb-1">{{ $session?->type === 'schedule' ? ($session?->subject?->name ?? 'Presensi Jadwal') : 'Presensi Harian' }}</h6>
+                                            <h6 class="mb-1">{{ $session?->type === 'schedule' ? ($session?->subject?->name ?? 'Presensi Jadwal') : 'Presensi Per Kelas' }}</h6>
                                             <div class="text-muted small">
                                                 {{ $session?->classroom?->name ?? '-' }}
                                                 @if($session?->type === 'schedule')
@@ -252,7 +252,7 @@
                                             <td>{{ $session?->type === 'schedule' ? 'Per Jadwal' : 'Harian' }}</td>
                                             <td>
                                                 <strong>{{ $session?->classroom?->name ?? '-' }}</strong>
-                                                <div class="text-muted small">{{ $session?->subject?->name ?? 'Presensi Harian' }}</div>
+                                                <div class="text-muted small">{{ $session?->subject?->name ?? 'Presensi Per Kelas' }}</div>
                                             </td>
                                             <td><span class="badge bg-label-{{ $statusMeta['class'] }}">{{ $statusMeta['label'] }}</span></td>
                                             <td>{{ $record->notes ?: '-' }}</td>

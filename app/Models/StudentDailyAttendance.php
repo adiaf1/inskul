@@ -17,8 +17,12 @@ class StudentDailyAttendance extends Model
         'attendance_date',
         'check_in_at',
         'check_in_by',
+        'check_in_status',
+        'late_minutes',
         'check_out_at',
         'check_out_by',
+        'check_out_status',
+        'early_leave_minutes',
         'status',
         'notes',
     ];
@@ -27,6 +31,8 @@ class StudentDailyAttendance extends Model
         'attendance_date' => 'date',
         'check_in_at' => 'datetime',
         'check_out_at' => 'datetime',
+        'late_minutes' => 'integer',
+        'early_leave_minutes' => 'integer',
     ];
 
     public function school(): BelongsTo

@@ -220,7 +220,7 @@
                                     {{ $session->subject?->name ?? $session->schedule?->subject?->name ?? '-' }}
                                     <div class="muted">{{ substr($session->starts_at, 0, 5) }} - {{ substr($session->ends_at, 0, 5) }}</div>
                                 @else
-                                    Presensi Harian
+                                    Presensi Per Kelas
                                 @endif
                             </td>
                             <td>

@@ -36,7 +36,7 @@
 
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
-            <h4 class="mb-1">Input Presensi Harian</h4>
+            <h4 class="mb-1">Input Presensi Per Kelas</h4>
             <p class="text-muted mb-0">
                 {{ $session->classroom?->name }} - {{ $session->attendance_date->format('d M Y') }}
             </p>
@@ -95,7 +95,7 @@
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
                     <div>
                         <h6 class="mb-1">Scan QR Nametag</h6>
-                        <div class="text-muted small">Arahkan kamera ke QR Code pada nametag murid untuk menandai hadir.</div>
+                        <div class="text-muted small">Arahkan kamera ke QR Code pada nametag murid untuk menandai hadir di kelas ini.</div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-label-primary" id="startQrScanner" @disabled(! $isEditable)>

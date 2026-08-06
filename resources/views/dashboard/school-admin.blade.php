@@ -159,7 +159,7 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <span class="avatar rounded bg-label-primary mb-3"><i class="bx bx-calendar-check"></i></span>
-                        <div class="text-muted small">Presensi Harian Hari Ini</div>
+                        <div class="text-muted small">Presensi Per Kelas Hari Ini</div>
                         <h4 class="mb-0">{{ $attendanceSummary['daily_today'] }}</h4>
                     </div>
                 </div>
@@ -198,7 +198,7 @@
                 <div class="card h-100">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="mb-0">Aktivitas Presensi Terbaru</h5>
-                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-primary">Report Harian</a>
+                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-primary">Report Per Kelas</a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive text-nowrap">
@@ -219,7 +219,7 @@
                                             <td>{{ $session->type === 'schedule' ? 'Per Jadwal' : 'Harian' }}</td>
                                             <td>{{ $session->classroom?->name ?? '-' }}</td>
                                             <td>
-                                                <div>{{ $session->subject?->name ?? 'Presensi Harian' }}</div>
+                                                <div>{{ $session->subject?->name ?? 'Presensi Per Kelas' }}</div>
                                                 <div class="text-muted small">{{ $session->teacher?->user?->name ?? '-' }}</div>
                                             </td>
                                             <td>
@@ -252,7 +252,7 @@
                     </div>
                     <div class="card-body d-grid gap-2">
                         <a href="{{ route('attendances.daily') }}" class="btn btn-label-primary text-start">
-                            <i class="bx bx-calendar-check me-1"></i> Input Presensi Harian
+                            <i class="bx bx-calendar-check me-1"></i> Input Presensi Per Kelas
                         </a>
                         <a href="{{ route('attendances.schedule') }}" class="btn btn-label-info text-start">
                             <i class="bx bx-time-five me-1"></i> Input Presensi Per Jadwal
