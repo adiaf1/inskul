@@ -2,6 +2,10 @@
 
 @section('content')
 @php
+    $moduleDailyAttendance = \App\Support\ModuleAccess::enabled($school, 'daily_attendance');
+    $moduleClassAttendance = \App\Support\ModuleAccess::enabled($school, 'class_attendance');
+    $moduleScheduleAttendance = \App\Support\ModuleAccess::enabled($school, 'schedule_attendance');
+    $moduleAnyAttendance = \App\Support\ModuleAccess::anyEnabled($school, ['daily_attendance', 'class_attendance', 'schedule_attendance']);
     $setupItems = $school ? [
         ['label' => 'Tahun Ajaran', 'count' => $school->academic_years_count, 'route' => route('academic-years.index'), 'icon' => 'bx-calendar'],
         ['label' => 'Semester', 'count' => $school->semesters_count, 'route' => route('semesters.index'), 'icon' => 'bx-calendar-check'],
@@ -29,9 +33,11 @@
             <a href="{{ route('school-profile.edit') }}" class="btn btn-label-primary">
                 <i class="bx bx-building-house me-1"></i> Profil Sekolah
             </a>
+            @if($moduleAnyAttendance)
             <a href="{{ route('attendances.index') }}" class="btn btn-primary">
                 <i class="bx bx-calendar-check me-1"></i> Presensi
             </a>
+            @endif
         </div>
     </div>
 
@@ -155,6 +161,7 @@
         </div>
 
         <div class="row g-4 mb-4">
+            @if($moduleClassAttendance)
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -164,6 +171,8 @@
                     </div>
                 </div>
             </div>
+            @endif
+            @if($moduleScheduleAttendance)
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -173,6 +182,8 @@
                     </div>
                 </div>
             </div>
+            @endif
+            @if($moduleClassAttendance || $moduleScheduleAttendance)
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -191,14 +202,18 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
 
+        @if($moduleClassAttendance || $moduleScheduleAttendance)
         <div class="row g-4">
             <div class="col-xl-8">
                 <div class="card h-100">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="mb-0">Aktivitas Presensi Terbaru</h5>
-                        <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-primary">Report Per Kelas</a>
+                        @if($moduleClassAttendance)
+                            <a href="{{ route('attendances.report.daily') }}" class="btn btn-sm btn-label-primary">Report Per Kelas</a>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="table-responsive text-nowrap">
@@ -251,12 +266,16 @@
                         <h5 class="mb-0">Akses Cepat</h5>
                     </div>
                     <div class="card-body d-grid gap-2">
+                        @if($moduleClassAttendance)
                         <a href="{{ route('attendances.daily') }}" class="btn btn-label-primary text-start">
                             <i class="bx bx-calendar-check me-1"></i> Input Presensi Per Kelas
                         </a>
+                        @endif
+                        @if($moduleScheduleAttendance)
                         <a href="{{ route('attendances.schedule') }}" class="btn btn-label-info text-start">
                             <i class="bx bx-time-five me-1"></i> Input Presensi Per Jadwal
                         </a>
+                        @endif
                         <a href="{{ route('students.nametags') }}" class="btn btn-label-secondary text-start">
                             <i class="bx bx-id-card me-1"></i> Cetak Nametag Murid
                         </a>
@@ -270,6 +289,7 @@
                 </div>
             </div>
         </div>
+        @endif
     @endif
 </div>
 @endsection

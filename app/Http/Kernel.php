@@ -71,6 +71,7 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'effective.role' => \App\Http\Middleware\EnsureEffectiveRole::class,
         'school.onboarded' => \App\Http\Middleware\EnsureSchoolOnboardingCompleted::class,
+        'module' => \App\Http\Middleware\EnsureSchoolModuleEnabled::class,
         
 
     ];

@@ -2,6 +2,9 @@
 
 @section('content')
 @php
+    $moduleClassAttendance = \App\Support\ModuleAccess::enabled($school, 'class_attendance');
+    $moduleScheduleAttendance = \App\Support\ModuleAccess::enabled($school, 'schedule_attendance');
+    $moduleAttendanceRecords = $moduleClassAttendance || $moduleScheduleAttendance;
     $statusLabels = [
         'present' => ['label' => 'Hadir', 'class' => 'primary', 'short' => 'H'],
         'sick' => ['label' => 'Sakit', 'class' => 'info', 'short' => 'S'],
@@ -73,6 +76,7 @@
                             </div>
                         </div>
 
+                        @if($moduleAttendanceRecords)
                         <div class="row g-3 mt-4">
                             <div class="col-sm-6 col-lg-3">
                                 <div class="border rounded p-3 h-100">
@@ -111,6 +115,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -185,6 +190,7 @@
                 </div>
             </div>
 
+            @if($moduleAttendanceRecords)
             <div class="col-xl-5">
                 <div class="card h-100">
                     <div class="card-header">
@@ -222,7 +228,9 @@
                     </div>
                 </div>
             </div>
+            @endif
 
+            @if($moduleAttendanceRecords)
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
@@ -268,6 +276,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     @endif
 </div>

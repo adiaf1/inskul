@@ -61,11 +61,21 @@
             <div>
                 <strong>{{ $isAttendanceDay ? 'Hari presensi aktif' : 'Bukan hari presensi' }}</strong>
                 <span class="d-block small">
-                    Hari sekolah aktif: {{ implode(', ', $schoolAttendanceDayLabels) }}.
+                    {{ $attendanceDayContext['message'] }} Hari sekolah aktif: {{ implode(', ', $schoolAttendanceDayLabels) }}.
                     @unless($isAttendanceDay)
                         Murid yang belum scan pada tanggal ini tidak dihitung sebagai belum hadir.
                     @endunless
                 </span>
+                @if($attendanceDayContext['semester'])
+                    <span class="d-block small">Semester: {{ $attendanceDayContext['semester']->name }}</span>
+                @endif
+                @if($attendanceDayContext['events']->isNotEmpty())
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        @foreach($attendanceDayContext['events'] as $event)
+                            <span class="badge bg-label-secondary">{{ $event->title }}</span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
             <span class="badge {{ $isAttendanceDay ? 'bg-label-primary' : 'bg-label-warning' }}">
                 {{ $selectedDateLabel }}

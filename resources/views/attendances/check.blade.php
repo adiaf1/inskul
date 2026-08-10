@@ -78,7 +78,17 @@
 
                     <div @class(['alert mb-3', 'alert-info' => $isAttendanceDay, 'alert-warning' => ! $isAttendanceDay])>
                         <strong>{{ $isAttendanceDay ? 'Hari presensi aktif' : 'Bukan hari presensi' }}</strong>
-                        <span class="d-block small">Hari sekolah aktif: {{ implode(', ', $schoolAttendanceDayLabels) }}.</span>
+                        <span class="d-block small">{{ $attendanceDayContext['message'] }} Hari sekolah aktif: {{ implode(', ', $schoolAttendanceDayLabels) }}.</span>
+                        @if($attendanceDayContext['semester'])
+                            <span class="d-block small">Semester: {{ $attendanceDayContext['semester']->name }}</span>
+                        @endif
+                        @if($attendanceDayContext['events']->isNotEmpty())
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @foreach($attendanceDayContext['events'] as $event)
+                                    <span class="badge bg-label-secondary">{{ $event->title }}</span>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
 
                     <div id="qrScannerMessage" class="alert alert-info mb-3">

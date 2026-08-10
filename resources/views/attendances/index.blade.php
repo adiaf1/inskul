@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $moduleDailyAttendance = \App\Support\ModuleAccess::enabled($school, 'daily_attendance');
+    $moduleClassAttendance = \App\Support\ModuleAccess::enabled($school, 'class_attendance');
+    $moduleScheduleAttendance = \App\Support\ModuleAccess::enabled($school, 'schedule_attendance');
+@endphp
+
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
@@ -10,7 +16,8 @@
     </div>
 
     <div class="row g-4">
-        @if(\App\Support\EffectiveAccess::role(request()) === 'school_admin')
+        @if(\App\Support\EffectiveAccess::role(request()) === 'school_admin' && $moduleDailyAttendance)
+        @if($moduleDailyAttendance)
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
@@ -49,7 +56,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if($moduleClassAttendance)
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
@@ -68,7 +77,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if($moduleScheduleAttendance)
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
@@ -87,7 +98,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if($moduleClassAttendance || $moduleScheduleAttendance)
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
@@ -101,16 +114,21 @@
                         </div>
                     </div>
                     <div class="d-grid gap-2">
+                        @if($moduleClassAttendance)
                         <a href="{{ route('attendances.report.daily') }}" class="btn btn-success">
                             Report Per Kelas
                         </a>
+                        @endif
+                        @if($moduleScheduleAttendance)
                         <a href="{{ route('attendances.report.schedule') }}" class="btn btn-label-success">
                             Report Per Jadwal
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection

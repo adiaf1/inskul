@@ -51,6 +51,14 @@ class RoleSeeder extends Seeder
         ]);
         $schoolAdmin->syncRoles(['school_admin']);
 
+        $principal = User::updateOrCreate([
+            'email' => 'principal@mail.com',
+        ], [
+            'name' => 'Kepala Sekolah',
+            'password' => Hash::make('password'),
+        ]);
+        $principal->syncRoles(['principal']);
+
         $teacher = User::updateOrCreate([
             'email' => 'teacher@mail.com',
         ], [

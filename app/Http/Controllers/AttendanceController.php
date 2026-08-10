@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicCalendarEvent;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceRecord;
 use App\Models\Classroom;
@@ -57,10 +58,11 @@ class AttendanceController extends Controller
             ->latest('updated_at')
             ->limit(20)
             ->get();
-        $isAttendanceDay = $this->isSchoolAttendanceDay($school, now());
+        $attendanceDayContext = $this->attendanceDayContext($school, now());
+        $isAttendanceDay = $attendanceDayContext['is_attendance_day'];
         $schoolAttendanceDayLabels = $this->schoolAttendanceDayLabels($school);
 
-        return view('attendances.check', compact('school', 'todayAttendances', 'isAttendanceDay', 'schoolAttendanceDayLabels'));
+        return view('attendances.check', compact('school', 'todayAttendances', 'isAttendanceDay', 'schoolAttendanceDayLabels', 'attendanceDayContext'));
     }
 
     public function scanCheck(Request $request): JsonResponse
@@ -75,9 +77,11 @@ class AttendanceController extends Controller
             abort(403);
         }
 
-        if (! $this->isSchoolAttendanceDay($school, now())) {
+        $attendanceDayContext = $this->attendanceDayContext($school, now());
+
+        if (! $attendanceDayContext['is_attendance_day']) {
             return response()->json([
-                'message' => 'Hari ini bukan hari sekolah aktif untuk presensi harian.',
+                'message' => 'Hari ini bukan hari presensi aktif. '.$attendanceDayContext['message'],
             ], 422);
         }
 
@@ -242,7 +246,8 @@ class AttendanceController extends Controller
         ];
         $selectedDateCarbon = Carbon::parse($filters['date']);
         $selectedDate = $selectedDateCarbon->toDateString();
-        $isAttendanceDay = $this->isSchoolAttendanceDay($school, $selectedDateCarbon);
+        $attendanceDayContext = $this->attendanceDayContext($school, $selectedDateCarbon);
+        $isAttendanceDay = $attendanceDayContext['is_attendance_day'];
 
         $classrooms = $school->classrooms()
             ->where('is_active', true)
@@ -309,7 +314,7 @@ class AttendanceController extends Controller
             $trendLabels[] = $date->format('d M');
             $trendPresent[] = $present;
             $trendLate[] = $late;
-            $trendAbsent[] = $this->isSchoolAttendanceDay($school, $date) ? max($totalStudents - $present, 0) : 0;
+            $trendAbsent[] = $this->attendanceDayContext($school, $date)['is_attendance_day'] ? max($totalStudents - $present, 0) : 0;
         }
 
         $students = $this->dailyDashboardStudentQuery($school, $filters['classroom_id'])
@@ -337,6 +342,7 @@ class AttendanceController extends Controller
             'students' => $students,
             'studentAttendances' => $studentAttendances,
             'isAttendanceDay' => $isAttendanceDay,
+            'attendanceDayContext' => $attendanceDayContext,
             'schoolAttendanceDayLabels' => $this->schoolAttendanceDayLabels($school),
             'summary' => [
                 'total_students' => $totalStudents,
@@ -1274,7 +1280,80 @@ class AttendanceController extends Controller
 
     private function isSchoolAttendanceDay($school, Carbon $date): bool
     {
-        return in_array($date->isoWeekday(), $this->schoolAttendanceDays($school), true);
+        return $this->attendanceDayContext($school, $date)['is_attendance_day'];
+    }
+
+    private function attendanceDayContext($school, Carbon $date): array
+    {
+        $date = $date->copy()->startOfDay();
+        $events = AcademicCalendarEvent::query()
+            ->where('school_id', $school->id)
+            ->whereDate('starts_at', '<=', $date->toDateString())
+            ->whereDate('ends_at', '>=', $date->toDateString())
+            ->orderBy('starts_at')
+            ->orderBy('title')
+            ->get();
+
+        $attendanceEvent = $events->firstWhere('attendance_effect', 'attendance_day');
+
+        if ($attendanceEvent) {
+            return [
+                'is_attendance_day' => true,
+                'reason' => 'calendar_attendance_day',
+                'message' => 'Kalender akademik menetapkan tanggal ini tetap dihitung presensi.',
+                'events' => $events,
+                'semester' => $this->semesterForAttendanceDate($school, $date),
+            ];
+        }
+
+        $nonAttendanceEvent = $events->firstWhere('attendance_effect', 'non_attendance_day');
+
+        if ($nonAttendanceEvent) {
+            return [
+                'is_attendance_day' => false,
+                'reason' => 'calendar_non_attendance_day',
+                'message' => 'Kalender akademik menetapkan tanggal ini tidak dihitung presensi.',
+                'events' => $events,
+                'semester' => $this->semesterForAttendanceDate($school, $date),
+            ];
+        }
+
+        $activeSemesterExists = $school->semesters()
+            ->where('is_active', true)
+            ->exists();
+        $semester = $this->semesterForAttendanceDate($school, $date);
+
+        if ($activeSemesterExists && ! $semester) {
+            return [
+                'is_attendance_day' => false,
+                'reason' => 'outside_active_semester',
+                'message' => 'Tanggal ini berada di luar rentang semester aktif.',
+                'events' => $events,
+                'semester' => null,
+            ];
+        }
+
+        $isSchoolDay = in_array($date->isoWeekday(), $this->schoolAttendanceDays($school), true);
+
+        return [
+            'is_attendance_day' => $isSchoolDay,
+            'reason' => $isSchoolDay ? 'school_day' : 'weekly_non_attendance_day',
+            'message' => $isSchoolDay
+                ? 'Tanggal ini mengikuti hari sekolah aktif.'
+                : 'Tanggal ini tidak termasuk dalam hari sekolah aktif.',
+            'events' => $events,
+            'semester' => $semester,
+        ];
+    }
+
+    private function semesterForAttendanceDate($school, Carbon $date)
+    {
+        return $school->semesters()
+            ->where('is_active', true)
+            ->whereDate('starts_at', '<=', $date->toDateString())
+            ->whereDate('ends_at', '>=', $date->toDateString())
+            ->orderByDesc('starts_at')
+            ->first();
     }
 
     private function schoolAttendanceDayLabels($school): array

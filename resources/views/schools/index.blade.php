@@ -80,6 +80,9 @@
                             </td>
                             <td>{{ $school->created_at->format('d M Y H:i') }}</td>
                             <td class="text-end">
+                                <a href="{{ route('schools.modules', $school) }}" class="btn btn-sm btn-icon btn-label-info" title="Kelola Modul" aria-label="Kelola Modul">
+                                    <i class="bx bx-grid-alt"></i>
+                                </a>
                                 @if($school->status === 'pending')
                                     <form method="POST" action="{{ route('schools.approve', $school) }}" class="d-inline">
                                         @csrf

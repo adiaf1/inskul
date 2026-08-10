@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\AcademicCalendarEventController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\DashboardController;
@@ -57,6 +58,8 @@ Route::middleware(['auth', 'active.user', 'role:super_admin'])->group(function (
     Route::get('/schools', [SchoolController::class, 'index'])->name('schools.index');
     Route::patch('/schools/{school}/approve', [SchoolController::class, 'approve'])->name('schools.approve');
     Route::patch('/schools/{school}/reject', [SchoolController::class, 'reject'])->name('schools.reject');
+    Route::get('/schools/{school}/modules', [SchoolController::class, 'modules'])->name('schools.modules');
+    Route::put('/schools/{school}/modules', [SchoolController::class, 'updateModules'])->name('schools.modules.update');
 });
 
 // Route untuk role sekolah
@@ -74,56 +77,64 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::middleware('effective.role:student')->group(function () {
             Route::get('/student-schedules', [StudentScheduleController::class, 'index'])->name('student-schedules.index');
             Route::get('/student-nametag', [StudentController::class, 'printOwnNametag'])->name('students.own-nametag');
-            Route::get('/exams/{exam}/take', [ExamController::class, 'take'])->name('exams.take');
-            Route::post('/exams/{exam}/answers', [ExamController::class, 'saveAnswer'])->name('exams.answers.save');
-            Route::post('/exams/{exam}/submit', [ExamController::class, 'submit'])->name('exams.submit');
-            Route::get('/exams/{exam}/result', [ExamController::class, 'result'])->name('exams.result');
+            Route::middleware('module:exams')->group(function () {
+                Route::get('/exams/{exam}/take', [ExamController::class, 'take'])->name('exams.take');
+                Route::post('/exams/{exam}/answers', [ExamController::class, 'saveAnswer'])->name('exams.answers.save');
+                Route::post('/exams/{exam}/submit', [ExamController::class, 'submit'])->name('exams.submit');
+                Route::get('/exams/{exam}/result', [ExamController::class, 'result'])->name('exams.result');
+            });
         });
 
-        Route::middleware('effective.role:school_admin,teacher,student')->group(function () {
+        Route::middleware(['effective.role:school_admin,teacher,student', 'module:exams'])->group(function () {
             Route::get('/exams', [ExamController::class, 'index'])->name('exams.index');
         });
 
-        Route::middleware('effective.role:school_admin,principal')->group(function () {
+        Route::middleware(['effective.role:school_admin,principal', 'module:daily_attendance'])->group(function () {
             Route::get('/attendances/daily-dashboard', [AttendanceController::class, 'dailyDashboard'])->name('attendances.daily-dashboard');
         });
 
-        Route::middleware('effective.role:school_admin,principal,teacher,parent')->group(function () {
+        Route::middleware(['effective.role:school_admin,principal,teacher,parent', 'module:daily_attendance'])->group(function () {
             Route::get('/attendances/check', [AttendanceController::class, 'check'])->name('attendances.check');
             Route::post('/attendances/check/scan', [AttendanceController::class, 'scanCheck'])->name('attendances.check.scan');
         });
 
         Route::middleware('effective.role:school_admin,teacher')->group(function () {
-            Route::get('/exams/create', [ExamController::class, 'create'])->name('exams.create');
-            Route::post('/exams', [ExamController::class, 'store'])->name('exams.store');
-            Route::get('/exams/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
-            Route::put('/exams/{exam}', [ExamController::class, 'update'])->name('exams.update');
-            Route::delete('/exams/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
-            Route::patch('/exams/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
-            Route::patch('/exams/{exam}/close', [ExamController::class, 'close'])->name('exams.close');
-            Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
-            Route::get('/exams/{exam}/questions/import-template', [ExamController::class, 'downloadQuestionImportTemplate'])->name('exams.questions.import-template');
-            Route::post('/exams/{exam}/questions/import', [ExamController::class, 'importQuestions'])->name('exams.questions.import');
-            Route::post('/exams/{exam}/questions', [ExamController::class, 'storeQuestion'])->name('exams.questions.store');
-            Route::put('/exams/{exam}/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
-            Route::delete('/exams/{exam}/questions/{question}', [ExamController::class, 'destroyQuestion'])->name('exams.questions.destroy');
-            Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
-            Route::get('/attendances/reports', [AttendanceController::class, 'report'])->name('attendances.report');
-            Route::get('/attendances/reports/print', [AttendanceController::class, 'printReport'])->name('attendances.report.print');
-            Route::get('/attendances/reports/daily', [AttendanceController::class, 'dailyReport'])->name('attendances.report.daily');
-            Route::get('/attendances/reports/daily/print', [AttendanceController::class, 'printDailyReport'])->name('attendances.report.daily.print');
-            Route::get('/attendances/reports/schedules', [AttendanceController::class, 'scheduleReport'])->name('attendances.report.schedule');
-            Route::get('/attendances/reports/schedules/print', [AttendanceController::class, 'printScheduleReport'])->name('attendances.report.schedule.print');
-            Route::get('/attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
-            Route::post('/attendances/daily/open', [AttendanceController::class, 'openDaily'])->name('attendances.daily.open');
-            Route::get('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'editDaily'])->name('attendances.daily.edit');
-            Route::post('/attendances/daily/{attendanceSession}/scan', [AttendanceController::class, 'scanDaily'])->name('attendances.daily.scan');
-            Route::put('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'updateDaily'])->name('attendances.daily.update');
-            Route::get('/attendances/schedules', [AttendanceController::class, 'schedule'])->name('attendances.schedule');
-            Route::post('/attendances/schedules/open', [AttendanceController::class, 'openSchedule'])->name('attendances.schedule.open');
-            Route::get('/attendances/schedules/{attendanceSession}', [AttendanceController::class, 'editSchedule'])->name('attendances.schedule.edit');
-            Route::post('/attendances/schedules/{attendanceSession}/scan', [AttendanceController::class, 'scanSchedule'])->name('attendances.schedule.scan');
-            Route::put('/attendances/schedules/{attendanceSession}', [AttendanceController::class, 'updateSchedule'])->name('attendances.schedule.update');
+            Route::middleware('module:exams')->group(function () {
+                Route::get('/exams/create', [ExamController::class, 'create'])->name('exams.create');
+                Route::post('/exams', [ExamController::class, 'store'])->name('exams.store');
+                Route::get('/exams/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
+                Route::put('/exams/{exam}', [ExamController::class, 'update'])->name('exams.update');
+                Route::delete('/exams/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
+                Route::patch('/exams/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
+                Route::patch('/exams/{exam}/close', [ExamController::class, 'close'])->name('exams.close');
+                Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
+                Route::get('/exams/{exam}/questions/import-template', [ExamController::class, 'downloadQuestionImportTemplate'])->name('exams.questions.import-template');
+                Route::post('/exams/{exam}/questions/import', [ExamController::class, 'importQuestions'])->name('exams.questions.import');
+                Route::post('/exams/{exam}/questions', [ExamController::class, 'storeQuestion'])->name('exams.questions.store');
+                Route::put('/exams/{exam}/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
+                Route::delete('/exams/{exam}/questions/{question}', [ExamController::class, 'destroyQuestion'])->name('exams.questions.destroy');
+            });
+            Route::get('/attendances', [AttendanceController::class, 'index'])->middleware('module:daily_attendance,class_attendance,schedule_attendance')->name('attendances.index');
+            Route::get('/attendances/reports', [AttendanceController::class, 'report'])->middleware('module:class_attendance,schedule_attendance')->name('attendances.report');
+            Route::get('/attendances/reports/print', [AttendanceController::class, 'printReport'])->middleware('module:class_attendance,schedule_attendance')->name('attendances.report.print');
+            Route::get('/attendances/reports/daily', [AttendanceController::class, 'dailyReport'])->middleware('module:class_attendance')->name('attendances.report.daily');
+            Route::get('/attendances/reports/daily/print', [AttendanceController::class, 'printDailyReport'])->middleware('module:class_attendance')->name('attendances.report.daily.print');
+            Route::get('/attendances/reports/schedules', [AttendanceController::class, 'scheduleReport'])->middleware('module:schedule_attendance')->name('attendances.report.schedule');
+            Route::get('/attendances/reports/schedules/print', [AttendanceController::class, 'printScheduleReport'])->middleware('module:schedule_attendance')->name('attendances.report.schedule.print');
+            Route::middleware('module:class_attendance')->group(function () {
+                Route::get('/attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
+                Route::post('/attendances/daily/open', [AttendanceController::class, 'openDaily'])->name('attendances.daily.open');
+                Route::get('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'editDaily'])->name('attendances.daily.edit');
+                Route::post('/attendances/daily/{attendanceSession}/scan', [AttendanceController::class, 'scanDaily'])->name('attendances.daily.scan');
+                Route::put('/attendances/daily/{attendanceSession}', [AttendanceController::class, 'updateDaily'])->name('attendances.daily.update');
+            });
+            Route::middleware('module:schedule_attendance')->group(function () {
+                Route::get('/attendances/schedules', [AttendanceController::class, 'schedule'])->name('attendances.schedule');
+                Route::post('/attendances/schedules/open', [AttendanceController::class, 'openSchedule'])->name('attendances.schedule.open');
+                Route::get('/attendances/schedules/{attendanceSession}', [AttendanceController::class, 'editSchedule'])->name('attendances.schedule.edit');
+                Route::post('/attendances/schedules/{attendanceSession}/scan', [AttendanceController::class, 'scanSchedule'])->name('attendances.schedule.scan');
+                Route::put('/attendances/schedules/{attendanceSession}', [AttendanceController::class, 'updateSchedule'])->name('attendances.schedule.update');
+            });
         });
 
         Route::middleware('effective.role:school_admin')->group(function () {
@@ -133,6 +144,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::post('/school-users', [SchoolUserController::class, 'store'])->name('school-users.store');
             Route::resource('academic-years', AcademicYearController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::resource('semesters', SemesterController::class)->only(['index', 'store', 'update', 'destroy']);
+            Route::resource('academic-calendar-events', AcademicCalendarEventController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::resource('school-classes', SchoolClassController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::resource('classrooms', ClassroomController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
             Route::resource('rooms', RoomController::class)->only(['index', 'store', 'update', 'destroy']);

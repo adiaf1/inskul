@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $moduleClassAttendance = \App\Support\ModuleAccess::enabled($school, 'class_attendance');
+    $moduleScheduleAttendance = \App\Support\ModuleAccess::enabled($school, 'schedule_attendance');
+    $moduleAnyAttendance = \App\Support\ModuleAccess::anyEnabled($school, ['daily_attendance', 'class_attendance', 'schedule_attendance']);
+@endphp
+
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
@@ -13,9 +19,11 @@
             <a href="{{ route('teacher-schedules.index') }}" class="btn btn-label-primary">
                 <i class="bx bx-calendar-event me-1"></i> Jadwal Saya
             </a>
+            @if($moduleAnyAttendance)
             <a href="{{ route('attendances.index') }}" class="btn btn-primary">
                 <i class="bx bx-calendar-check me-1"></i> Presensi
             </a>
+            @endif
         </div>
     </div>
 
@@ -51,6 +59,7 @@
                         </div>
 
                         <div class="row g-3 mt-4">
+                            @if($moduleClassAttendance)
                             <div class="col-sm-6 col-lg-3">
                                 <a href="{{ route('teacher-schedules.index') }}" class="text-decoration-none">
                                     <div class="border rounded p-3 h-100">
@@ -62,6 +71,8 @@
                                     </div>
                                 </a>
                             </div>
+                            @endif
+                            @if($moduleAnyAttendance)
                             <div class="col-sm-6 col-lg-3">
                                 <a href="{{ route('attendances.daily') }}" class="text-decoration-none">
                                     <div class="border rounded p-3 h-100">
@@ -84,6 +95,7 @@
                                     </div>
                                 </a>
                             </div>
+                            @endif
                             <div class="col-sm-6 col-lg-3">
                                 <a href="{{ route('attendances.index') }}" class="text-decoration-none">
                                     <div class="border rounded p-3 h-100">
@@ -106,21 +118,29 @@
                         <h5 class="mb-0">Akses Cepat</h5>
                     </div>
                     <div class="card-body d-grid gap-2">
+                        @if($moduleClassAttendance)
                         <a href="{{ route('attendances.daily') }}" class="btn btn-label-primary text-start">
                             <i class="bx bx-calendar-check me-1"></i> Presensi Per Kelas
                         </a>
+                        @endif
+                        @if($moduleScheduleAttendance)
                         <a href="{{ route('attendances.schedule') }}" class="btn btn-label-info text-start">
                             <i class="bx bx-time-five me-1"></i> Presensi Per Jadwal
                         </a>
+                        @endif
                         <a href="{{ route('teacher-schedules.index') }}" class="btn btn-label-success text-start">
                             <i class="bx bx-calendar-event me-1"></i> Lihat Jadwal Mengajar
                         </a>
+                        @if($moduleClassAttendance)
                         <a href="{{ route('attendances.report.daily') }}" class="btn btn-label-secondary text-start">
                             <i class="bx bx-file me-1"></i> Report Presensi Per Kelas
                         </a>
+                        @endif
+                        @if($moduleScheduleAttendance)
                         <a href="{{ route('attendances.report.schedule') }}" class="btn btn-label-secondary text-start">
                             <i class="bx bx-file me-1"></i> Report Presensi Per Jadwal
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -182,11 +202,13 @@
                                         </div>
                                         <span class="badge bg-label-primary">{{ $classroom->students_count }} murid</span>
                                     </div>
+                                    @if($moduleClassAttendance)
                                     <div class="mt-3">
                                         <a href="{{ route('attendances.daily') }}" class="btn btn-sm btn-label-primary">
                                             <i class="bx bx-calendar-check me-1"></i> Presensi Per Kelas
                                         </a>
                                     </div>
+                                    @endif
                                 </div>
                             @empty
                                 <div class="text-center text-muted py-4">Anda belum menjadi wali kelas pada rombel aktif.</div>
@@ -196,6 +218,7 @@
                 </div>
             </div>
 
+            @if($moduleAnyAttendance)
             <div class="col-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
@@ -243,6 +266,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     @endif
 </div>

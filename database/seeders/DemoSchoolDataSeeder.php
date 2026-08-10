@@ -32,7 +32,7 @@ class DemoSchoolDataSeeder extends Seeder
             $roles = $this->roles();
 
             foreach ($this->schools() as $schoolData) {
-                $school = $this->seedSchool($schoolData, $roles['school_admin']);
+                $school = $this->seedSchool($schoolData, $roles['school_admin'], $roles['principal']);
                 $academicYear = $this->seedAcademicYear($school);
                 $semester = $this->seedSemesters($school, $academicYear);
                 $subjects = $this->seedSubjects($school, $schoolData['subjects']);
@@ -50,7 +50,7 @@ class DemoSchoolDataSeeder extends Seeder
 
     private function roles(): array
     {
-        return collect(['school_admin', 'teacher', 'student'])
+        return collect(['school_admin', 'principal', 'teacher', 'student'])
             ->mapWithKeys(fn ($role) => [
                 $role => Role::firstOrCreate([
                     'name' => $role,
@@ -60,7 +60,7 @@ class DemoSchoolDataSeeder extends Seeder
             ->all();
     }
 
-    private function seedSchool(array $data, Role $schoolAdminRole): School
+    private function seedSchool(array $data, Role $schoolAdminRole, Role $principalRole): School
     {
         $superAdmin = User::where('email', 'admin@mail.com')->first();
 
@@ -91,6 +91,23 @@ class DemoSchoolDataSeeder extends Seeder
         $school->users()->syncWithoutDetaching([
             $admin->id => [
                 'role_id' => $schoolAdminRole->id,
+                'status' => 'active',
+            ],
+        ]);
+
+        $principal = User::updateOrCreate([
+            'email' => $data['principal_email'],
+        ], [
+            'name' => $data['principal_name'],
+            'password' => Hash::make(self::PASSWORD),
+            'status' => 'active',
+        ]);
+
+        $principal->syncRoles(['principal']);
+
+        $school->users()->syncWithoutDetaching([
+            $principal->id => [
+                'role_id' => $principalRole->id,
                 'status' => 'active',
             ],
         ]);
@@ -446,6 +463,8 @@ class DemoSchoolDataSeeder extends Seeder
                 'email' => 'sd.nusantara01@mail.com',
                 'admin_name' => 'Admin SD Nusantara 01',
                 'admin_email' => 'admin.sd.nusantara01@mail.com',
+                'principal_name' => 'Kepala SD Nusantara 01',
+                'principal_email' => 'principal.sd.nusantara01@mail.com',
                 'students_per_level' => 6,
                 'levels' => [
                     ['name' => 'I', 'class_name' => 'Kelas I', 'classroom_name' => 'I-A', 'entry_year' => 2025],
@@ -467,6 +486,8 @@ class DemoSchoolDataSeeder extends Seeder
                 'email' => 'smp.harapanbangsa@mail.com',
                 'admin_name' => 'Admin SMP Harapan Bangsa',
                 'admin_email' => 'admin.smp.harapanbangsa@mail.com',
+                'principal_name' => 'Kepala SMP Harapan Bangsa',
+                'principal_email' => 'principal.smp.harapanbangsa@mail.com',
                 'students_per_level' => 8,
                 'levels' => [
                     ['name' => 'VII', 'class_name' => 'Kelas VII', 'classroom_name' => 'VII-A', 'entry_year' => 2025],
@@ -485,6 +506,8 @@ class DemoSchoolDataSeeder extends Seeder
                 'email' => 'sma.cendekiamandiri@mail.com',
                 'admin_name' => 'Admin SMA Cendekia Mandiri',
                 'admin_email' => 'admin.sma.cendekiamandiri@mail.com',
+                'principal_name' => 'Kepala SMA Cendekia Mandiri',
+                'principal_email' => 'principal.sma.cendekiamandiri@mail.com',
                 'students_per_level' => 8,
                 'levels' => [
                     ['name' => 'X', 'class_name' => 'Kelas X', 'classroom_name' => 'X-A', 'entry_year' => 2025],

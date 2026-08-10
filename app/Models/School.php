@@ -74,6 +74,18 @@ class School extends Model
         return $this->hasMany(Semester::class);
     }
 
+    public function academicCalendarEvents(): HasMany
+    {
+        return $this->hasMany(AcademicCalendarEvent::class);
+    }
+
+    public function modules(): BelongsToMany
+    {
+        return $this->belongsToMany(Module::class)
+            ->withPivot(['is_enabled', 'enabled_at', 'enabled_by'])
+            ->withTimestamps();
+    }
+
     public function classes(): HasMany
     {
         return $this->hasMany(SchoolClass::class);

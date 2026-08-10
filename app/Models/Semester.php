@@ -41,4 +41,9 @@ class Semester extends Model
     {
         return $this->hasMany(Schedule::class);
     }
+
+    public function academicCalendarEvents(): HasMany
+    {
+        return $this->hasMany(AcademicCalendarEvent::class);
+    }
 }

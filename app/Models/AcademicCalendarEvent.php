@@ -6,24 +6,26 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class AcademicYear extends Model
+class AcademicCalendarEvent extends Model
 {
     use HasFactory, HasUuidPrimaryKey;
 
     protected $fillable = [
         'school_id',
-        'name',
+        'academic_year_id',
+        'semester_id',
+        'title',
         'starts_at',
         'ends_at',
-        'is_active',
+        'type',
+        'attendance_effect',
+        'notes',
     ];
 
     protected $casts = [
         'starts_at' => 'date',
         'ends_at' => 'date',
-        'is_active' => 'boolean',
     ];
 
     public function school(): BelongsTo
@@ -31,18 +33,13 @@ class AcademicYear extends Model
         return $this->belongsTo(School::class);
     }
 
-    public function semesters(): HasMany
+    public function academicYear(): BelongsTo
     {
-        return $this->hasMany(Semester::class);
+        return $this->belongsTo(AcademicYear::class);
     }
 
-    public function academicCalendarEvents(): HasMany
+    public function semester(): BelongsTo
     {
-        return $this->hasMany(AcademicCalendarEvent::class);
-    }
-
-    public function schedules(): HasMany
-    {
-        return $this->hasMany(Schedule::class);
+        return $this->belongsTo(Semester::class);
     }
 }

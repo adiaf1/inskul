@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
+use App\Models\Module;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +48,16 @@ class SchoolController extends Controller
             'status' => 'active',
         ]);
 
+        Module::query()->where('is_active', true)->get()->each(function (Module $module) use ($school) {
+            $school->modules()->syncWithoutDetaching([
+                $module->id => [
+                    'is_enabled' => true,
+                    'enabled_at' => now(),
+                    'enabled_by' => Auth::id(),
+                ],
+            ]);
+        });
+
         return back()->with('success', 'Sekolah berhasil disetujui dan akun admin sekolah sudah aktif.');
     }
 
@@ -66,5 +77,49 @@ class SchoolController extends Controller
         }
 
         return back()->with('success', 'Pengajuan sekolah berhasil ditolak.');
+    }
+
+    public function modules(School $school): View
+    {
+        $school->load('modules');
+
+        $modules = Module::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('schools.modules', compact('school', 'modules'));
+    }
+
+    public function updateModules(Request $request, School $school): RedirectResponse
+    {
+        $modules = Module::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $validated = $request->validate([
+            'modules' => ['nullable', 'array'],
+            'modules.*' => ['string', 'exists:modules,code'],
+        ]);
+
+        $enabledCodes = collect($validated['modules'] ?? []);
+
+        foreach ($modules as $module) {
+            $enabled = $enabledCodes->contains($module->code);
+
+            $school->modules()->syncWithoutDetaching([
+                $module->id => [
+                    'is_enabled' => $enabled,
+                    'enabled_at' => $enabled ? now() : null,
+                    'enabled_by' => $enabled ? Auth::id() : null,
+                ],
+            ]);
+        }
+
+        return redirect()
+            ->route('schools.modules', $school)
+            ->with('success', 'Modul sekolah berhasil diperbarui.');
     }
 }
