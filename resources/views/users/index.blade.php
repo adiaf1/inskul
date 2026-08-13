@@ -97,8 +97,9 @@
                 <table class="datatables-users table table-hover border-top dataTable no-footer dtr-column" id="DataTables_Table_0">
                     <thead>
                         <tr>
-                            <th class="sorting_disabled dt-checkboxes-cell dt-checkboxes-select-all" rowspan="1" colspan="1"><input type="checkbox" class="form-check-input"></th>
+                            <th rowspan="1" colspan="1" style="width: 64px;">No</th>
                             <th class="sorting sorting_desc" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Pengguna</th>
+                            <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Username</th>
                             <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Role</th>
                             <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Sekolah</th>
                             <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1">Email</th>
@@ -108,8 +109,9 @@
                     <tbody>
                         @forelse($users as $user)
                             <tr>
-                                <td><input type="checkbox" class="form-check-input"></td>
+                                <td>{{ $users->firstItem() + $loop->index }}</td>
                                 <td>{{ $user->name }}</td>
+                                <td><code>{{ $user->username ?? '-' }}</code></td>
                                 <td>
                                     {{ $user->roles->pluck('name')->map(fn ($role) => [
                                         'super_admin' => 'Super Admin',
@@ -159,6 +161,11 @@
                                         <div class="mb-6">
                                             <label for="name" class="form-label">Nama</label>
                                             <input type="text" class="form-control" id="name" name="name" value="{{ $user->name }}" required>
+                                        </div>
+                                        <div class="mb-6">
+                                            <label for="username" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="username" name="username" value="{{ $user->username }}" required>
+                                            <div class="form-text">Huruf, angka, titik, strip, dan underscore. Tanpa spasi.</div>
                                         </div>
                                         <div class="mb-6">
                                             <label for="email" class="form-label">Email</label>
@@ -221,7 +228,7 @@
                             </div>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted">Pengguna tidak ditemukan</td>
+                                <td colspan="7" class="text-center text-muted">Pengguna tidak ditemukan</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -243,6 +250,11 @@
                     <div class="mb-6">
                         <label for="name" class="form-label">Nama</label>
                         <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="form-text">Huruf, angka, titik, strip, dan underscore. Tanpa spasi.</div>
                     </div>
                     <div class="mb-6">
                         <label for="email" class="form-label">Email</label>

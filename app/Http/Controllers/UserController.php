@@ -30,6 +30,7 @@ class UserController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('username', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");
                 });
             })
@@ -65,15 +66,24 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'username' => User::normalizeUsername((string) $request->input('username')),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required',
+            'username' => ['required', 'string', 'max:40', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,username'],
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'role' => 'required|exists:roles,name',
+        ], [
+            'username.unique' => 'Username sudah digunakan. Silakan gunakan username lain.',
+            'username.regex' => 'Username hanya boleh berisi huruf, angka, titik, strip, dan underscore.',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
+            'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
         ]);
@@ -105,24 +115,33 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $request->merge([
+            'username' => User::normalizeUsername((string) $request->input('username')),
+        ]);
+
         // Validasi input
         $validator = \Validator::make($request->all(), [
             'name' => 'required|string|max:255', // Validasi nama pengguna
+            'username' => ['required', 'string', 'max:40', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,username,' . $user->id],
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id, // Validasi email
             'roles' => 'required|array',
             'roles.*' => 'exists:roles,name', // Memastikan setiap role ada dalam tabel roles
+        ], [
+            'username.unique' => 'Username sudah digunakan. Silakan gunakan username lain.',
+            'username.regex' => 'Username hanya boleh berisi huruf, angka, titik, strip, dan underscore.',
         ]);
         
 
         // Cek jika validasi gagal
         if ($validator->fails()) {
-            return redirect()->route('users.edit', $user->id) // Kembali ke halaman edit pengguna
+            return redirect()->route('users.index') // Kembali ke halaman daftar pengguna
                             ->withErrors($validator) // Menyimpan kesalahan dalam session
                             ->withInput(); // Menyimpan input agar tetap terlihat
         }
 
         // Jika validasi berhasil, perbarui informasi pengguna
         $user->name = $request->name; // Perbarui nama
+        $user->username = User::normalizeUsername($request->username);
         $user->email = $request->email; // Perbarui email
         $user->save(); // Simpan perubahan pada pengguna
 

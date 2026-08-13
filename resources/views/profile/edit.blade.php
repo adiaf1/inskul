@@ -74,6 +74,20 @@
                         >
                     </div>
 
+                    {{-- Username --}}
+                    <div class="col-md-6">
+                        <label for="username" class="form-label">Username</label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="username"
+                            name="username"
+                            value="{{ old('username', $user->username) }}"
+                            required
+                        >
+                        <div class="form-text">Dipakai untuk login. Huruf, angka, titik, strip, dan underscore.</div>
+                    </div>
+
                     {{-- Email --}}
                     <div class="col-md-6">
                         <label for="email" class="form-label">E-mail</label>

@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'status',
@@ -47,6 +49,53 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (! empty($user->username)) {
+                $user->username = self::normalizeUsername($user->username);
+
+                return;
+            }
+
+            $source = $user->email ? Str::before($user->email, '@') : $user->name;
+            $user->username = self::uniqueUsername($source ?: 'user');
+        });
+
+        static::updating(function (User $user) {
+            if ($user->isDirty('username') && ! empty($user->username)) {
+                $user->username = self::normalizeUsername($user->username);
+            }
+        });
+    }
+
+    public static function normalizeUsername(string $value): string
+    {
+        return Str::of($value)
+            ->lower()
+            ->replaceMatches('/[^a-z0-9._-]+/', '.')
+            ->trim('.-_')
+            ->limit(40, '')
+            ->value() ?: 'user';
+    }
+
+    public static function uniqueUsername(string $source, ?string $ignoreUserId = null): string
+    {
+        $base = self::normalizeUsername($source);
+        $username = $base;
+        $counter = 2;
+
+        while (self::query()
+            ->where('username', $username)
+            ->when($ignoreUserId, fn ($query) => $query->whereKeyNot($ignoreUserId))
+            ->exists()) {
+            $username = $base.$counter;
+            $counter++;
+        }
+
+        return $username;
+    }
 
     public function schools(): BelongsToMany
     {

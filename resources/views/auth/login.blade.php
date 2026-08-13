@@ -84,8 +84,8 @@
                     <form class="mb-6" action="{{ route('login') }}" method="POST">
                         @csrf
                         <div class="mb-6">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Masukkan email" autocomplete="username" required autofocus />
+                            <label for="login" class="form-label">Username atau Email</label>
+                            <input type="text" class="form-control" id="login" name="login" value="{{ old('login') }}" placeholder="Masukkan username atau email" autocomplete="username" required autofocus />
                         </div>
                         <div class="mb-6 form-password-toggle">
                             <label class="form-label" for="password">Kata Sandi</label>
