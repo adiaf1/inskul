@@ -261,33 +261,43 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const chartData = @json($chartData);
-    const css = getComputedStyle(document.documentElement);
-    const textColor = css.getPropertyValue('--bs-body-color').trim() || '#566a7f';
-    const borderColor = css.getPropertyValue('--bs-border-color').trim() || '#e6e6e8';
-    const cardColor = css.getPropertyValue('--bs-card-bg').trim() || '#fff';
-    const colors = {
-        success: css.getPropertyValue('--bs-success').trim() || '#71dd37',
-        danger: css.getPropertyValue('--bs-danger').trim() || '#ff3e1d',
-        warning: css.getPropertyValue('--bs-warning').trim() || '#ffab00',
-        info: css.getPropertyValue('--bs-info').trim() || '#03c3ec',
-        primary: css.getPropertyValue('--bs-primary').trim() || '#696cff',
-        secondary: css.getPropertyValue('--bs-secondary').trim() || '#8592a3',
+    const charts = [];
+
+    const themePalette = () => {
+        const css = getComputedStyle(document.documentElement);
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+        return {
+            isDark,
+            textColor: isDark ? '#cfd3ec' : (css.getPropertyValue('--bs-body-color').trim() || '#566a7f'),
+            mutedColor: isDark ? '#a3a7c7' : (css.getPropertyValue('--bs-secondary-color').trim() || '#a1acb8'),
+            borderColor: isDark ? '#44485e' : (css.getPropertyValue('--bs-border-color').trim() || '#e6e6e8'),
+            cardColor: isDark ? '#2b2c40' : (css.getPropertyValue('--bs-card-bg').trim() || css.getPropertyValue('--bs-paper-bg').trim() || '#fff'),
+            colors: {
+                success: css.getPropertyValue('--bs-success').trim() || '#71dd37',
+                danger: css.getPropertyValue('--bs-danger').trim() || '#ff3e1d',
+                warning: css.getPropertyValue('--bs-warning').trim() || '#ffab00',
+                info: css.getPropertyValue('--bs-info').trim() || '#03c3ec',
+                primary: css.getPropertyValue('--bs-primary').trim() || '#696cff',
+                secondary: css.getPropertyValue('--bs-secondary').trim() || '#8592a3',
+            },
+        };
     };
 
-    const baseChart = {
+    const baseChart = (palette) => ({
         chart: {
             toolbar: { show: false },
-            foreColor: textColor,
-            background: cardColor,
+            foreColor: palette.textColor,
+            background: 'transparent',
         },
         dataLabels: { enabled: true },
         legend: {
-            labels: { colors: textColor },
+            labels: { colors: palette.textColor },
         },
         tooltip: {
-            theme: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light',
+            theme: palette.isDark ? 'dark' : 'light',
         },
-    };
+    });
 
     const renderDonut = (selector, labels, series, chartColors) => {
         const element = document.querySelector(selector);
@@ -296,9 +306,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        new ApexCharts(element, {
-            ...baseChart,
-            chart: { ...baseChart.chart, type: 'donut', height: 260 },
+        const palette = themePalette();
+        const chart = new ApexCharts(element, {
+            ...baseChart(palette),
+            chart: { ...baseChart(palette).chart, type: 'donut', height: 260 },
             labels,
             series,
             colors: chartColors,
@@ -312,14 +323,22 @@ document.addEventListener('DOMContentLoaded', function () {
                             total: {
                                 show: true,
                                 label: 'Total',
-                                color: textColor,
+                                color: palette.textColor,
                             },
+                            name: { color: palette.mutedColor },
+                            value: { color: palette.textColor },
                         },
                     },
                 },
             },
-        }).render();
+        });
+
+        chart.render();
+        charts.push(chart);
     };
+
+    const palette = themePalette();
+    const colors = palette.colors;
 
     renderDonut(
         '#attendanceDonutChart',
@@ -337,9 +356,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const punctualityElement = document.querySelector('#punctualityBarChart');
     if (punctualityElement && window.ApexCharts) {
-        new ApexCharts(punctualityElement, {
-            ...baseChart,
-            chart: { ...baseChart.chart, type: 'bar', height: 260 },
+        const chart = new ApexCharts(punctualityElement, {
+            ...baseChart(palette),
+            chart: { ...baseChart(palette).chart, type: 'bar', height: 260 },
             series: [{ name: 'Murid', data: chartData.punctuality.series }],
             colors: [colors.primary],
             plotOptions: {
@@ -351,22 +370,27 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             xaxis: {
                 categories: chartData.punctuality.labels,
-                labels: { style: { colors: [textColor, textColor] } },
+                labels: { style: { colors: [palette.textColor, palette.textColor] } },
+                axisBorder: { color: palette.borderColor },
+                axisTicks: { color: palette.borderColor },
             },
             yaxis: {
                 min: 0,
-                labels: { style: { colors: textColor } },
+                labels: { style: { colors: palette.textColor } },
             },
-            grid: { borderColor },
+            grid: { borderColor: palette.borderColor },
             legend: { show: false },
-        }).render();
+        });
+
+        chart.render();
+        charts.push(chart);
     }
 
     const trendElement = document.querySelector('#attendanceTrendChart');
     if (trendElement && window.ApexCharts) {
-        new ApexCharts(trendElement, {
-            ...baseChart,
-            chart: { ...baseChart.chart, type: 'area', height: 320 },
+        const chart = new ApexCharts(trendElement, {
+            ...baseChart(palette),
+            chart: { ...baseChart(palette).chart, type: 'area', height: 320 },
             series: [
                 { name: 'Hadir', data: chartData.trend.present },
                 { name: 'Belum Hadir', data: chartData.trend.absent },
@@ -385,15 +409,65 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             xaxis: {
                 categories: chartData.trend.labels,
-                labels: { style: { colors: textColor } },
+                labels: { style: { colors: palette.textColor } },
+                axisBorder: { color: palette.borderColor },
+                axisTicks: { color: palette.borderColor },
             },
             yaxis: {
                 min: 0,
-                labels: { style: { colors: textColor } },
+                labels: { style: { colors: palette.textColor } },
             },
-            grid: { borderColor },
-        }).render();
+            grid: { borderColor: palette.borderColor },
+        });
+
+        chart.render();
+        charts.push(chart);
     }
+
+    const updateChartTheme = () => {
+        const nextPalette = themePalette();
+
+        charts.forEach((chart) => {
+            chart.updateOptions({
+                chart: {
+                    foreColor: nextPalette.textColor,
+                    background: 'transparent',
+                },
+                legend: {
+                    labels: { colors: nextPalette.textColor },
+                },
+                tooltip: {
+                    theme: nextPalette.isDark ? 'dark' : 'light',
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                total: { color: nextPalette.textColor },
+                                name: { color: nextPalette.mutedColor },
+                                value: { color: nextPalette.textColor },
+                            },
+                        },
+                    },
+                },
+                xaxis: {
+                    labels: { style: { colors: nextPalette.textColor } },
+                    axisBorder: { color: nextPalette.borderColor },
+                    axisTicks: { color: nextPalette.borderColor },
+                },
+                yaxis: {
+                    labels: { style: { colors: nextPalette.textColor } },
+                },
+                grid: { borderColor: nextPalette.borderColor },
+            }, false, true);
+        });
+    };
+
+    new MutationObserver((mutations) => {
+        if (mutations.some((mutation) => mutation.attributeName === 'data-bs-theme')) {
+            updateChartTheme();
+        }
+    }).observe(document.documentElement, { attributes: true });
 });
 </script>
 @endsection
