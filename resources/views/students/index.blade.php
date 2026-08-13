@@ -22,6 +22,9 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('students.export', request()->only(['search', 'status', 'entry_year'])) }}" class="btn btn-label-success">
+                <i class="bx bx-spreadsheet me-1"></i> Export Data
+            </a>
             <a href="{{ route('students.nametags', request()->only(['search', 'status', 'entry_year'])) }}" class="btn btn-label-info" target="_blank">
                 <i class="bx bx-printer me-1"></i> Cetak Nametag
             </a>
@@ -53,7 +56,7 @@
                         @endforeach
                     </select>
                     <div class="input-group">
-                        <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama, email, NIS, NISN">
+                        <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama, username, email, NIS, NISN">
                         <button class="btn btn-outline-primary" type="submit">Cari</button>
                     </div>
                 </div>
@@ -86,7 +89,8 @@
                                         </div>
                                         <div>
                                             <strong>{{ $student->user?->name }}</strong>
-                                            <div class="text-muted small">{{ $student->user?->email }}</div>
+                                            <div class="text-muted small">Email : {{ $student->user?->email ?: '-' }}</div>
+                                            <div class="text-muted small">Username : {{ $student->user?->username ?: '-' }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -224,15 +228,15 @@
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
             <div class="alert alert-info">
-                Gunakan file dari tombol <strong>Download Format</strong>. Angkatan diisi tahun masuk, gender diisi <strong>L</strong> atau <strong>P</strong>. Data hasil import otomatis aktif.
+                Gunakan file dari tombol <strong>Download Format</strong>. Angkatan diisi tahun masuk, gender diisi <strong>L</strong> atau <strong>P</strong>. Tanggal lahir diisi <strong>dd-mm-yyyy</strong>. Data hasil import otomatis aktif.
             </div>
             <form method="POST" action="{{ route('students.import') }}" enctype="multipart/form-data">
                 @csrf
 
                 <div class="mb-4">
                     <label class="form-label" for="file">File Import</label>
-                    <input type="file" class="form-control" id="file" name="file" accept=".csv,text/csv" required>
-                    <div class="form-text">Upload file CSV sesuai format. Maksimal 2MB.</div>
+                    <input type="file" class="form-control" id="file" name="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+                    <div class="form-text">Upload file CSV atau Excel (.xlsx) sesuai format. Maksimal 2MB.</div>
                 </div>
 
                 <button type="submit" class="btn btn-primary me-2">Import</button>

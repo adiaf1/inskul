@@ -22,6 +22,9 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('teachers.export', request()->only(['search', 'status'])) }}" class="btn btn-label-success">
+                <i class="bx bx-spreadsheet me-1"></i> Export Data
+            </a>
             <a href="{{ route('teachers.import-template') }}" class="btn btn-label-primary">
                 <i class="bx bx-download me-1"></i> Download Format
             </a>
@@ -44,7 +47,7 @@
                         <option value="inactive" @selected($status === 'inactive')>Tidak Aktif</option>
                     </select>
                     <div class="input-group">
-                        <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama, email, NIP, NUPTK">
+                        <input type="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama, username, email, NIP, NUPTK">
                         <button class="btn btn-outline-primary" type="submit">Cari</button>
                     </div>
                 </div>
@@ -66,7 +69,8 @@
                             <tr>
                                 <td>
                                     <strong>{{ $teacher->user?->name }}</strong>
-                                    <div class="text-muted small">{{ $teacher->user?->email }}</div>
+                                    <div class="text-muted small">Email : {{ $teacher->user?->email ?: '-' }}</div>
+                                    <div class="text-muted small">Username : {{ $teacher->user?->username ?: '-' }}</div>
                                 </td>
                                 <td>
                                     <div>{{ $teacher->nip ?: '-' }}</div>
@@ -188,15 +192,15 @@
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
             <div class="alert alert-info">
-                Gunakan file dari tombol <strong>Download Format</strong>. Gender diisi <strong>L</strong> atau <strong>P</strong>. Data hasil import otomatis aktif.
+                Gunakan file dari tombol <strong>Download Format</strong>. Gender diisi <strong>L</strong> atau <strong>P</strong>. Tanggal lahir diisi <strong>dd-mm-yyyy</strong>. Data hasil import otomatis aktif.
             </div>
             <form method="POST" action="{{ route('teachers.import') }}" enctype="multipart/form-data">
                 @csrf
 
                 <div class="mb-4">
                     <label class="form-label" for="file">File Import</label>
-                    <input type="file" class="form-control" id="file" name="file" accept=".csv,text/csv" required>
-                    <div class="form-text">Upload file CSV sesuai format. Maksimal 2MB.</div>
+                    <input type="file" class="form-control" id="file" name="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+                    <div class="form-text">Upload file CSV atau Excel (.xlsx) sesuai format. Maksimal 2MB.</div>
                 </div>
 
                 <button type="submit" class="btn btn-primary me-2">Import</button>

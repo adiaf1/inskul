@@ -32,7 +32,7 @@
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
                         <label class="form-label" for="search">Pencarian</label>
-                        <input type="search" id="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama atau email">
+                        <input type="search" id="search" name="search" class="form-control" value="{{ request('search') }}" placeholder="Cari nama, username, atau email">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label" for="role">Jenis Akun</label>
@@ -69,6 +69,7 @@
                         <tr>
                             <th>Nama</th>
                             <th>Email</th>
+                            <th>Username</th>
                             <th>Jenis Akun</th>
                             <th>Status</th>
                             <th>Dibuat</th>
@@ -76,16 +77,33 @@
                     </thead>
                     <tbody>
                         @forelse($users as $user)
+                            @php
+                                $currentRole = $roles->firstWhere('id', $user->pivot?->role_id);
+                            @endphp
                             <tr>
                                 <td><strong>{{ $user->name }}</strong></td>
                                 <td>{{ $user->email }}</td>
+                                <td><code>{{ $user->username ?: '-' }}</code></td>
                                 <td>
-                                    {{ $user->roles->pluck('name')->map(fn ($role) => [
-                                        'principal' => 'Kepala Sekolah',
-                                        'teacher' => 'Guru',
-                                        'student' => 'Murid',
-                                        'parent' => 'Wali Murid',
-                                    ][$role] ?? $role)->join(', ') }}
+                                    <form method="POST" action="{{ route('school-users.update-role', $user) }}" class="d-flex align-items-center gap-2">
+                                        @csrf
+                                        @method('PATCH')
+                                        <select class="form-select form-select-sm min-w-px-160" name="role" aria-label="Jenis Akun">
+                                            @foreach($roles as $role)
+                                                <option value="{{ $role->name }}" @selected($currentRole?->id === $role->id)>
+                                                    {{ [
+                                                        'principal' => 'Kepala Sekolah',
+                                                        'teacher' => 'Guru',
+                                                        'student' => 'Murid',
+                                                        'parent' => 'Wali Murid',
+                                                    ][$role->name] ?? $role->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-icon btn-label-primary" title="Simpan Jenis Akun" aria-label="Simpan Jenis Akun">
+                                            <i class="bx bx-save"></i>
+                                        </button>
+                                    </form>
                                 </td>
                                 <td>
                                     <span class="badge bg-label-success">{{ $user->status === 'active' ? 'Aktif' : ucfirst($user->status) }}</span>
@@ -94,7 +112,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Belum ada pengguna sekolah.</td>
+                                <td colspan="6" class="text-center py-5 text-muted">Belum ada pengguna sekolah.</td>
                             </tr>
                         @endforelse
                     </tbody>

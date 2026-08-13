@@ -142,6 +142,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::patch('/school-profile', [SchoolProfileController::class, 'update'])->name('school-profile.update');
             Route::get('/school-users', [SchoolUserController::class, 'index'])->name('school-users.index');
             Route::post('/school-users', [SchoolUserController::class, 'store'])->name('school-users.store');
+            Route::patch('/school-users/{user}/role', [SchoolUserController::class, 'updateRole'])->name('school-users.update-role');
             Route::resource('academic-years', AcademicYearController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::resource('semesters', SemesterController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::resource('academic-calendar-events', AcademicCalendarEventController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -153,9 +154,11 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::resource('subjects', SubjectController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::get('/teachers/import/template', [TeacherController::class, 'downloadTemplate'])->name('teachers.import-template');
             Route::post('/teachers/import', [TeacherController::class, 'import'])->name('teachers.import');
+            Route::get('/teachers/export', [TeacherController::class, 'export'])->name('teachers.export');
             Route::resource('teachers', TeacherController::class)->only(['index', 'store', 'update', 'destroy']);
             Route::get('/students/import/template', [StudentController::class, 'downloadTemplate'])->name('students.import-template');
             Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
+            Route::get('/students/export', [StudentController::class, 'export'])->name('students.export');
             Route::get('/students/nametags', [StudentController::class, 'printNametags'])->name('students.nametags');
             Route::get('/students/{student}/nametag', [StudentController::class, 'printNametag'])->name('students.nametag');
             Route::resource('students', StudentController::class)->only(['index', 'store', 'update', 'destroy']);
