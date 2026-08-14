@@ -55,6 +55,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        @if($selectedRole)
+                            <input type="hidden" name="role" value="{{ $selectedRole }}">
+                        @endif
                     </form>
                 </div>
             </div>
@@ -70,17 +73,17 @@
 
                         <div class="mb-4">
                             <label class="form-label" for="role">Jenis Akun</label>
-                            <select class="form-select" id="role" name="role" required>
+                            <select class="form-select" id="role" name="role" required onchange="syncViewAsRoleFilter(this)">
                                 <option value="">Pilih jenis akun</option>
                                 @foreach($roles as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('role', $viewAs['role'] ?? '') === $value)>{{ $label }}</option>
+                                    <option value="{{ $value }}" @selected(old('role', $selectedRole ?? '') === $value)>{{ $label }}</option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label" for="user_id">User Spesifik</label>
-                            <select class="form-select" id="user_id" name="user_id" @disabled(! $selectedSchoolId)>
+                            <select class="form-select" id="user_id" name="user_id" @disabled(! $selectedSchoolId || ! $selectedRole)>
                                 <option value="">Tanpa user spesifik</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" @selected(old('user_id', $viewAs['user_id'] ?? '') === $user->id)>
@@ -88,7 +91,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="form-text">Untuk guru atau murid, pilih user agar konteksnya lebih akurat.</div>
+                            <div class="form-text">Daftar user mengikuti sekolah dan jenis akun yang dipilih.</div>
                         </div>
 
                         <button type="submit" class="btn btn-primary" @disabled(! $selectedSchoolId)>
@@ -101,4 +104,19 @@
         </div>
     </div>
 </div>
+
+<script>
+function syncViewAsRoleFilter(select) {
+    const schoolId = @json($selectedSchoolId);
+
+    if (!schoolId || !select.value) {
+        return;
+    }
+
+    const url = new URL(@json(route('view-as.index')), window.location.origin);
+    url.searchParams.set('school_id', schoolId);
+    url.searchParams.set('role', select.value);
+    window.location.href = url.toString();
+}
+</script>
 @endsection

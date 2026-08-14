@@ -27,12 +27,18 @@ class ViewAsController extends Controller
             ->get();
 
         $selectedSchoolId = $request->input('school_id', $request->session()->get(EffectiveAccess::SESSION_KEY.'.school_id'));
+        $selectedRole = $request->input('role', $request->session()->get(EffectiveAccess::SESSION_KEY.'.role'));
+
+        if (! array_key_exists((string) $selectedRole, self::ROLES)) {
+            $selectedRole = null;
+        }
 
         $users = collect();
 
-        if ($selectedSchoolId) {
+        if ($selectedSchoolId && $selectedRole) {
             $users = User::query()
                 ->whereHas('schools', fn ($query) => $query->where('schools.id', $selectedSchoolId))
+                ->whereHas('roles', fn ($query) => $query->where('name', $selectedRole))
                 ->with('roles')
                 ->orderBy('name')
                 ->get();
@@ -41,7 +47,7 @@ class ViewAsController extends Controller
         $roles = self::ROLES;
         $viewAs = EffectiveAccess::payload($request);
 
-        return view('view-as.index', compact('schools', 'selectedSchoolId', 'users', 'roles', 'viewAs'));
+        return view('view-as.index', compact('schools', 'selectedSchoolId', 'selectedRole', 'users', 'roles', 'viewAs'));
     }
 
     public function store(Request $request): RedirectResponse
