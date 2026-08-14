@@ -20,6 +20,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Controllers\TeacherScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViewAsController;
@@ -79,6 +80,10 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::middleware('school.onboarded')->group(function () {
         Route::middleware('effective.role:teacher')->group(function () {
             Route::get('/teacher-schedules', [TeacherScheduleController::class, 'index'])->name('teacher-schedules.index');
+            Route::middleware('module:teacher_attendance')->group(function () {
+                Route::get('/teacher-attendances', [TeacherAttendanceController::class, 'index'])->name('teacher-attendances.index');
+                Route::post('/teacher-attendances', [TeacherAttendanceController::class, 'store'])->name('teacher-attendances.store');
+            });
         });
 
         Route::middleware('effective.role:student')->group(function () {
@@ -98,6 +103,10 @@ Route::middleware(['auth', 'active.user'])->group(function () {
 
         Route::middleware(['effective.role:school_admin,principal', 'module:daily_attendance'])->group(function () {
             Route::get('/attendances/daily-dashboard', [AttendanceController::class, 'dailyDashboard'])->name('attendances.daily-dashboard');
+        });
+
+        Route::middleware(['effective.role:school_admin,principal', 'module:teacher_attendance'])->group(function () {
+            Route::get('/teacher-attendances/report', [TeacherAttendanceController::class, 'report'])->name('teacher-attendances.report');
         });
 
         Route::middleware(['effective.role:school_admin,principal,teacher,parent', 'module:daily_attendance'])->group(function () {

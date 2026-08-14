@@ -34,6 +34,14 @@ class School extends Model
         'daily_early_leave_tolerance_minutes',
         'daily_min_checkout_minutes',
         'school_attendance_days',
+        'teacher_check_in_time',
+        'teacher_late_tolerance_minutes',
+        'teacher_check_out_time',
+        'teacher_early_leave_tolerance_minutes',
+        'teacher_attendance_latitude',
+        'teacher_attendance_longitude',
+        'teacher_attendance_radius_meters',
+        'teacher_attendance_max_accuracy_meters',
     ];
 
     protected $casts = [
@@ -43,6 +51,12 @@ class School extends Model
         'daily_early_leave_tolerance_minutes' => 'integer',
         'daily_min_checkout_minutes' => 'integer',
         'school_attendance_days' => 'array',
+        'teacher_late_tolerance_minutes' => 'integer',
+        'teacher_early_leave_tolerance_minutes' => 'integer',
+        'teacher_attendance_latitude' => 'decimal:7',
+        'teacher_attendance_longitude' => 'decimal:7',
+        'teacher_attendance_radius_meters' => 'integer',
+        'teacher_attendance_max_accuracy_meters' => 'integer',
     ];
 
     public function approvedBy(): BelongsTo
@@ -110,6 +124,11 @@ class School extends Model
     public function teachers(): HasMany
     {
         return $this->hasMany(Teacher::class);
+    }
+
+    public function teacherDailyAttendances(): HasMany
+    {
+        return $this->hasMany(TeacherDailyAttendance::class);
     }
 
     public function students(): HasMany

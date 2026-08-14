@@ -129,6 +129,65 @@
                         </div>
                     </div>
                     <div class="col-12">
+                        <div class="border rounded p-3">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="avatar avatar-sm rounded bg-label-success">
+                                    <i class="bx bx-current-location"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0">Pengaturan Presensi Guru</h6>
+                                    <div class="text-muted small">Dipakai untuk selfie, geolocation, radius sekolah, dan deteksi keterlambatan guru.</div>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_check_in_time">Jam Masuk Guru</label>
+                                    <input type="time" class="form-control" id="teacher_check_in_time" name="teacher_check_in_time" value="{{ old('teacher_check_in_time', substr($school->teacher_check_in_time ?? '07:00:00', 0, 5)) }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_late_tolerance_minutes">Toleransi Telat</label>
+                                    <div class="input-group">
+                                        <input type="number" min="0" max="240" class="form-control" id="teacher_late_tolerance_minutes" name="teacher_late_tolerance_minutes" value="{{ old('teacher_late_tolerance_minutes', $school->teacher_late_tolerance_minutes ?? 10) }}" required>
+                                        <span class="input-group-text">menit</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_check_out_time">Jam Pulang Guru</label>
+                                    <input type="time" class="form-control" id="teacher_check_out_time" name="teacher_check_out_time" value="{{ old('teacher_check_out_time', substr($school->teacher_check_out_time ?? '14:00:00', 0, 5)) }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_early_leave_tolerance_minutes">Toleransi Pulang Cepat</label>
+                                    <div class="input-group">
+                                        <input type="number" min="0" max="240" class="form-control" id="teacher_early_leave_tolerance_minutes" name="teacher_early_leave_tolerance_minutes" value="{{ old('teacher_early_leave_tolerance_minutes', $school->teacher_early_leave_tolerance_minutes ?? 0) }}" required>
+                                        <span class="input-group-text">menit</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_attendance_latitude">Latitude Sekolah</label>
+                                    <input type="number" step="any" class="form-control" id="teacher_attendance_latitude" name="teacher_attendance_latitude" value="{{ old('teacher_attendance_latitude', $school->teacher_attendance_latitude) }}" placeholder="-6.123456">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_attendance_longitude">Longitude Sekolah</label>
+                                    <input type="number" step="any" class="form-control" id="teacher_attendance_longitude" name="teacher_attendance_longitude" value="{{ old('teacher_attendance_longitude', $school->teacher_attendance_longitude) }}" placeholder="106.123456">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_attendance_radius_meters">Radius Presensi</label>
+                                    <div class="input-group">
+                                        <input type="number" min="1" max="5000" class="form-control" id="teacher_attendance_radius_meters" name="teacher_attendance_radius_meters" value="{{ old('teacher_attendance_radius_meters', $school->teacher_attendance_radius_meters ?? 150) }}" required>
+                                        <span class="input-group-text">meter</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="teacher_attendance_max_accuracy_meters">Maks. Akurasi GPS</label>
+                                    <div class="input-group">
+                                        <input type="number" min="1" max="5000" class="form-control" id="teacher_attendance_max_accuracy_meters" name="teacher_attendance_max_accuracy_meters" value="{{ old('teacher_attendance_max_accuracy_meters', $school->teacher_attendance_max_accuracy_meters ?? 200) }}" required>
+                                        <span class="input-group-text">meter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
                         <label class="form-label" for="logo">Logo Sekolah</label>
                         <div class="d-flex flex-wrap align-items-center gap-4">
                             <div class="border rounded d-flex align-items-center justify-content-center bg-light" style="width: 104px; height: 104px;">

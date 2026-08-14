@@ -83,7 +83,8 @@
     @php($moduleDailyAttendance = \App\Support\ModuleAccess::enabled($activeSchool, 'daily_attendance'))
     @php($moduleClassAttendance = \App\Support\ModuleAccess::enabled($activeSchool, 'class_attendance'))
     @php($moduleScheduleAttendance = \App\Support\ModuleAccess::enabled($activeSchool, 'schedule_attendance'))
-    @php($moduleAnyAttendance = \App\Support\ModuleAccess::anyEnabled($activeSchool, ['daily_attendance', 'class_attendance', 'schedule_attendance']))
+    @php($moduleTeacherAttendance = \App\Support\ModuleAccess::enabled($activeSchool, 'teacher_attendance'))
+    @php($moduleAnyAttendance = \App\Support\ModuleAccess::anyEnabled($activeSchool, ['daily_attendance', 'class_attendance', 'schedule_attendance', 'teacher_attendance']))
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
         <div class="layout-container">
@@ -392,7 +393,7 @@
                                 @endif
 
                                 @if(in_array($effectiveRole, ['school_admin', 'teacher'], true) && $moduleAnyAttendance)
-                                <li class="menu-item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                <li class="menu-item {{ request()->is('attendances*') || request()->is('teacher-attendances*') ? 'active' : '' }}">
                                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                                         <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                                         <div data-i18n="Presensi">Presensi</div>
@@ -430,6 +431,22 @@
                                             </a>
                                         </li>
                                         @endif
+                                        @if($effectiveRole === 'teacher' && $moduleTeacherAttendance)
+                                        <li class="menu-item {{ request()->is('teacher-attendances') ? 'active' : '' }}">
+                                            <a href="{{ route('teacher-attendances.index') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-camera"></i>
+                                                <div data-i18n="Presensi Guru">Presensi Guru</div>
+                                            </a>
+                                        </li>
+                                        @endif
+                                        @if($effectiveRole === 'school_admin' && $moduleTeacherAttendance)
+                                        <li class="menu-item {{ request()->is('teacher-attendances/report*') ? 'active' : '' }}">
+                                            <a href="{{ route('teacher-attendances.report') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-user-check"></i>
+                                                <div data-i18n="Laporan Presensi Guru">Laporan Presensi Guru</div>
+                                            </a>
+                                        </li>
+                                        @endif
                                         @if($moduleClassAttendance)
                                         <li class="menu-item {{ request()->is('attendances/reports/daily*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.report.daily') }}" class="menu-link">
@@ -464,6 +481,15 @@
                                     <a href="{{ route('attendances.daily-dashboard') }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
                                         <div data-i18n="Grafik Presensi">Grafik Presensi</div>
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if($effectiveRole === 'principal' && $moduleTeacherAttendance)
+                                <li class="menu-item {{ request()->is('teacher-attendances/report*') ? 'active' : '' }}">
+                                    <a href="{{ route('teacher-attendances.report') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons bx bx-user-check"></i>
+                                        <div data-i18n="Presensi Guru">Presensi Guru</div>
                                     </a>
                                 </li>
                                 @endif
@@ -638,7 +664,7 @@
                                 <i class="bx bx-grid-alt"></i><span>Data</span>
                             </button>
                             @if($moduleAnyAttendance)
-                                <a href="{{ $moduleDailyAttendance ? route('attendances.check') : route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                <a href="{{ $moduleDailyAttendance ? route('attendances.check') : ($moduleTeacherAttendance ? route('teacher-attendances.report') : route('attendances.index')) }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') || request()->is('teacher-attendances*') ? 'active' : '' }}">
                                     <i class="bx bx-calendar-check"></i><span>Presensi</span>
                                 </a>
                             @endif
@@ -658,7 +684,7 @@
                                 <i class="bx bx-calendar-event"></i><span>Jadwal</span>
                             </a>
                             @if($moduleAnyAttendance)
-                                <a href="{{ $moduleDailyAttendance ? route('attendances.check') : route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
+                                <a href="{{ $moduleDailyAttendance ? route('attendances.check') : ($moduleTeacherAttendance ? route('teacher-attendances.index') : route('attendances.index')) }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') || request()->is('teacher-attendances*') ? 'active' : '' }}">
                                     <i class="bx bx-calendar-check"></i><span>Presensi</span>
                                 </a>
                             @endif
@@ -787,6 +813,18 @@
                 @if(in_array($effectiveRole, ['school_admin', 'teacher', 'principal', 'parent'], true) && $moduleDailyAttendance)
                     <a href="{{ route('attendances.check') }}" class="mobile-drawer-link {{ request()->is('attendances/check*') ? 'active' : '' }}">
                         <i class="bx bx-qr-scan"></i><span>Presensi Harian</span>
+                    </a>
+                @endif
+
+                @if($effectiveRole === 'teacher' && $moduleTeacherAttendance)
+                    <a href="{{ route('teacher-attendances.index') }}" class="mobile-drawer-link {{ request()->is('teacher-attendances') ? 'active' : '' }}">
+                        <i class="bx bx-camera"></i><span>Presensi Guru</span>
+                    </a>
+                @endif
+
+                @if(in_array($effectiveRole, ['school_admin', 'principal'], true) && $moduleTeacherAttendance)
+                    <a href="{{ route('teacher-attendances.report') }}" class="mobile-drawer-link {{ request()->is('teacher-attendances/report*') ? 'active' : '' }}">
+                        <i class="bx bx-user-check"></i><span>Laporan Presensi Guru</span>
                     </a>
                 @endif
 

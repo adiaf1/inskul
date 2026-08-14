@@ -34,6 +34,12 @@ class ModuleSeeder extends Seeder
             'description' => 'Presensi per sesi pelajaran berdasarkan jadwal.',
             'sort_order' => 40,
         ],
+        [
+            'code' => 'teacher_attendance',
+            'name' => 'Presensi Guru',
+            'description' => 'Presensi datang dan pulang guru menggunakan selfie dan geolocation.',
+            'sort_order' => 50,
+        ],
     ];
 
     public function run(): void
