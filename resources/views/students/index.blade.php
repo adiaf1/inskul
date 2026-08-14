@@ -67,8 +67,9 @@
                     <thead>
                         <tr>
                             <th>Nama</th>
-                            <th>NIS/NISN</th>
-                            <th>Kontak</th>
+                            <th>Tanggal Lahir</th>
+                            <th>Tahun Angkatan</th>
+                            <th>Alamat</th>
                             <th>Status</th>
                             <th class="text-end">Aksi</th>
                         </tr>
@@ -95,15 +96,19 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div>{{ $student->nis ?: '-' }}</div>
-                                    <div class="text-muted small">{{ $student->nisn ? 'NISN: '.$student->nisn : '' }}</div>
-                                    <div class="text-muted small">{{ $student->entry_year ? 'Angkatan: '.$student->entry_year : '' }}</div>
-                                </td>
-                                <td>
-                                    <div>{{ $student->phone ?: '-' }}</div>
+                                    <div>{{ $student->birth_date?->format('d-m-Y') ?: '-' }}</div>
                                     <div class="text-muted small">
                                         {{ $student->gender === 'male' ? 'Laki-laki' : ($student->gender === 'female' ? 'Perempuan' : '-') }}
                                     </div>
+                                </td>
+                                <td>
+                                    <strong>{{ $student->entry_year ?: '-' }}</strong>
+                                    <div class="text-muted small">NIS : {{ $student->nis ?: '-' }}</div>
+                                    <div class="text-muted small">NISN : {{ $student->nisn ?: '-' }}</div>
+                                </td>
+                                <td>
+                                    <div>No HP : {{ $student->phone ?: '-' }}</div>
+                                    <div class="text-muted small">{{ $student->address ?: '-' }}</div>
                                 </td>
                                 <td>
                                     @if($student->is_active)
