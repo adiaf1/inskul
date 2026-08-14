@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\School;
 use App\Models\User;
+use App\Http\Middleware\ResolveSchoolDomain;
 use Illuminate\Http\Request;
 
 class EffectiveAccess
@@ -32,6 +33,23 @@ class EffectiveAccess
                 ->whereKey($request->session()->get(self::SESSION_KEY.'.school_id'))
                 ->where('status', 'active')
                 ->first();
+        }
+
+        $domainSchool = $request->attributes->get(ResolveSchoolDomain::REQUEST_KEY);
+
+        if ($domainSchool instanceof School) {
+            if (! $request->user()) {
+                return $domainSchool;
+            }
+
+            $hasAccess = $request->user()
+                ->schools()
+                ->whereKey($domainSchool->id)
+                ->wherePivot('status', 'active')
+                ->where('schools.status', 'active')
+                ->exists();
+
+            return $hasAccess ? $domainSchool : null;
         }
 
         return $request->user()

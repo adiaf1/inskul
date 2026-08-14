@@ -79,7 +79,12 @@
                         <img src="{{ asset('assets/img/branding/logo.png') }}" alt="{{ config('app.name') }}" style="height: 64px; width: auto;">
                     </div>
                     <h4 class="mb-1">Selamat Datang di {{ config('app.name') }}!</h4>
-                    <p class="mb-6">Silakan masuk ke dalam sistem</p>
+                    @if(! empty($school))
+                        <p class="mb-1 fw-medium">{{ $school->name }}</p>
+                        <p class="mb-6 text-muted">Silakan masuk menggunakan akun yang terhubung ke sekolah ini</p>
+                    @else
+                        <p class="mb-6">Silakan masuk ke dalam sistem</p>
+                    @endif
 
                     <form class="mb-6" action="{{ route('login') }}" method="POST">
                         @csrf

@@ -31,6 +31,21 @@
 
         <div class="card">
             <div class="card-body">
+                <div class="border rounded p-3 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="avatar avatar-sm rounded bg-label-primary">
+                            <i class="bx bx-globe"></i>
+                        </span>
+                        <div>
+                            <h6 class="mb-0">Subdomain Sekolah</h6>
+                            <div class="text-muted small">Dipakai untuk membuka login sekolah dari subdomain tanpa redirect ke domain utama.</div>
+                        </div>
+                    </div>
+                    <label class="form-label" for="school_domain">Subdomain</label>
+                    <input class="form-control" id="school_domain" name="school_domain" value="{{ old('school_domain', \App\Models\SchoolDomain::normalizeSubdomain($school->primaryDomain?->domain)) }}" placeholder="Contoh: sdn01jayamakmur">
+                    <div class="form-text">Isi nama subdomain saja. Contoh production: sdn01jayamakmur.adiaf.my.id.</div>
+                </div>
+
                 <div class="row g-4">
                     @foreach($modules as $module)
                         @php

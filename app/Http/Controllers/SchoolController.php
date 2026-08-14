@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\School;
 use App\Models\Module;
+use App\Models\SchoolDomain;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use App\Models\Role;
 
@@ -81,7 +83,7 @@ class SchoolController extends Controller
 
     public function modules(School $school): View
     {
-        $school->load('modules');
+        $school->load(['modules', 'primaryDomain']);
 
         $modules = Module::query()
             ->where('is_active', true)
@@ -94,17 +96,42 @@ class SchoolController extends Controller
 
     public function updateModules(Request $request, School $school): RedirectResponse
     {
+        $school->load('primaryDomain');
+        $request->merge([
+            'school_domain' => SchoolDomain::normalizeSubdomain($request->input('school_domain')),
+        ]);
+
         $modules = Module::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
 
         $validated = $request->validate([
+            'school_domain' => [
+                'nullable',
+                'string',
+                'max:63',
+                'regex:/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/',
+                Rule::unique('school_domains', 'domain')->ignore($school->primaryDomain?->id),
+            ],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', 'exists:modules,code'],
         ]);
 
         $enabledCodes = collect($validated['modules'] ?? []);
+
+        if (! empty($validated['school_domain'])) {
+            $school->primaryDomain()->updateOrCreate(
+                ['is_primary' => true],
+                [
+                    'domain' => $validated['school_domain'],
+                    'status' => 'active',
+                    'verified_at' => now(),
+                ]
+            );
+        } else {
+            $school->primaryDomain()->delete();
+        }
 
         foreach ($modules as $module) {
             $enabled = $enabledCodes->contains($module->code);

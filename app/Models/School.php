@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Role;
 
 class School extends Model
@@ -62,6 +63,16 @@ class School extends Model
         $schoolAdminRoleId = Role::where('name', 'school_admin')->value('id');
 
         return $this->users()->wherePivot('role_id', $schoolAdminRoleId);
+    }
+
+    public function domains(): HasMany
+    {
+        return $this->hasMany(SchoolDomain::class);
+    }
+
+    public function primaryDomain(): HasOne
+    {
+        return $this->hasOne(SchoolDomain::class)->where('is_primary', true);
     }
 
     public function academicYears(): HasMany

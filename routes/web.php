@@ -23,6 +23,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViewAsController;
+use App\Support\EffectiveAccess;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +36,13 @@ use App\Http\Controllers\ViewAsController;
 |
 */
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', function () {
+    if (EffectiveAccess::school(request()) && ! auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    return view('welcome');
+})->name('home');
 
 
 // Dashboard umum berdasarkan role

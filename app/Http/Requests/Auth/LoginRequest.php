@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Auth\Events\Lockout;
 use App\Models\User;
+use App\Support\EffectiveAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -62,6 +63,24 @@ class LoginRequest extends FormRequest
             throw ValidationException::withMessages([
                 'login' => 'Akun Anda belum aktif. Silakan tunggu approval Super Admin.',
             ]);
+        }
+
+        $domainSchool = EffectiveAccess::school($this);
+
+        if ($domainSchool && ! $user->hasRole('super_admin')) {
+            $hasDomainSchoolAccess = $user->schools()
+                ->whereKey($domainSchool->id)
+                ->wherePivot('status', 'active')
+                ->where('schools.status', 'active')
+                ->exists();
+
+            if (! $hasDomainSchoolAccess) {
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'login' => 'Akun Anda tidak terhubung dengan sekolah pada domain ini.',
+                ]);
+            }
         }
 
         Auth::login($user, $this->boolean('remember'));
