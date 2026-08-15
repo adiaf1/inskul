@@ -683,8 +683,17 @@
                             <a href="{{ route('teacher-schedules.index') }}" class="mobile-bottom-nav__item {{ request()->is('teacher-schedules*') ? 'active' : '' }}">
                                 <i class="bx bx-calendar-event"></i><span>Jadwal</span>
                             </a>
-                            @if($moduleAnyAttendance)
-                                <a href="{{ $moduleDailyAttendance ? route('attendances.check') : ($moduleTeacherAttendance ? route('teacher-attendances.index') : route('attendances.index')) }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') || request()->is('teacher-attendances*') ? 'active' : '' }}">
+                            @if($moduleDailyAttendance)
+                                <a href="{{ route('attendances.check') }}" class="mobile-bottom-nav__item {{ request()->is('attendances/check*') ? 'active' : '' }}">
+                                    <i class="bx bx-qr-scan"></i><span>Siswa</span>
+                                </a>
+                            @endif
+                            @if($moduleTeacherAttendance)
+                                <a href="{{ route('teacher-attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('teacher-attendances') ? 'active' : '' }}">
+                                    <i class="bx bx-camera"></i><span>Guru</span>
+                                </a>
+                            @elseif($moduleAnyAttendance)
+                                <a href="{{ route('attendances.index') }}" class="mobile-bottom-nav__item {{ request()->is('attendances*') ? 'active' : '' }}">
                                     <i class="bx bx-calendar-check"></i><span>Presensi</span>
                                 </a>
                             @endif

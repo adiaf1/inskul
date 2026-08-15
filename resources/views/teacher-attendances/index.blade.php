@@ -12,7 +12,48 @@
 @endphp
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
+<style>
+    .teacher-selfie-frame {
+        max-width: 360px;
+        margin-inline: auto;
+    }
+
+    .teacher-selfie-video {
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        max-height: 58vh;
+        object-fit: cover;
+        object-position: center;
+        transform: scaleX(-1);
+    }
+
+    @media (max-width: 767.98px) {
+        .teacher-attendance-page {
+            padding-top: 0.75rem !important;
+            padding-bottom: 6rem !important;
+        }
+
+        .teacher-attendance-page .card-body {
+            padding: 1rem;
+        }
+
+        .teacher-selfie-frame {
+            max-width: min(72vw, 300px);
+            border-radius: 1rem !important;
+        }
+
+        .teacher-selfie-video {
+            max-height: 42vh;
+        }
+
+        .teacher-attendance-actions .btn,
+        .teacher-location-action {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-xxl flex-grow-1 container-p-y teacher-attendance-page">
     @if(session('success') || $errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -84,25 +125,25 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="border rounded overflow-hidden bg-dark">
-                                <video id="selfieVideo" class="w-100 d-block" playsinline muted autoplay style="aspect-ratio: 3 / 4; object-fit: cover; transform: scaleX(-1);"></video>
+                            <div class="border rounded overflow-hidden bg-dark teacher-selfie-frame">
+                                <video id="selfieVideo" class="teacher-selfie-video d-block" playsinline muted autoplay></video>
                                 <canvas id="selfieCanvas" class="d-none"></canvas>
                             </div>
                         </div>
 
                         <div class="border rounded p-3 mb-4">
-                            <div class="d-flex align-items-center justify-content-between gap-3">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                 <div>
                                     <div class="fw-semibold">Lokasi</div>
                                     <div class="text-muted small" id="locationStatus">Lokasi belum diambil.</div>
                                 </div>
-                                <button type="button" class="btn btn-label-primary" onclick="requestTeacherLocation()">
+                                <button type="button" class="btn btn-label-primary teacher-location-action" onclick="requestTeacherLocation()">
                                     <i class="bx bx-current-location me-1"></i> Ambil Lokasi
                                 </button>
                             </div>
                         </div>
 
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="d-grid d-sm-flex flex-wrap gap-2 teacher-attendance-actions">
                             <button type="button" class="btn btn-primary" onclick="submitTeacherAttendance('check_in')" @disabled($attendance?->check_in_at)>
                                 <i class="bx bx-log-in-circle me-1"></i> Presensi Datang
                             </button>
