@@ -62,12 +62,20 @@
             padding: 5mm 4mm;
             overflow: hidden;
             background: #ffffff;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
             border: 1px solid #d9dee3;
             border-radius: 4mm;
             page-break-inside: avoid;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .nametag-background {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .nametag-content {
@@ -182,10 +190,10 @@
         @forelse($students as $student)
             <section
                 class="nametag"
-                @if($school->nametag_background_path)
-                    style="background-image: url('{{ \App\Support\SchoolFileStorage::url($school->nametag_background_path) }}');"
-                @endif
             >
+                @if($school->nametag_background_path)
+                    <img class="nametag-background" src="{{ \App\Support\SchoolFileStorage::url($school->nametag_background_path) }}" alt="">
+                @endif
                 <div class="nametag-content">
                     @if($school->logo_path)
                         <img class="school-logo" src="{{ \App\Support\SchoolFileStorage::url($school->logo_path) }}" alt="Logo {{ $school->name }}">
