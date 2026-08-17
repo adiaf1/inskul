@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'c15e5ae9ebb9e73b81a21d468d6c5c7d194462ff',
+        'reference' => '4e0ff368ba5c820108586f32293662e890cd0b02',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -158,9 +158,9 @@
             'dev_requirement' => false,
         ),
         'hamcrest/hamcrest-php' => array(
-            'pretty_version' => 'v2.1.1',
-            'version' => '2.1.1.0',
-            'reference' => 'f8b1c0173b22fa6ec77a81fe63e5b01eba7e6487',
+            'pretty_version' => 'v3.0.0',
+            'version' => '3.0.0.0',
+            'reference' => 'b61cd040da1a4925bc90a51c074f5297e7c0fa52',
             'type' => 'library',
             'install_path' => __DIR__ . '/../hamcrest/hamcrest-php',
             'aliases' => array(),
@@ -415,7 +415,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'c15e5ae9ebb9e73b81a21d468d6c5c7d194462ff',
+            'reference' => '4e0ff368ba5c820108586f32293662e890cd0b02',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -539,9 +539,9 @@
             'dev_requirement' => false,
         ),
         'mockery/mockery' => array(
-            'pretty_version' => '1.6.12',
-            'version' => '1.6.12.0',
-            'reference' => '1f4efdd7d3beafe9807b08156dfcb176d18f1699',
+            'pretty_version' => '1.6.13',
+            'version' => '1.6.13.0',
+            'reference' => '9cb54414cdcd2ec5ca292e7ba19dba3a3444885d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../mockery/mockery',
             'aliases' => array(),
@@ -808,9 +808,9 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
-                2 => '1.0 || 2.0 || 3.0',
+                0 => '1.0 || 2.0 || 3.0',
+                1 => '3.0.0',
+                2 => '1.0|2.0|3.0',
             ),
         ),
         'psr/simple-cache' => array(
