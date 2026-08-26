@@ -4,6 +4,9 @@
 @php
     $schoolAttendanceDays = old('school_attendance_days', $school->school_attendance_days ?? [1, 2, 3, 4, 5, 6]);
     $schoolAttendanceDays = collect($schoolAttendanceDays)->map(fn ($day) => (int) $day)->all();
+    $teacherAttendanceLatitude = old('teacher_attendance_latitude', $school->teacher_attendance_latitude);
+    $teacherAttendanceLongitude = old('teacher_attendance_longitude', $school->teacher_attendance_longitude);
+    $teacherAttendanceRadius = old('teacher_attendance_radius_meters', $school->teacher_attendance_radius_meters ?? 150);
     $schoolDayLabels = [
         1 => 'Senin',
         2 => 'Selasa',
@@ -14,6 +17,28 @@
         7 => 'Minggu',
     ];
 @endphp
+
+<link rel="stylesheet" href="{{ asset('assets/vendor/libs/leaflet/leaflet.css') }}">
+
+<style>
+    .school-location-map {
+        min-height: 320px;
+        height: 42vh;
+        max-height: 460px;
+        width: 100%;
+        border-radius: .375rem;
+        border: 1px solid var(--bs-border-color);
+        overflow: hidden;
+    }
+
+    .school-location-map .leaflet-control-attribution {
+        font-size: .6875rem;
+    }
+
+    .school-location-map-status {
+        min-height: 1.25rem;
+    }
+</style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
     @if(session('success') || $errors->any())
@@ -164,16 +189,16 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label" for="teacher_attendance_latitude">Latitude Sekolah</label>
-                                    <input type="number" step="any" class="form-control" id="teacher_attendance_latitude" name="teacher_attendance_latitude" value="{{ old('teacher_attendance_latitude', $school->teacher_attendance_latitude) }}" placeholder="-6.123456">
+                                    <input type="number" step="any" class="form-control" id="teacher_attendance_latitude" name="teacher_attendance_latitude" value="{{ $teacherAttendanceLatitude }}" placeholder="-6.123456">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label" for="teacher_attendance_longitude">Longitude Sekolah</label>
-                                    <input type="number" step="any" class="form-control" id="teacher_attendance_longitude" name="teacher_attendance_longitude" value="{{ old('teacher_attendance_longitude', $school->teacher_attendance_longitude) }}" placeholder="106.123456">
+                                    <input type="number" step="any" class="form-control" id="teacher_attendance_longitude" name="teacher_attendance_longitude" value="{{ $teacherAttendanceLongitude }}" placeholder="106.123456">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label" for="teacher_attendance_radius_meters">Radius Presensi</label>
                                     <div class="input-group">
-                                        <input type="number" min="1" max="5000" class="form-control" id="teacher_attendance_radius_meters" name="teacher_attendance_radius_meters" value="{{ old('teacher_attendance_radius_meters', $school->teacher_attendance_radius_meters ?? 150) }}" required>
+                                        <input type="number" min="1" max="5000" class="form-control" id="teacher_attendance_radius_meters" name="teacher_attendance_radius_meters" value="{{ $teacherAttendanceRadius }}" required>
                                         <span class="input-group-text">meter</span>
                                     </div>
                                 </div>
@@ -182,6 +207,32 @@
                                     <div class="input-group">
                                         <input type="number" min="1" max="5000" class="form-control" id="teacher_attendance_max_accuracy_meters" name="teacher_attendance_max_accuracy_meters" value="{{ old('teacher_attendance_max_accuracy_meters', $school->teacher_attendance_max_accuracy_meters ?? 200) }}" required>
                                         <span class="input-group-text">meter</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                        <label class="form-label mb-0" for="schoolLocationMap">Titik Lokasi Sekolah</label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="btn btn-sm btn-label-primary" id="useCurrentLocationButton">
+                                                <i class="bx bx-current-location me-1"></i>
+                                                Gunakan Lokasi Saya
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-label-secondary" id="focusSchoolLocationButton">
+                                                <i class="bx bx-target-lock me-1"></i>
+                                                Fokus Marker
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div
+                                        id="schoolLocationMap"
+                                        class="school-location-map"
+                                        data-latitude="{{ $teacherAttendanceLatitude }}"
+                                        data-longitude="{{ $teacherAttendanceLongitude }}"
+                                        data-radius="{{ $teacherAttendanceRadius }}"
+                                        aria-label="Peta lokasi sekolah"
+                                    ></div>
+                                    <div class="form-text school-location-map-status" id="schoolLocationMapStatus">
+                                        Klik peta atau geser marker untuk mengisi latitude dan longitude.
                                     </div>
                                 </div>
                             </div>
@@ -240,6 +291,7 @@
     </div>
 </div>
 
+<script src="{{ asset('assets/vendor/libs/leaflet/leaflet.js') }}"></script>
 <script>
 function previewSchoolLogo(event) {
     const file = event.target.files[0];
@@ -274,5 +326,184 @@ function previewNametagBackground(event) {
         placeholder.classList.add('d-none');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const mapElement = document.getElementById('schoolLocationMap');
+    const latitudeInput = document.getElementById('teacher_attendance_latitude');
+    const longitudeInput = document.getElementById('teacher_attendance_longitude');
+    const radiusInput = document.getElementById('teacher_attendance_radius_meters');
+    const statusElement = document.getElementById('schoolLocationMapStatus');
+    const useCurrentLocationButton = document.getElementById('useCurrentLocationButton');
+    const focusSchoolLocationButton = document.getElementById('focusSchoolLocationButton');
+
+    if (!mapElement || !latitudeInput || !longitudeInput || typeof L === 'undefined') {
+        return;
+    }
+
+    const defaultLocation = [-2.5489, 118.0149];
+    const defaultZoom = 5;
+    const selectedZoom = 17;
+
+    function parseCoordinate(value, min, max) {
+        const number = Number.parseFloat(value);
+
+        if (Number.isNaN(number) || number < min || number > max) {
+            return null;
+        }
+
+        return number;
+    }
+
+    function getInputLocation() {
+        const latitude = parseCoordinate(latitudeInput.value, -90, 90);
+        const longitude = parseCoordinate(longitudeInput.value, -180, 180);
+
+        if (latitude === null || longitude === null) {
+            return null;
+        }
+
+        return [latitude, longitude];
+    }
+
+    function getRadius() {
+        const radius = Number.parseInt(radiusInput?.value, 10);
+
+        if (Number.isNaN(radius) || radius < 1) {
+            return 150;
+        }
+
+        return radius;
+    }
+
+    function setStatus(message, tone = 'muted') {
+        if (!statusElement) {
+            return;
+        }
+
+        statusElement.className = 'form-text school-location-map-status text-' + tone;
+        statusElement.textContent = message;
+    }
+
+    const initialLocation = getInputLocation();
+    const map = L.map(mapElement).setView(initialLocation || defaultLocation, initialLocation ? selectedZoom : defaultZoom);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker(initialLocation || defaultLocation, {
+        draggable: true,
+        opacity: initialLocation ? 1 : .65
+    }).addTo(map);
+
+    const radiusCircle = L.circle(initialLocation || defaultLocation, {
+        radius: getRadius(),
+        color: '#71dd37',
+        fillColor: '#71dd37',
+        fillOpacity: .12,
+        weight: 2,
+        interactive: false
+    }).addTo(map);
+
+    function syncLocation(location, shouldPan = true) {
+        const latitude = Number.parseFloat(location[0]).toFixed(7);
+        const longitude = Number.parseFloat(location[1]).toFixed(7);
+        const latLng = [Number.parseFloat(latitude), Number.parseFloat(longitude)];
+
+        latitudeInput.value = latitude;
+        longitudeInput.value = longitude;
+        marker.setLatLng(latLng);
+        marker.setOpacity(1);
+        radiusCircle.setLatLng(latLng);
+
+        if (shouldPan) {
+            map.setView(latLng, Math.max(map.getZoom(), selectedZoom));
+        }
+
+        setStatus('Koordinat dipilih: ' + latitude + ', ' + longitude + '.', 'success');
+    }
+
+    function syncFromInputs() {
+        const location = getInputLocation();
+
+        if (!location) {
+            setStatus('Isi latitude dan longitude yang valid, atau pilih titik dari peta.', 'muted');
+            return;
+        }
+
+        marker.setLatLng(location);
+        marker.setOpacity(1);
+        radiusCircle.setLatLng(location);
+        map.setView(location, Math.max(map.getZoom(), selectedZoom));
+        setStatus('Marker mengikuti koordinat yang diisi.', 'success');
+    }
+
+    map.on('click', function (event) {
+        syncLocation([event.latlng.lat, event.latlng.lng], false);
+    });
+
+    marker.on('dragend', function (event) {
+        const location = event.target.getLatLng();
+        syncLocation([location.lat, location.lng], false);
+    });
+
+    latitudeInput.addEventListener('change', syncFromInputs);
+    longitudeInput.addEventListener('change', syncFromInputs);
+
+    radiusInput?.addEventListener('input', function () {
+        radiusCircle.setRadius(getRadius());
+    });
+
+    useCurrentLocationButton?.addEventListener('click', function () {
+        if (!navigator.geolocation) {
+            setStatus('Browser tidak mendukung geolocation.', 'danger');
+            return;
+        }
+
+        useCurrentLocationButton.disabled = true;
+        setStatus('Mengambil lokasi perangkat...', 'primary');
+
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                syncLocation([position.coords.latitude, position.coords.longitude]);
+                setStatus('Lokasi perangkat digunakan sebagai titik sekolah.', 'success');
+                useCurrentLocationButton.disabled = false;
+            },
+            function () {
+                setStatus('Lokasi perangkat tidak bisa diambil. Pastikan izin lokasi browser aktif.', 'danger');
+                useCurrentLocationButton.disabled = false;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
+
+    focusSchoolLocationButton?.addEventListener('click', function () {
+        const location = getInputLocation();
+
+        if (!location) {
+            setStatus('Belum ada koordinat sekolah untuk difokuskan.', 'warning');
+            return;
+        }
+
+        map.setView(location, selectedZoom);
+        marker.setLatLng(location);
+        marker.setOpacity(1);
+        radiusCircle.setLatLng(location);
+        setStatus('Peta difokuskan ke titik sekolah.', 'success');
+    });
+
+    if (initialLocation) {
+        setStatus('Koordinat sekolah saat ini ditampilkan di peta.', 'success');
+    }
+
+    setTimeout(function () {
+        map.invalidateSize();
+    }, 250);
+});
 </script>
 @endsection
