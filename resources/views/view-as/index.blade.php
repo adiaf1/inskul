@@ -21,7 +21,7 @@
             <p class="text-muted mb-0">Pilih sekolah dan jenis akun untuk melihat sistem dari sudut pandang sekolah.</p>
         </div>
         @if(($viewAs['active'] ?? false) === true)
-            <form method="POST" action="{{ route('view-as.destroy') }}">
+            <form method="POST" action="{{ route('view-as.destroy', [], false) }}">
                 @csrf
                 @method('DELETE')
                 <button class="btn btn-label-danger" type="submit">
@@ -45,7 +45,7 @@
         <div class="col-lg-5">
             <div class="card">
                 <div class="card-body">
-                    <form method="GET" action="{{ route('view-as.index') }}">
+                    <form method="GET" action="{{ route('view-as.index', [], false) }}">
                         <label class="form-label" for="school_id_filter">Sekolah</label>
                         <select class="form-select" id="school_id_filter" name="school_id" onchange="this.form.submit()">
                             <option value="">Pilih sekolah</option>
@@ -66,7 +66,7 @@
         <div class="col-lg-7">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST" action="{{ route('view-as.store') }}">
+                    <form method="POST" action="{{ route('view-as.store', [], false) }}">
                         @csrf
 
                         <input type="hidden" name="school_id" value="{{ $selectedSchoolId }}">
@@ -113,7 +113,7 @@ function syncViewAsRoleFilter(select) {
         return;
     }
 
-    const url = new URL(@json(route('view-as.index')), window.location.origin);
+    const url = new URL(@json(route('view-as.index', [], false)), window.location.origin);
     url.searchParams.set('school_id', schoolId);
     url.searchParams.set('role', select.value);
     window.location.href = url.toString();

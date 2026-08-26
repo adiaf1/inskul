@@ -250,7 +250,7 @@
                                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                                     <i class="icon-base bx bx-show icon-26px text-heading"></i>
                                                 </span>
-                                                <a href="{{ route('view-as.index') }}" class="stretched-link">Mode Lihat</a>
+                                                <a href="{{ route('view-as.index', [], false) }}" class="stretched-link">Mode Lihat</a>
                                                 <small>Lihat sebagai sekolah</small>
                                             </div>
                                             <div class="dropdown-shortcuts-item col">
@@ -628,7 +628,7 @@
                                         sebagai {{ $viewAs['user_name'] }}
                                     @endif
                                 </div>
-                                <form method="POST" action="{{ route('view-as.destroy') }}" class="m-0">
+                                <form method="POST" action="{{ route('view-as.destroy', [], false) }}" class="m-0">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-label-danger" type="submit">Keluar Mode</button>
@@ -649,7 +649,7 @@
                             <a href="{{ route('users.index') }}" class="mobile-bottom-nav__item {{ request()->is('users*') ? 'active' : '' }}">
                                 <i class="bx bx-user"></i><span>User</span>
                             </a>
-                            <a href="{{ route('view-as.index') }}" class="mobile-bottom-nav__item {{ request()->is('view-as*') ? 'active' : '' }}">
+                            <a href="{{ route('view-as.index', [], false) }}" class="mobile-bottom-nav__item {{ request()->is('view-as*') ? 'active' : '' }}">
                                 <i class="bx bx-show"></i><span>View</span>
                             </a>
                             <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
@@ -751,9 +751,7 @@
                                         document.write(new Date().getFullYear());
 
                                     </script>
-                                    , {{ config('app.name', 'Inskul') }} ❤️ by
-                                    <a href="https://adiaf.my.id" target="_blank" rel="noopener"
-                                        class="footer-link">adiaf.my.id</a>
+                                    , {{ config('app.name', 'Inskul') }} by adiaf.my.id
                                 </div>
                                 
                             </div>
@@ -805,7 +803,7 @@
                     <a href="{{ route('users.index') }}" class="mobile-drawer-link {{ request()->is('users*') ? 'active' : '' }}">
                         <i class="bx bx-user"></i><span>Pengguna</span>
                     </a>
-                    <a href="{{ route('view-as.index') }}" class="mobile-drawer-link {{ request()->is('view-as*') ? 'active' : '' }}">
+                    <a href="{{ route('view-as.index', [], false) }}" class="mobile-drawer-link {{ request()->is('view-as*') ? 'active' : '' }}">
                         <i class="bx bx-show"></i><span>Mode Lihat</span>
                     </a>
                 @endif
