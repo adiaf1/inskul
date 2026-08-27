@@ -4,13 +4,18 @@
 @php
     $selectedDateLabel = \Illuminate\Support\Carbon::parse($filters['date'])->format('d M Y');
     $canOpenAttendanceHub = in_array(\App\Support\EffectiveAccess::role(request()), ['school_admin', 'teacher'], true);
+    $manualDailyStatusMeta = [
+        'sick' => ['label' => 'Sakit', 'class' => 'bg-label-info'],
+        'permit' => ['label' => 'Izin', 'class' => 'bg-label-primary'],
+        'absent' => ['label' => 'Alpa', 'class' => 'bg-label-danger'],
+    ];
 @endphp
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
         <div>
             <h4 class="mb-1">Grafik Presensi Harian</h4>
-            <p class="text-muted mb-0">{{ $school->name }} - ringkasan scan datang dan pulang murid.</p>
+            <p class="text-muted mb-0">{{ $school->name }} - ringkasan scan, sakit, izin, alpa, dan pulang murid.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('attendances.check') }}" class="btn btn-primary">
@@ -84,7 +89,7 @@
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-6 col-xl-2">
+        <div class="col-6 col-md-3 col-xl-2">
             <div class="card h-100">
                 <div class="card-body">
                     <span class="avatar rounded bg-label-secondary mb-3"><i class="bx bx-group"></i></span>
@@ -93,7 +98,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-2">
+        <div class="col-6 col-md-3 col-xl-2">
             <div class="card h-100">
                 <div class="card-body">
                     <span class="avatar rounded bg-label-success mb-3"><i class="bx bx-user-check"></i></span>
@@ -102,16 +107,43 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-2">
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="card h-100">
+                <div class="card-body">
+                    <span class="avatar rounded bg-label-info mb-3"><i class="bx bx-plus-medical"></i></span>
+                    <div class="text-muted small">Sakit</div>
+                    <h4 class="mb-0">{{ $summary['sick'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="card h-100">
+                <div class="card-body">
+                    <span class="avatar rounded bg-label-primary mb-3"><i class="bx bx-file"></i></span>
+                    <div class="text-muted small">Izin</div>
+                    <h4 class="mb-0">{{ $summary['permit'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
             <div class="card h-100">
                 <div class="card-body">
                     <span class="avatar rounded bg-label-danger mb-3"><i class="bx bx-user-x"></i></span>
-                    <div class="text-muted small">Belum Hadir</div>
+                    <div class="text-muted small">Alpa</div>
                     <h4 class="mb-0">{{ $summary['absent'] }}</h4>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-2">
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="card h-100">
+                <div class="card-body">
+                    <span class="avatar rounded bg-label-secondary mb-3"><i class="bx bx-help-circle"></i></span>
+                    <div class="text-muted small">Belum Diproses</div>
+                    <h4 class="mb-0">{{ $summary['unprocessed'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
             <div class="card h-100">
                 <div class="card-body">
                     <span class="avatar rounded bg-label-warning mb-3"><i class="bx bx-time"></i></span>
@@ -120,7 +152,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-2">
+        <div class="col-6 col-md-3 col-xl-2">
             <div class="card h-100">
                 <div class="card-body">
                     <span class="avatar rounded bg-label-info mb-3"><i class="bx bx-log-out-circle"></i></span>
@@ -129,7 +161,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-2">
+        <div class="col-6 col-md-3 col-xl-2">
             <div class="card h-100">
                 <div class="card-body">
                     <span class="avatar rounded bg-label-primary mb-3"><i class="bx bx-line-chart"></i></span>
@@ -144,7 +176,7 @@
         <div class="col-lg-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">Hadir vs Belum Hadir</h5>
+                    <h5 class="mb-0">Komposisi Presensi</h5>
                     <div class="text-muted small">{{ $selectedDateLabel }}</div>
                 </div>
                 <div class="card-body">
@@ -178,7 +210,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Trend 7 Hari</h5>
-                    <div class="text-muted small">Hadir, belum hadir, dan terlambat.</div>
+                    <div class="text-muted small">Hadir, sakit, izin, alpa, belum diproses, dan terlambat.</div>
                 </div>
                 <div class="card-body">
                     <div id="attendanceTrendChart" style="min-height: 320px;"></div>
@@ -205,6 +237,7 @@
                         <th>Status</th>
                         <th>Datang</th>
                         <th>Pulang</th>
+                        <th>Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -212,6 +245,7 @@
                         @php
                             $attendance = $studentAttendances->get($student->id);
                             $classroomName = $student->classrooms->first()?->name ?? '-';
+                            $manualStatus = $attendance && ! $attendance->check_in_at ? ($manualDailyStatusMeta[$attendance->status] ?? null) : null;
                         @endphp
                         <tr>
                             <td>
@@ -227,8 +261,10 @@
                                     @elseif($attendance->check_in_status === 'on_time')
                                         <span class="badge bg-label-primary">Tepat waktu</span>
                                     @endif
+                                @elseif($manualStatus)
+                                    <span class="badge {{ $manualStatus['class'] }}">{{ $manualStatus['label'] }}</span>
                                 @else
-                                    <span class="badge bg-label-danger">Belum Hadir</span>
+                                    <span class="badge bg-label-secondary">Belum Diproses</span>
                                 @endif
                             </td>
                             <td>{{ $attendance?->check_in_at?->format('H:i:s') ?? '-' }}</td>
@@ -240,10 +276,11 @@
                                     <span class="badge bg-label-success ms-1">Normal</span>
                                 @endif
                             </td>
+                            <td class="text-wrap" style="min-width: 180px;">{{ $attendance?->notes ?: '-' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Belum ada murid aktif untuk filter ini.</td>
+                            <td colspan="6" class="text-center text-muted py-4">Belum ada murid aktif untuk filter ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -344,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '#attendanceDonutChart',
         chartData.attendance.labels,
         chartData.attendance.series,
-        [colors.success, colors.danger]
+        [colors.success, colors.info, colors.primary, colors.danger, colors.secondary]
     );
 
     renderDonut(
@@ -393,10 +430,13 @@ document.addEventListener('DOMContentLoaded', function () {
             chart: { ...baseChart(palette).chart, type: 'area', height: 320 },
             series: [
                 { name: 'Hadir', data: chartData.trend.present },
-                { name: 'Belum Hadir', data: chartData.trend.absent },
+                { name: 'Sakit', data: chartData.trend.sick },
+                { name: 'Izin', data: chartData.trend.permit },
+                { name: 'Alpa', data: chartData.trend.absent },
+                { name: 'Belum Diproses', data: chartData.trend.unprocessed },
                 { name: 'Terlambat', data: chartData.trend.late },
             ],
-            colors: [colors.success, colors.danger, colors.warning],
+            colors: [colors.success, colors.info, colors.primary, colors.danger, colors.secondary, colors.warning],
             stroke: { curve: 'smooth', width: 3 },
             fill: {
                 type: 'gradient',

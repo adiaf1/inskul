@@ -28,6 +28,12 @@ class AttendanceController extends Controller
         'late' => 'Terlambat',
     ];
 
+    private const DAILY_MANUAL_STATUSES = [
+        'sick' => 'Sakit',
+        'permit' => 'Izin',
+        'absent' => 'Alpa',
+    ];
+
     public function index(Request $request): View|RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -58,11 +64,19 @@ class AttendanceController extends Controller
             ->latest('updated_at')
             ->limit(20)
             ->get();
+        $activeStudents = Student::query()
+            ->with(['user', 'classrooms' => fn ($query) => $query->wherePivot('status', 'active')->where('classrooms.is_active', true)])
+            ->where('school_id', $school->id)
+            ->where('is_active', true)
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->orderBy('users.name')
+            ->select('students.*')
+            ->get();
         $attendanceDayContext = $this->attendanceDayContext($school, now());
         $isAttendanceDay = $attendanceDayContext['is_attendance_day'];
         $schoolAttendanceDayLabels = $this->schoolAttendanceDayLabels($school);
 
-        return view('attendances.check', compact('school', 'todayAttendances', 'isAttendanceDay', 'schoolAttendanceDayLabels', 'attendanceDayContext'));
+        return view('attendances.check', compact('school', 'todayAttendances', 'activeStudents', 'isAttendanceDay', 'schoolAttendanceDayLabels', 'attendanceDayContext'));
     }
 
     public function scanCheck(Request $request): JsonResponse
@@ -149,7 +163,12 @@ class AttendanceController extends Controller
                     'check_in_by' => $actorId,
                     'check_in_status' => $checkInEvaluation['status'],
                     'late_minutes' => $checkInEvaluation['late_minutes'],
+                    'check_out_at' => null,
+                    'check_out_by' => null,
+                    'check_out_status' => null,
+                    'early_leave_minutes' => 0,
                     'status' => 'open',
+                    'notes' => null,
                 ]);
 
                 return $attendance;
@@ -223,6 +242,116 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function manualCheck(Request $request): JsonResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            abort(403);
+        }
+
+        if ($this->effectiveRole($request) === 'student') {
+            abort(403);
+        }
+
+        $attendanceDayContext = $this->attendanceDayContext($school, now());
+
+        if (! $attendanceDayContext['is_attendance_day']) {
+            return response()->json([
+                'message' => 'Hari ini bukan hari presensi aktif. '.$attendanceDayContext['message'],
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'student_id' => ['required', 'string', 'exists:students,id'],
+            'status' => ['required', Rule::in(array_keys(self::DAILY_MANUAL_STATUSES))],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $student = Student::query()
+            ->with(['user', 'classrooms' => fn ($query) => $query->wherePivot('status', 'active')->where('classrooms.is_active', true)])
+            ->where('school_id', $school->id)
+            ->where('is_active', true)
+            ->whereKey($validated['student_id'])
+            ->first();
+
+        if (! $student) {
+            return response()->json([
+                'message' => 'Murid tidak ditemukan atau tidak aktif pada sekolah ini.',
+            ], 404);
+        }
+
+        $today = now()->toDateString();
+        $status = $validated['status'];
+
+        $attendance = DB::transaction(function () use ($school, $student, $today, $status, $validated) {
+            $attendance = StudentDailyAttendance::query()
+                ->where('school_id', $school->id)
+                ->where('student_id', $student->id)
+                ->whereDate('attendance_date', $today)
+                ->lockForUpdate()
+                ->first();
+
+            if ($attendance && ($attendance->check_in_at || $attendance->check_out_at)) {
+                return $attendance;
+            }
+
+            $payload = [
+                'school_id' => $school->id,
+                'student_id' => $student->id,
+                'attendance_date' => $today,
+                'check_in_at' => null,
+                'check_in_by' => null,
+                'check_in_status' => null,
+                'late_minutes' => 0,
+                'check_out_at' => null,
+                'check_out_by' => null,
+                'check_out_status' => null,
+                'early_leave_minutes' => 0,
+                'status' => $status,
+                'notes' => $validated['notes'] ?? null,
+            ];
+
+            if ($attendance) {
+                $attendance->update($payload);
+
+                return $attendance;
+            }
+
+            return StudentDailyAttendance::create($payload);
+        });
+
+        if ($attendance->check_in_at || $attendance->check_out_at) {
+            return response()->json([
+                'message' => ($student->user?->name ?? 'Murid').' sudah tercatat hadir hari ini. Status sakit/izin/alpa tidak diterapkan.',
+            ], 422);
+        }
+
+        $attendance->load('student.user');
+        $statusLabel = self::DAILY_MANUAL_STATUSES[$attendance->status] ?? $attendance->status;
+
+        return response()->json([
+            'message' => ($student->user?->name ?? 'Murid').' ditandai '.$statusLabel.'.',
+            'action' => 'manual_status',
+            'student' => [
+                'id' => $student->id,
+                'name' => $student->user?->name ?? 'Murid',
+                'nis' => $student->nis,
+                'nisn' => $student->nisn,
+                'classroom' => $student->classrooms->first()?->name,
+            ],
+            'attendance' => [
+                'id' => $attendance->id,
+                'attendance_date' => $attendance->attendance_date?->format('d M Y'),
+                'check_in_at' => null,
+                'check_out_at' => null,
+                'status' => $attendance->status,
+                'status_label' => $statusLabel,
+                'notes' => $attendance->notes,
+            ],
+        ]);
+    }
+
     public function dailyDashboard(Request $request): View|RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -277,7 +406,16 @@ class AttendanceController extends Controller
                 ->get();
 
         $presentCount = $attendanceRows->whereNotNull('check_in_at')->pluck('student_id')->unique()->count();
-        $absentCount = $isAttendanceDay ? max($totalStudents - $presentCount, 0) : 0;
+        $manualStatusStudentIds = fn (string $status) => $attendanceRows
+            ->filter(fn ($attendance) => ! $attendance->check_in_at && $attendance->status === $status)
+            ->pluck('student_id')
+            ->unique()
+            ->count();
+        $sickCount = $manualStatusStudentIds('sick');
+        $permitCount = $manualStatusStudentIds('permit');
+        $absentCount = $manualStatusStudentIds('absent');
+        $processedCount = $presentCount + $sickCount + $permitCount + $absentCount;
+        $unprocessedCount = $isAttendanceDay ? max($totalStudents - $processedCount, 0) : 0;
         $onTimeCount = $attendanceRows->where('check_in_status', 'on_time')->pluck('student_id')->unique()->count();
         $lateCount = $attendanceRows->where('check_in_status', 'late')->pluck('student_id')->unique()->count();
         $checkedOutCount = $attendanceRows->whereNotNull('check_out_at')->pluck('student_id')->unique()->count();
@@ -293,6 +431,9 @@ class AttendanceController extends Controller
                 ->selectRaw('DATE(attendance_date) as attendance_day')
                 ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_at IS NOT NULL THEN student_id END) as present_count')
                 ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_status = ? THEN student_id END) as late_count', ['late'])
+                ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_at IS NULL AND status = ? THEN student_id END) as sick_count', ['sick'])
+                ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_at IS NULL AND status = ? THEN student_id END) as permit_count', ['permit'])
+                ->selectRaw('COUNT(DISTINCT CASE WHEN check_in_at IS NULL AND status = ? THEN student_id END) as absent_count', ['absent'])
                 ->where('school_id', $school->id)
                 ->whereBetween('attendance_date', [$trendStart->toDateString(), $trendEnd->toDateString()])
                 ->whereIn('student_id', $studentIds)
@@ -303,18 +444,28 @@ class AttendanceController extends Controller
         $trendLabels = [];
         $trendPresent = [];
         $trendLate = [];
+        $trendSick = [];
+        $trendPermit = [];
         $trendAbsent = [];
+        $trendUnprocessed = [];
 
         for ($date = $trendStart->copy(); $date->lte($trendEnd); $date->addDay()) {
             $key = $date->toDateString();
             $row = $trendRows->get($key);
             $present = (int) ($row?->present_count ?? 0);
             $late = (int) ($row?->late_count ?? 0);
+            $sick = (int) ($row?->sick_count ?? 0);
+            $permit = (int) ($row?->permit_count ?? 0);
+            $absent = (int) ($row?->absent_count ?? 0);
+            $processed = $present + $sick + $permit + $absent;
 
             $trendLabels[] = $date->format('d M');
             $trendPresent[] = $present;
             $trendLate[] = $late;
-            $trendAbsent[] = $this->attendanceDayContext($school, $date)['is_attendance_day'] ? max($totalStudents - $present, 0) : 0;
+            $trendSick[] = $sick;
+            $trendPermit[] = $permit;
+            $trendAbsent[] = $absent;
+            $trendUnprocessed[] = $this->attendanceDayContext($school, $date)['is_attendance_day'] ? max($totalStudents - $processed, 0) : 0;
         }
 
         $students = $this->dailyDashboardStudentQuery($school, $filters['classroom_id'])
@@ -347,7 +498,10 @@ class AttendanceController extends Controller
             'summary' => [
                 'total_students' => $totalStudents,
                 'present' => $presentCount,
+                'sick' => $sickCount,
+                'permit' => $permitCount,
                 'absent' => $absentCount,
+                'unprocessed' => $unprocessedCount,
                 'on_time' => $onTimeCount,
                 'late' => $lateCount,
                 'checked_out' => $checkedOutCount,
@@ -357,8 +511,8 @@ class AttendanceController extends Controller
             ],
             'chartData' => [
                 'attendance' => [
-                    'labels' => ['Hadir', 'Belum Hadir'],
-                    'series' => [$presentCount, $absentCount],
+                    'labels' => ['Hadir', 'Sakit', 'Izin', 'Alpa', 'Belum Diproses'],
+                    'series' => [$presentCount, $sickCount, $permitCount, $absentCount, $unprocessedCount],
                 ],
                 'punctuality' => [
                     'labels' => ['Tepat Waktu', 'Terlambat'],
@@ -372,7 +526,10 @@ class AttendanceController extends Controller
                     'labels' => $trendLabels,
                     'present' => $trendPresent,
                     'late' => $trendLate,
+                    'sick' => $trendSick,
+                    'permit' => $trendPermit,
                     'absent' => $trendAbsent,
+                    'unprocessed' => $trendUnprocessed,
                 ],
             ],
         ]);

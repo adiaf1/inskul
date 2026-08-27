@@ -112,6 +112,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::middleware(['effective.role:school_admin,principal,teacher,parent', 'module:daily_attendance'])->group(function () {
             Route::get('/attendances/check', [AttendanceController::class, 'check'])->name('attendances.check');
             Route::post('/attendances/check/scan', [AttendanceController::class, 'scanCheck'])->name('attendances.check.scan');
+            Route::post('/attendances/check/manual', [AttendanceController::class, 'manualCheck'])->name('attendances.check.manual');
         });
 
         Route::middleware('effective.role:school_admin,teacher')->group(function () {

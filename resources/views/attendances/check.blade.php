@@ -109,6 +109,52 @@
                             </button>
                         </div>
                     </form>
+
+                    <div class="border rounded p-3 mt-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="avatar avatar-sm rounded bg-label-warning">
+                                <i class="bx bx-user-x"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-0">Tandai Tidak Hadir</h6>
+                                <div class="text-muted small">Gunakan untuk murid yang sakit, izin, atau alpa tanpa scan QR.</div>
+                            </div>
+                        </div>
+                        <form id="manualAbsenceForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="manualAbsenceStudent">Murid</label>
+                                    <select class="form-select select2" id="manualAbsenceStudent" name="student_id" data-placeholder="Cari nama murid atau rombel" required>
+                                        <option value="">Pilih murid</option>
+                                        @foreach($activeStudents as $student)
+                                            <option value="{{ $student->id }}">
+                                                {{ $student->user?->name ?? '-' }} - {{ $student->classrooms->first()?->name ?? 'Tanpa rombel aktif' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="manualAbsenceStatus">Status</label>
+                                    <select class="form-select" id="manualAbsenceStatus" name="status" required>
+                                        <option value="">Pilih status</option>
+                                        <option value="sick">Sakit</option>
+                                        <option value="permit">Izin</option>
+                                        <option value="absent">Alpa</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="manualAbsenceNotes">Catatan</label>
+                                    <textarea class="form-control" id="manualAbsenceNotes" name="notes" rows="2" maxlength="1000" placeholder="Opsional, contoh: surat sakit menyusul"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-warning" type="submit">
+                                        <i class="bx bx-save me-1"></i> Simpan Status
+                                    </button>
+                                    <span class="form-text ms-2">Jika murid sudah scan datang, status ini tidak akan diterapkan.</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -171,8 +217,15 @@
                                         'badge',
                                         'bg-label-success' => $attendance->check_in_at && $attendance->check_out_at,
                                         'bg-label-primary' => $attendance->check_in_at && ! $attendance->check_out_at,
+                                        'bg-label-info' => $attendance->status === 'sick',
+                                        'bg-label-warning' => $attendance->status === 'permit',
+                                        'bg-label-danger' => $attendance->status === 'absent',
                                     ])>
-                                        {{ $attendance->check_out_at ? 'Lengkap' : 'Datang' }}
+                                        @if($attendance->check_in_at || $attendance->check_out_at)
+                                            {{ $attendance->check_out_at ? 'Lengkap' : 'Datang' }}
+                                        @else
+                                            {{ ['sick' => 'Sakit', 'permit' => 'Izin', 'absent' => 'Alpa'][$attendance->status] ?? 'Belum Hadir' }}
+                                        @endif
                                     </span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-3 text-muted small mt-2">
@@ -192,6 +245,9 @@
                                             <span class="badge bg-label-success ms-1">Normal</span>
                                         @endif
                                     </span>
+                                    @if(! $attendance->check_in_at && ! $attendance->check_out_at && in_array($attendance->status, ['sick', 'permit', 'absent'], true))
+                                        <span>Catatan: {{ $attendance->notes ?: '-' }}</span>
+                                    @endif
                                 </div>
                             </div>
                         @empty
@@ -215,7 +271,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const message = document.getElementById('qrScannerMessage');
     const manualForm = document.getElementById('manualScanForm');
     const manualInput = document.getElementById('manualScanInput');
+    const manualAbsenceForm = document.getElementById('manualAbsenceForm');
+    const manualAbsenceStudent = document.getElementById('manualAbsenceStudent');
+    const manualAbsenceStatus = document.getElementById('manualAbsenceStatus');
+    const manualAbsenceNotes = document.getElementById('manualAbsenceNotes');
     const scanUrl = @json(route('attendances.check.scan', [], false));
+    const manualUrl = @json(route('attendances.check.manual', [], false));
     const csrfToken = @json(csrf_token());
 
     let stream = null;
@@ -326,13 +387,21 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('lastCheckOut').textContent = data.attendance?.check_out_at || '-';
 
         const badge = document.getElementById('lastActionBadge');
-        badge.className = 'badge ' + (data.action === 'check_out' ? 'bg-label-success' : data.action === 'check_in' ? 'bg-label-primary' : data.action === 'duplicate_check_in' ? 'bg-label-warning' : 'bg-label-secondary');
-        badge.textContent = data.action === 'check_out' ? 'Pulang' : data.action === 'check_in' ? 'Datang' : data.action === 'duplicate_check_in' ? 'Sudah Datang' : 'Lengkap';
+        badge.className = 'badge ' + actionBadgeClass(data);
+        badge.textContent = actionLabel(data);
 
         const statusNote = document.getElementById('lastStatusNote');
 
         if (statusNote) {
             const notes = [];
+
+            if (data.action === 'manual_status') {
+                notes.push('Status: ' + (data.attendance?.status_label || '-'));
+
+                if (data.attendance?.notes) {
+                    notes.push('Catatan: ' + data.attendance.notes);
+                }
+            }
 
             if (data.attendance?.check_in_status_label) {
                 notes.push('Datang: ' + data.attendance.check_in_status_label + (data.attendance.late_minutes ? ' ' + data.attendance.late_minutes + ' menit' : ''));
@@ -382,11 +451,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
         item.querySelector('strong').textContent = data.student?.name || '-';
         item.querySelector('.text-muted.small').textContent = [data.student?.nis || '-', data.student?.nisn].filter(Boolean).join(' / ');
-        item.querySelector('.badge').className = 'badge ' + (data.attendance?.check_out_at ? 'bg-label-success' : 'bg-label-primary');
-        item.querySelector('.badge').textContent = data.attendance?.check_out_at ? 'Lengkap' : 'Datang';
+        item.querySelector('.badge').className = 'badge ' + actionBadgeClass(data);
+        item.querySelector('.badge').textContent = actionLabel(data);
         item.querySelector('.check-in').textContent = 'Datang: ' + (data.attendance?.check_in_at || '-') + dailyStatusText(data.attendance?.check_in_status_label, data.attendance?.late_minutes);
         item.querySelector('.check-out').textContent = 'Pulang: ' + (data.attendance?.check_out_at || '-') + dailyStatusText(data.attendance?.check_out_status_label, data.attendance?.early_leave_minutes);
+
+        if (data.action === 'manual_status') {
+            item.querySelector('.check-in').textContent = 'Status: ' + (data.attendance?.status_label || '-');
+            item.querySelector('.check-out').textContent = 'Catatan: ' + (data.attendance?.notes || '-');
+        }
+
         list.prepend(item);
+    };
+
+    const actionBadgeClass = (data) => {
+        if (data.action === 'manual_status') {
+            return data.attendance?.status === 'sick'
+                ? 'bg-label-info'
+                : data.attendance?.status === 'permit'
+                    ? 'bg-label-warning'
+                    : 'bg-label-danger';
+        }
+
+        return data.action === 'check_out'
+            ? 'bg-label-success'
+            : data.action === 'check_in'
+                ? 'bg-label-primary'
+                : data.action === 'duplicate_check_in'
+                    ? 'bg-label-warning'
+                    : 'bg-label-secondary';
+    };
+
+    const actionLabel = (data) => {
+        if (data.action === 'manual_status') {
+            return data.attendance?.status_label || 'Tidak Hadir';
+        }
+
+        return data.action === 'check_out'
+            ? 'Pulang'
+            : data.action === 'check_in'
+                ? 'Datang'
+                : data.action === 'duplicate_check_in'
+                    ? 'Sudah Datang'
+                    : 'Lengkap';
     };
 
     const dailyStatusText = (label, minutes) => {
@@ -495,6 +602,50 @@ document.addEventListener('DOMContentLoaded', function () {
             showMessage('danger', 'Kamera berhasil membaca QR, tetapi request gagal dikirim. ' + (error.message || 'Cek koneksi dan domain aplikasi.'));
         } finally {
             posting = false;
+        }
+    };
+
+    const submitManualAbsence = async () => {
+        const studentId = manualAbsenceStudent?.value;
+        const status = manualAbsenceStatus?.value;
+        const notes = manualAbsenceNotes?.value || '';
+
+        if (!studentId || !status) {
+            showMessage('warning', 'Pilih murid dan status tidak hadir terlebih dahulu.');
+            return;
+        }
+
+        showMessage('info', 'Menyimpan status tidak hadir...');
+
+        try {
+            const response = await fetch(manualUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    status: status,
+                    notes: notes,
+                }),
+            });
+
+            const data = await readScanResponse(response);
+
+            if (!response.ok) {
+                showMessage(response.status === 422 ? 'warning' : 'danger', data.message || 'Status tidak hadir gagal disimpan.');
+                return;
+            }
+
+            updateLastScan(data);
+            prependTodayAttendance(data);
+            showMessage('success', data.message || 'Status tidak hadir berhasil disimpan.');
+            manualAbsenceForm?.reset();
+        } catch (error) {
+            showMessage('danger', 'Status tidak hadir gagal dikirim. ' + (error.message || 'Cek koneksi dan domain aplikasi.'));
         }
     };
 
@@ -635,6 +786,10 @@ document.addEventListener('DOMContentLoaded', function () {
             manualInput.value = '';
             manualInput.focus();
         }
+    });
+    manualAbsenceForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await submitManualAbsence();
     });
 
     window.addEventListener('beforeunload', stopScanner);
