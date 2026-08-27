@@ -58,9 +58,9 @@ Route::middleware(['auth', 'active.user'])->group(function () {
 
 // Route hanya untuk Super Admin
 Route::middleware(['auth', 'active.user', 'role:super_admin'])->group(function () {
-    Route::get('/view-as', [ViewAsController::class, 'index'])->name('view-as.index');
-    Route::post('/view-as', [ViewAsController::class, 'store'])->name('view-as.store');
-    Route::delete('/view-as', [ViewAsController::class, 'destroy'])->name('view-as.destroy');
+    Route::get('/mode-lihat', [ViewAsController::class, 'index'])->name('view-as.index');
+    Route::post('/mode-lihat', [ViewAsController::class, 'store'])->name('view-as.store');
+    Route::delete('/mode-lihat', [ViewAsController::class, 'destroy'])->name('view-as.destroy');
     Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::get('/schools', [SchoolController::class, 'index'])->name('schools.index');

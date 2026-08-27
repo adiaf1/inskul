@@ -95,6 +95,6 @@ class ViewAsController extends Controller
     {
         $request->session()->forget(EffectiveAccess::SESSION_KEY);
 
-        return redirect()->route('view-as.index')->with('success', 'Mode lihat sebagai sudah dinonaktifkan.');
+        return redirect('/mode-lihat')->with('success', 'Mode lihat sebagai sudah dinonaktifkan.');
     }
 }

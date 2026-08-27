@@ -649,7 +649,7 @@
                             <a href="{{ route('users.index') }}" class="mobile-bottom-nav__item {{ request()->is('users*') ? 'active' : '' }}">
                                 <i class="bx bx-user"></i><span>User</span>
                             </a>
-                            <a href="{{ route('view-as.index', [], false) }}" class="mobile-bottom-nav__item {{ request()->is('view-as*') ? 'active' : '' }}">
+                            <a href="{{ route('view-as.index', [], false) }}" class="mobile-bottom-nav__item {{ request()->is('mode-lihat*') ? 'active' : '' }}">
                                 <i class="bx bx-show"></i><span>View</span>
                             </a>
                             <a href="{{ route('profile.edit') }}" class="mobile-bottom-nav__item {{ request()->is('profile') ? 'active' : '' }}">
@@ -803,7 +803,7 @@
                     <a href="{{ route('users.index') }}" class="mobile-drawer-link {{ request()->is('users*') ? 'active' : '' }}">
                         <i class="bx bx-user"></i><span>Pengguna</span>
                     </a>
-                    <a href="{{ route('view-as.index', [], false) }}" class="mobile-drawer-link {{ request()->is('view-as*') ? 'active' : '' }}">
+                    <a href="{{ route('view-as.index', [], false) }}" class="mobile-drawer-link {{ request()->is('mode-lihat*') ? 'active' : '' }}">
                         <i class="bx bx-show"></i><span>Mode Lihat</span>
                     </a>
                 @endif

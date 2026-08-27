@@ -33,7 +33,7 @@
             <a href="{{ route('users.index') }}" class="btn btn-label-primary">
                 <i class="bx bx-user me-1"></i> Kelola User
             </a>
-            <a href="{{ route('view-as.index') }}" class="btn btn-label-secondary">
+            <a href="{{ route('view-as.index', [], false) }}" class="btn btn-label-secondary">
                 <i class="bx bx-show me-1"></i> View Sistem
             </a>
         </div>
