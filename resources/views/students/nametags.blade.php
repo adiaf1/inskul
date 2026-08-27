@@ -59,7 +59,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 5mm 4mm;
+            padding: 3mm 4mm;
             overflow: hidden;
             background: #ffffff;
             border: 1px solid #d9dee3;
@@ -89,70 +89,86 @@
         }
 
         .school-name {
-            min-height: 10mm;
+            height: 8mm;
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            font-size: 10px;
+            overflow: hidden;
+            font-size: 9px;
             line-height: 1.25;
             font-weight: 800;
             text-transform: uppercase;
         }
 
         .school-logo {
-            width: 9mm;
-            height: 9mm;
-            margin-bottom: 1mm;
+            flex: 0 0 auto;
+            width: 8mm;
+            height: 8mm;
+            margin-bottom: .75mm;
             object-fit: contain;
         }
 
-        .photo {
-            width: 28mm;
-            height: 34mm;
-            margin-top: 3mm;
+        .photo-frame {
+            flex: 0 0 29mm;
+            width: 25mm;
+            height: 29mm;
+            margin-top: 2mm;
             border: 1px solid #d9dee3;
-            border-radius: 3mm;
-            object-fit: cover;
+            border-radius: 2.5mm;
+            overflow: hidden;
             background: #eef0f4;
         }
 
+        .photo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .photo-placeholder {
-            width: 28mm;
-            height: 34mm;
-            margin-top: 3mm;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #d9dee3;
-            border-radius: 3mm;
-            background: #eef0f4;
             color: #697a8d;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 800;
         }
 
         .student-name {
+            flex: 0 0 9mm;
             width: 100%;
-            margin-top: 4mm;
+            margin-top: 2mm;
             text-align: center;
-            font-size: 12px;
+            overflow: hidden;
+            font-size: 10px;
             line-height: 1.2;
             font-weight: 800;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
         }
 
         .student-nisn {
-            margin-top: 1mm;
+            flex: 0 0 3.5mm;
+            margin-top: .5mm;
             color: #566a7f;
             font-size: 9px;
             font-weight: 700;
+            line-height: 1.1;
         }
 
         .qr {
-            width: 21mm;
-            height: 21mm;
+            flex: 0 0 18mm;
+            width: 18mm;
+            height: 18mm;
             margin-top: auto;
+            object-fit: contain;
         }
 
         @page {
@@ -200,11 +216,13 @@
                     @endif
                     <div class="school-name">{{ $school->name }}</div>
 
-                    @if($student->photo_path)
-                        <img class="photo" src="{{ \App\Support\SchoolFileStorage::url($student->photo_path) }}" alt="Foto {{ $student->user?->name }}">
-                    @else
-                        <div class="photo-placeholder">{{ strtoupper(substr($student->user?->name ?? 'M', 0, 1)) }}</div>
-                    @endif
+                    <div class="photo-frame">
+                        @if($student->photo_path)
+                            <img class="photo" src="{{ \App\Support\SchoolFileStorage::url($student->photo_path) }}" alt="Foto {{ $student->user?->name }}">
+                        @else
+                            <div class="photo-placeholder">{{ strtoupper(substr($student->user?->name ?? 'M', 0, 1)) }}</div>
+                        @endif
+                    </div>
 
                     <div class="student-name">{{ $student->user?->name }}</div>
                     <div class="student-nisn">NISN: {{ $student->nisn ?: '-' }}</div>
