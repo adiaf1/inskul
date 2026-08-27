@@ -105,6 +105,11 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::get('/attendances/daily-dashboard', [AttendanceController::class, 'dailyDashboard'])->name('attendances.daily-dashboard');
         });
 
+        Route::middleware(['effective.role:school_admin', 'module:daily_attendance'])->group(function () {
+            Route::get('/attendances/reports/period', [AttendanceController::class, 'periodReport'])->name('attendances.report.period');
+            Route::get('/attendances/reports/period/print', [AttendanceController::class, 'printPeriodReport'])->name('attendances.report.period.print');
+        });
+
         Route::middleware(['effective.role:school_admin,principal', 'module:teacher_attendance'])->group(function () {
             Route::get('/teacher-attendances/report', [TeacherAttendanceController::class, 'report'])->name('teacher-attendances.report');
         });

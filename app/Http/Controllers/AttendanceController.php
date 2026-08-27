@@ -688,6 +688,57 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function periodReport(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        if ($this->effectiveRole($request) !== 'school_admin') {
+            abort(403);
+        }
+
+        $filters = $this->periodReportFilters($request);
+        $report = $this->buildDailyPeriodReport($school, $filters);
+
+        return view('attendances.period-report', [
+            'school' => $school,
+            'classrooms' => $report['classrooms'],
+            'selectedClassroom' => $report['selected_classroom'],
+            'filters' => $filters,
+            'effectiveDates' => $report['effective_dates'],
+            'summaryRows' => $report['summary_rows'],
+            'totals' => $report['totals'],
+        ]);
+    }
+
+    public function printPeriodReport(Request $request): View|RedirectResponse
+    {
+        $school = $this->activeSchool($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        if ($this->effectiveRole($request) !== 'school_admin') {
+            abort(403);
+        }
+
+        $filters = $this->periodReportFilters($request);
+        $report = $this->buildDailyPeriodReport($school, $filters);
+
+        return view('attendances.period-report-print', [
+            'school' => $school,
+            'selectedClassroom' => $report['selected_classroom'],
+            'filters' => $filters,
+            'effectiveDates' => $report['effective_dates'],
+            'summaryRows' => $report['summary_rows'],
+            'totals' => $report['totals'],
+        ]);
+    }
+
     public function scheduleReport(Request $request): View|RedirectResponse
     {
         $school = $this->activeSchool($request);
@@ -1325,6 +1376,217 @@ class AttendanceController extends Controller
             'classroom_id' => $request->input('classroom_id', ''),
             'status' => $request->input('status', ''),
         ];
+    }
+
+    private function periodReportFilters(Request $request): array
+    {
+        $validated = $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'classroom_id' => ['nullable', 'string'],
+        ]);
+
+        return [
+            'date_from' => $validated['date_from'] ?? now()->startOfMonth()->format('Y-m-d'),
+            'date_to' => $validated['date_to'] ?? now()->format('Y-m-d'),
+            'classroom_id' => $validated['classroom_id'] ?? '',
+        ];
+    }
+
+    private function buildDailyPeriodReport($school, array $filters): array
+    {
+        $periodStart = Carbon::parse($filters['date_from'])->startOfDay();
+        $periodEnd = Carbon::parse($filters['date_to'])->startOfDay();
+        $effectiveDates = collect();
+
+        for ($date = $periodStart->copy(); $date->lte($periodEnd); $date->addDay()) {
+            if ($this->attendanceDayContext($school, $date)['is_attendance_day']) {
+                $effectiveDates->push($date->toDateString());
+            }
+        }
+
+        $classrooms = $school->classrooms()
+            ->with([
+                'academicYear',
+                'semester',
+                'homeroomTeacher.user',
+                'students' => fn ($query) => $query
+                    ->wherePivot('status', 'active')
+                    ->where('students.is_active', true)
+                    ->with('user')
+                    ->orderBy('students.nis'),
+            ])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $selectedClassroom = $filters['classroom_id']
+            ? $classrooms->firstWhere('id', $filters['classroom_id'])
+            : null;
+
+        if ($filters['classroom_id'] && ! $selectedClassroom) {
+            return [
+                'classrooms' => $classrooms,
+                'selected_classroom' => null,
+                'effective_dates' => $effectiveDates,
+                'summary_rows' => collect(),
+                'totals' => $this->emptyDailyPeriodCounts(),
+            ];
+        }
+
+        $reportClassrooms = $selectedClassroom ? collect([$selectedClassroom]) : $classrooms;
+        $studentIds = $reportClassrooms
+            ->flatMap(fn ($classroom) => $classroom->students->pluck('id'))
+            ->unique()
+            ->values();
+
+        $attendanceRows = $studentIds->isEmpty() || $effectiveDates->isEmpty()
+            ? collect()
+            : StudentDailyAttendance::query()
+                ->where('school_id', $school->id)
+                ->whereIn('student_id', $studentIds)
+                ->whereIn('attendance_date', $effectiveDates->all())
+                ->get()
+                ->groupBy('student_id');
+
+        $effectiveDayCount = $effectiveDates->count();
+        $summaryRows = $reportClassrooms->map(function ($classroom) use ($attendanceRows, $effectiveDayCount) {
+            $studentRows = $classroom->students
+                ->sortBy(fn ($student) => $student->user?->name)
+                ->values()
+                ->map(function ($student) use ($attendanceRows, $effectiveDayCount) {
+                    $counts = $this->dailyPeriodCounts($attendanceRows->get($student->id, collect()), $effectiveDayCount);
+
+                    return [
+                        'student' => $student,
+                        ...$counts,
+                    ];
+                });
+
+            $counts = $studentRows->reduce(function ($carry, $row) {
+                foreach (['target', 'present', 'sick', 'permit', 'absent', 'unprocessed', 'late', 'explained'] as $key) {
+                    $carry[$key] += $row[$key];
+                }
+
+                return $carry;
+            }, $this->emptyDailyPeriodCounts());
+
+            $counts['student_count'] = $classroom->students->count();
+            $counts['effective_days'] = $effectiveDayCount;
+            $counts['present_percent'] = $this->dailyPeriodPercent($counts['present'], $counts['target']);
+            $counts['sick_percent'] = $this->dailyPeriodPercent($counts['sick'], $counts['target']);
+            $counts['permit_percent'] = $this->dailyPeriodPercent($counts['permit'], $counts['target']);
+            $counts['absent_percent'] = $this->dailyPeriodPercent($counts['absent'], $counts['target']);
+            $counts['explained_percent'] = $this->dailyPeriodPercent($counts['explained'], $counts['target']);
+            $counts['unprocessed_percent'] = $this->dailyPeriodPercent($counts['unprocessed'], $counts['target']);
+
+            return [
+                'classroom' => $classroom,
+                'students' => $studentRows,
+                ...$counts,
+            ];
+        });
+
+        $totals = $summaryRows->reduce(function ($carry, $row) {
+            foreach (['student_count', 'target', 'present', 'sick', 'permit', 'absent', 'unprocessed', 'late', 'explained'] as $key) {
+                $carry[$key] += $row[$key];
+            }
+
+            return $carry;
+        }, $this->emptyDailyPeriodCounts());
+        $totals['effective_days'] = $effectiveDayCount;
+        $totals['present_percent'] = $this->dailyPeriodPercent($totals['present'], $totals['target']);
+        $totals['sick_percent'] = $this->dailyPeriodPercent($totals['sick'], $totals['target']);
+        $totals['permit_percent'] = $this->dailyPeriodPercent($totals['permit'], $totals['target']);
+        $totals['absent_percent'] = $this->dailyPeriodPercent($totals['absent'], $totals['target']);
+        $totals['explained_percent'] = $this->dailyPeriodPercent($totals['explained'], $totals['target']);
+        $totals['unprocessed_percent'] = $this->dailyPeriodPercent($totals['unprocessed'], $totals['target']);
+
+        return [
+            'classrooms' => $classrooms,
+            'selected_classroom' => $selectedClassroom,
+            'effective_dates' => $effectiveDates,
+            'summary_rows' => $summaryRows,
+            'totals' => $totals,
+        ];
+    }
+
+    private function dailyPeriodCounts($rows, int $effectiveDayCount): array
+    {
+        $dates = [
+            'present' => [],
+            'sick' => [],
+            'permit' => [],
+            'absent' => [],
+            'late' => [],
+        ];
+
+        foreach ($rows as $row) {
+            $date = $row->attendance_date?->toDateString();
+
+            if (! $date) {
+                continue;
+            }
+
+            if ($row->check_in_at) {
+                $dates['present'][$date] = true;
+
+                if ($row->check_in_status === 'late') {
+                    $dates['late'][$date] = true;
+                }
+
+                continue;
+            }
+
+            if (array_key_exists($row->status, self::DAILY_MANUAL_STATUSES)) {
+                $dates[$row->status][$date] = true;
+            }
+        }
+
+        $counts = $this->emptyDailyPeriodCounts();
+        $counts['target'] = $effectiveDayCount;
+        $counts['present'] = count($dates['present']);
+        $counts['sick'] = count($dates['sick']);
+        $counts['permit'] = count($dates['permit']);
+        $counts['absent'] = count($dates['absent']);
+        $counts['late'] = count($dates['late']);
+        $counts['explained'] = $counts['sick'] + $counts['permit'] + $counts['absent'];
+        $counts['unprocessed'] = max($effectiveDayCount - $counts['present'] - $counts['explained'], 0);
+        $counts['present_percent'] = $this->dailyPeriodPercent($counts['present'], $counts['target']);
+        $counts['sick_percent'] = $this->dailyPeriodPercent($counts['sick'], $counts['target']);
+        $counts['permit_percent'] = $this->dailyPeriodPercent($counts['permit'], $counts['target']);
+        $counts['absent_percent'] = $this->dailyPeriodPercent($counts['absent'], $counts['target']);
+        $counts['explained_percent'] = $this->dailyPeriodPercent($counts['explained'], $counts['target']);
+        $counts['unprocessed_percent'] = $this->dailyPeriodPercent($counts['unprocessed'], $counts['target']);
+
+        return $counts;
+    }
+
+    private function emptyDailyPeriodCounts(): array
+    {
+        return [
+            'student_count' => 0,
+            'effective_days' => 0,
+            'target' => 0,
+            'present' => 0,
+            'sick' => 0,
+            'permit' => 0,
+            'absent' => 0,
+            'unprocessed' => 0,
+            'late' => 0,
+            'explained' => 0,
+            'present_percent' => 0,
+            'sick_percent' => 0,
+            'permit_percent' => 0,
+            'absent_percent' => 0,
+            'explained_percent' => 0,
+            'unprocessed_percent' => 0,
+        ];
+    }
+
+    private function dailyPeriodPercent(int $value, int $target): float
+    {
+        return $target > 0 ? round(($value / $target) * 100, 1) : 0;
     }
 
     private function dailyReportRecordsQuery($school, array $filters, ?Teacher $teacher = null, bool $isTeacher = false)

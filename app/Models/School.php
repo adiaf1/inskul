@@ -22,6 +22,8 @@ class School extends Model
         'address',
         'phone',
         'email',
+        'principal_name',
+        'principal_nip',
         'logo_path',
         'nametag_background_path',
         'status',

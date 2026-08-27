@@ -97,6 +97,14 @@
                         <label class="form-label" for="email">Email Sekolah</label>
                         <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $school->email) }}">
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="principal_name">Nama Kepala Sekolah</label>
+                        <input class="form-control" id="principal_name" name="principal_name" value="{{ old('principal_name', $school->principal_name) }}" placeholder="Nama lengkap kepala sekolah">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="principal_nip">NIP Kepala Sekolah</label>
+                        <input class="form-control" id="principal_nip" name="principal_nip" value="{{ old('principal_nip', $school->principal_nip) }}" placeholder="NIP atau tanda pengenal pegawai">
+                    </div>
                     <div class="col-12">
                         <div class="border rounded p-3">
                             <div class="d-flex align-items-center gap-2 mb-3">

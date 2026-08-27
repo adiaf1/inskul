@@ -414,6 +414,12 @@
                                                 <div data-i18n="Grafik Presensi Harian">Grafik Presensi Harian</div>
                                             </a>
                                         </li>
+                                        <li class="menu-item {{ request()->is('attendances/reports/period*') ? 'active' : '' }}">
+                                            <a href="{{ route('attendances.report.period') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
+                                                <div data-i18n="Rekap Presensi Periode">Rekap Presensi Periode</div>
+                                            </a>
+                                        </li>
                                         @endif
                                         @if($moduleClassAttendance)
                                         <li class="menu-item {{ (request()->is('attendances/daily') || request()->is('attendances/daily/*')) ? 'active' : '' }}">
@@ -838,6 +844,12 @@
                 @if(in_array($effectiveRole, ['school_admin', 'principal'], true) && $moduleDailyAttendance)
                     <a href="{{ route('attendances.daily-dashboard') }}" class="mobile-drawer-link {{ request()->is('attendances/daily-dashboard*') ? 'active' : '' }}">
                         <i class="bx bx-bar-chart-alt-2"></i><span>Grafik Presensi Harian</span>
+                    </a>
+                @endif
+
+                @if($effectiveRole === 'school_admin' && $moduleDailyAttendance)
+                    <a href="{{ route('attendances.report.period') }}" class="mobile-drawer-link {{ request()->is('attendances/reports/period*') ? 'active' : '' }}">
+                        <i class="bx bx-spreadsheet"></i><span>Rekap Presensi Periode</span>
                     </a>
                 @endif
 
