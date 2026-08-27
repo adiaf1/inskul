@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const message = document.getElementById('qrScannerMessage');
     const manualForm = document.getElementById('manualScanForm');
     const manualInput = document.getElementById('manualScanInput');
-    const scanUrl = @json(route('attendances.check.scan'));
+    const scanUrl = @json(route('attendances.check.scan', [], false));
     const csrfToken = @json(csrf_token());
 
     let stream = null;
@@ -397,6 +397,30 @@ document.addEventListener('DOMContentLoaded', function () {
         return ' (' + label + (minutes ? ' ' + minutes + ' menit' : '') + ')';
     };
 
+    const readScanResponse = async (response) => {
+        const contentType = response.headers.get('content-type') || '';
+
+        if (contentType.includes('application/json')) {
+            return await response.json();
+        }
+
+        await response.text();
+
+        if (response.status === 419) {
+            return { message: 'Sesi halaman kedaluwarsa. Muat ulang halaman lalu scan ulang QR.' };
+        }
+
+        if (response.status === 401 || response.redirected || response.url.includes('/login')) {
+            return { message: 'Sesi login tidak aktif. Silakan login ulang lalu buka scanner kembali.' };
+        }
+
+        if (response.status === 403) {
+            return { message: 'Akun ini tidak memiliki akses untuk memproses scan presensi.' };
+        }
+
+        return { message: 'Server mengembalikan respons tidak valid (HTTP ' + response.status + '). Cek log Laravel untuk detail error.' };
+    };
+
     const stopScanner = async () => {
         scanning = false;
 
@@ -446,13 +470,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
                     student_id: value,
                 }),
             });
 
-            const data = await response.json();
+            const data = await readScanResponse(response);
 
             if (!response.ok) {
                 vibrate([120, 80, 120]);
@@ -467,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showMessage(['complete', 'duplicate_check_in'].includes(data.action) ? 'warning' : 'success', data.message || 'Presensi berhasil diproses.');
         } catch (error) {
             vibrate([120, 80, 120]);
-            showMessage('danger', 'Kamera berhasil membaca QR, tetapi data gagal dikirim ke server.');
+            showMessage('danger', 'Kamera berhasil membaca QR, tetapi request gagal dikirim. ' + (error.message || 'Cek koneksi dan domain aplikasi.'));
         } finally {
             posting = false;
         }
