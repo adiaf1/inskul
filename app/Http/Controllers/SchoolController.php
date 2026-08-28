@@ -114,6 +114,7 @@ class SchoolController extends Controller
                 'regex:/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/',
                 Rule::unique('school_domains', 'domain')->ignore($school->primaryDomain?->id),
             ],
+            'pwa_shortcut_enabled' => ['nullable', 'boolean'],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', 'exists:modules,code'],
         ]);
@@ -132,6 +133,10 @@ class SchoolController extends Controller
         } else {
             $school->primaryDomain()->delete();
         }
+
+        $school->update([
+            'pwa_shortcut_enabled' => $request->boolean('pwa_shortcut_enabled'),
+        ]);
 
         foreach ($modules as $module) {
             $enabled = $enabledCodes->contains($module->code);

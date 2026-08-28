@@ -110,7 +110,9 @@ class DashboardController extends Controller
                 'activeSemester'
             ));
         } elseif ($role === 'principal') {
-            return view('dashboard.principal');
+            $school = EffectiveAccess::school(request());
+
+            return view('dashboard.principal', compact('school'));
         } elseif ($role === 'teacher') {
             $school = EffectiveAccess::school(request());
             $effectiveUser = EffectiveAccess::user(request());
@@ -262,7 +264,9 @@ class DashboardController extends Controller
                 'attendanceSummary'
             ));
         } elseif ($role === 'parent') {
-            return view('dashboard.parent');
+            $school = EffectiveAccess::school(request());
+
+            return view('dashboard.parent', compact('school'));
         }
 
         abort(403, 'Unauthorized');

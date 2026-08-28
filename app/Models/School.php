@@ -30,6 +30,7 @@ class School extends Model
         'approved_at',
         'approved_by',
         'onboarding_completed_at',
+        'pwa_shortcut_enabled',
         'daily_check_in_time',
         'daily_late_tolerance_minutes',
         'daily_check_out_time',
@@ -49,6 +50,7 @@ class School extends Model
     protected $casts = [
         'approved_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
+        'pwa_shortcut_enabled' => 'boolean',
         'daily_late_tolerance_minutes' => 'integer',
         'daily_early_leave_tolerance_minutes' => 'integer',
         'daily_min_checkout_minutes' => 'integer',

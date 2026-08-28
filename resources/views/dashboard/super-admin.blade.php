@@ -24,6 +24,7 @@
             <p class="text-muted mb-0">Pantau sekolah, pengguna, dan pengajuan aktivasi dari satu halaman.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            @include('dashboard.partials.pwa-install-button')
             <a href="{{ route('schools.index', ['status' => 'pending']) }}" class="btn btn-warning">
                 <i class="bx bx-bell me-1"></i> Approval Sekolah
                 @if($summary['schools_pending'] > 0)

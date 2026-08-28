@@ -14,9 +14,12 @@
     <meta name="theme-color" content="#696cff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Inskul') }}" />
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('assets/img/branding/logo.png') }}?v=inskul-20260630" />
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/branding/logo.png') }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -954,6 +957,7 @@
 
     <!-- Page JS -->
     <script src="{{ asset('assets/js/dashboards-analytics.js') }}"></script>
+    <script src="{{ asset('assets/js/pwa-install.js') }}?v=20260828"></script>
 
 
     <!-- Vendors JS -->

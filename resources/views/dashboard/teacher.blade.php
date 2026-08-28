@@ -16,6 +16,7 @@
             </p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            @include('dashboard.partials.pwa-install-button')
             <a href="{{ route('teacher-schedules.index') }}" class="btn btn-label-primary">
                 <i class="bx bx-calendar-event me-1"></i> Jadwal Saya
             </a>

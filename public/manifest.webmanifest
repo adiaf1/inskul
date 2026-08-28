@@ -1,0 +1,25 @@
+{
+  "name": "Inskul",
+  "short_name": "Inskul",
+  "description": "Sistem sekolah Inskul",
+  "start_url": "/login",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#696cff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/img/branding/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/img/branding/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

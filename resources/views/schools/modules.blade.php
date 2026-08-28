@@ -46,6 +46,27 @@
                     <div class="form-text">Isi nama subdomain saja. Contoh production: sdn01jayamakmur.adiaf.my.id.</div>
                 </div>
 
+                <div class="border rounded p-3 mb-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div class="d-flex align-items-start gap-2">
+                            <span class="avatar avatar-sm rounded bg-label-success">
+                                <i class="bx bx-download"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-1">Shortcut HP</h6>
+                                <div class="text-muted small">Aktifkan tombol Pasang di HP di dashboard pengguna sekolah ini.</div>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input type="hidden" name="pwa_shortcut_enabled" value="0">
+                            <input class="form-check-input" type="checkbox" id="pwa_shortcut_enabled" name="pwa_shortcut_enabled" value="1" @checked(old('pwa_shortcut_enabled', $school->pwa_shortcut_enabled))>
+                            <label class="form-check-label" for="pwa_shortcut_enabled">
+                                {{ old('pwa_shortcut_enabled', $school->pwa_shortcut_enabled) ? 'Aktif' : 'Nonaktif' }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row g-4">
                     @foreach($modules as $module)
                         @php

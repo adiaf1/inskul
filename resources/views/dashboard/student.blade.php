@@ -21,6 +21,7 @@
             <p class="text-muted mb-0">Selamat datang, {{ Auth::user()->name }}. Pantau jadwal dan kehadiranmu di sini.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            @include('dashboard.partials.pwa-install-button')
             <a href="{{ route('student-schedules.index') }}" class="btn btn-primary">
                 <i class="bx bx-calendar-event me-1"></i> Jadwal
             </a>

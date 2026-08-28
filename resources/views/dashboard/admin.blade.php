@@ -36,7 +36,12 @@
         });
     </script>
 @endif
-    <h4 class="py-4 mb-6">Dashboard</h4>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4 mb-2">
+        <h4 class="mb-0">Dashboard</h4>
+        <div class="d-flex flex-wrap gap-2">
+            @include('dashboard.partials.pwa-install-button')
+        </div>
+    </div>
     <div class="card">
         <div class="card-header">
             Dashboard

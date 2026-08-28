@@ -30,6 +30,7 @@
             <p class="text-muted mb-0">Selamat datang, {{ Auth::user()->name }}. Kelola operasional sekolah dari satu tempat.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            @include('dashboard.partials.pwa-install-button')
             <a href="{{ route('school-profile.edit') }}" class="btn btn-label-primary">
                 <i class="bx bx-building-house me-1"></i> Profil Sekolah
             </a>
