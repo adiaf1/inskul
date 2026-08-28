@@ -159,21 +159,21 @@
                                         @csrf
                                         @method('PUT')
                                         <div class="mb-6">
-                                            <label for="name" class="form-label">Nama</label>
-                                            <input type="text" class="form-control" id="name" name="name" value="{{ $user->name }}" required>
+                                            <label for="name_{{ $user->id }}" class="form-label">Nama</label>
+                                            <input type="text" class="form-control" id="name_{{ $user->id }}" name="name" value="{{ $user->name }}" required>
                                         </div>
                                         <div class="mb-6">
-                                            <label for="username" class="form-label">Username</label>
-                                            <input type="text" class="form-control" id="username" name="username" value="{{ $user->username }}" required>
+                                            <label for="username_{{ $user->id }}" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="username_{{ $user->id }}" name="username" value="{{ $user->username }}" required>
                                             <div class="form-text">Huruf, angka, titik, strip, dan underscore. Tanpa spasi.</div>
                                         </div>
                                         <div class="mb-6">
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email" name="email" value="{{ $user->email }}" required>
+                                            <label for="email_{{ $user->id }}" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email_{{ $user->id }}" name="email" value="{{ $user->email }}" required>
                                         </div>
                                         <div class="mb-6">
-                                            <label for="roles" class="form-label">Role</label>
-                                            <select class="form-control" id="roles" name="roles[]" required>
+                                            <label for="roles_{{ $user->id }}" class="form-label">Role</label>
+                                            <select class="form-control" id="roles_{{ $user->id }}" name="roles[]" required>
                                                 @foreach(\Spatie\Permission\Models\Role::all() as $role)
                                                     <option value="{{ $role->name }}" 
                                                         {{ in_array($role->name, $user->roles->pluck('name')->toArray()) ? 'selected' : '' }}>

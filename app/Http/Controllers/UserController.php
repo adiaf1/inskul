@@ -7,6 +7,7 @@ use App\Models\School;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rule;
 use App\Models\Role;
 
 class UserController extends Controller
@@ -70,14 +71,20 @@ class UserController extends Controller
             'username' => User::normalizeUsername((string) $request->input('username')),
         ]);
 
+        if (User::where('username', $request->input('username'))->exists()) {
+            return redirect()->route('users.index')
+                ->withErrors(['username' => 'Username sudah ada'])
+                ->withInput();
+        }
+
         $validated = $request->validate([
             'name' => 'required',
-            'username' => ['required', 'string', 'max:40', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,username'],
-            'email' => 'required|email|unique:users',
+            'username' => ['required', 'string', 'max:40', 'regex:/^[a-zA-Z0-9._-]+$/', Rule::unique('users', 'username')],
+            'email' => ['required', 'email', Rule::unique('users', 'email')],
             'password' => 'required|min:6',
             'role' => 'required|exists:roles,name',
         ], [
-            'username.unique' => 'Username sudah digunakan. Silakan gunakan username lain.',
+            'username.unique' => 'Username sudah ada',
             'username.regex' => 'Username hanya boleh berisi huruf, angka, titik, strip, dan underscore.',
         ]);
 
@@ -119,15 +126,21 @@ class UserController extends Controller
             'username' => User::normalizeUsername((string) $request->input('username')),
         ]);
 
+        if (User::where('username', $request->input('username'))->whereKeyNot($user->id)->exists()) {
+            return redirect()->route('users.index')
+                ->withErrors(['username' => 'Username sudah ada'])
+                ->withInput();
+        }
+
         // Validasi input
         $validator = \Validator::make($request->all(), [
             'name' => 'required|string|max:255', // Validasi nama pengguna
-            'username' => ['required', 'string', 'max:40', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,username,' . $user->id],
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id, // Validasi email
+            'username' => ['required', 'string', 'max:40', 'regex:/^[a-zA-Z0-9._-]+$/', Rule::unique('users', 'username')->ignore($user->id)],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)], // Validasi email
             'roles' => 'required|array',
             'roles.*' => 'exists:roles,name', // Memastikan setiap role ada dalam tabel roles
         ], [
-            'username.unique' => 'Username sudah digunakan. Silakan gunakan username lain.',
+            'username.unique' => 'Username sudah ada',
             'username.regex' => 'Username hanya boleh berisi huruf, angka, titik, strip, dan underscore.',
         ]);
         
