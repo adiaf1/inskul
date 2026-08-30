@@ -46,6 +46,12 @@ class StudentController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
         $entryYear = $request->input('entry_year');
+        $perPage = (int) $request->input('per_page', 10);
+        $perPageOptions = [10, 25, 50, 100];
+
+        if (! in_array($perPage, $perPageOptions, true)) {
+            $perPage = 10;
+        }
 
         $entryYears = $school->students()
             ->whereNotNull('entry_year')
@@ -70,10 +76,10 @@ class StudentController extends Controller
             ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
             ->when($entryYear !== null && $entryYear !== '', fn ($query) => $query->where('entry_year', $entryYear))
             ->latest()
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('students.index', compact('school', 'students', 'status', 'entryYear', 'entryYears'));
+        return view('students.index', compact('school', 'students', 'status', 'entryYear', 'entryYears', 'perPage', 'perPageOptions'));
     }
 
     public function export(Request $request)

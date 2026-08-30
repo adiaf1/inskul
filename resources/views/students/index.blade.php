@@ -25,7 +25,7 @@
             <a href="{{ route('students.export', request()->only(['search', 'status', 'entry_year'])) }}" class="btn btn-label-success">
                 <i class="bx bx-spreadsheet me-1"></i> Export Data
             </a>
-            <button type="button" class="btn btn-label-info" id="printSelectedNametags" data-print-selected-url="{{ route('students.nametags', request()->only(['search', 'status', 'entry_year'])) }}" disabled>
+            <button type="button" class="btn btn-label-info" id="printSelectedNametags" data-print-selected-url="{{ route('students.nametags', request()->only(['search', 'status', 'entry_year', 'per_page'])) }}" disabled>
                 <i class="bx bx-printer me-1"></i> Cetak Nametag
                 <span class="badge bg-info ms-1" id="selectedNametagCount">0</span>
             </button>
@@ -54,6 +54,11 @@
                         <option value="">Semua Angkatan</option>
                         @foreach($entryYears as $year)
                             <option value="{{ $year }}" @selected((string) $entryYear === (string) $year)>Angkatan {{ $year }}</option>
+                        @endforeach
+                    </select>
+                    <select name="per_page" class="form-select" onchange="this.form.submit()" aria-label="Jumlah baris data">
+                        @foreach($perPageOptions as $option)
+                            <option value="{{ $option }}" @selected($perPage === $option)>{{ $option }} baris</option>
                         @endforeach
                     </select>
                     <div class="input-group">
