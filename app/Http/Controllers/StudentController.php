@@ -374,10 +374,15 @@ class StudentController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
         $entryYear = $request->input('entry_year');
+        $selectedStudentIds = collect((array) $request->input('student_ids', []))
+            ->filter()
+            ->unique()
+            ->values();
 
         $students = $school->students()
             ->with('user')
-            ->when($search, function ($query, $search) {
+            ->when($selectedStudentIds->isNotEmpty(), fn ($query) => $query->whereIn('students.id', $selectedStudentIds))
+            ->when($selectedStudentIds->isEmpty() && $search, function ($query, $search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('nis', 'like', "%{$search}%")
                         ->orWhere('nisn', 'like', "%{$search}%")
@@ -387,8 +392,8 @@ class StudentController extends Controller
                         });
                 });
             })
-            ->when($status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
-            ->when($entryYear !== null && $entryYear !== '', fn ($query) => $query->where('entry_year', $entryYear))
+            ->when($selectedStudentIds->isEmpty() && $status !== null && $status !== '', fn ($query) => $query->where('is_active', $status === 'active'))
+            ->when($selectedStudentIds->isEmpty() && $entryYear !== null && $entryYear !== '', fn ($query) => $query->where('entry_year', $entryYear))
             ->join('users', 'students.user_id', '=', 'users.id')
             ->orderBy('users.name')
             ->select('students.*')

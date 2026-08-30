@@ -25,9 +25,10 @@
             <a href="{{ route('students.export', request()->only(['search', 'status', 'entry_year'])) }}" class="btn btn-label-success">
                 <i class="bx bx-spreadsheet me-1"></i> Export Data
             </a>
-            <a href="{{ route('students.nametags', request()->only(['search', 'status', 'entry_year'])) }}" class="btn btn-label-info" target="_blank">
+            <button type="button" class="btn btn-label-info" id="printSelectedNametags" data-print-selected-url="{{ route('students.nametags', request()->only(['search', 'status', 'entry_year'])) }}" disabled>
                 <i class="bx bx-printer me-1"></i> Cetak Nametag
-            </a>
+                <span class="badge bg-info ms-1" id="selectedNametagCount">0</span>
+            </button>
             <a href="{{ route('students.import-template') }}" class="btn btn-label-primary">
                 <i class="bx bx-download me-1"></i> Download Format
             </a>
@@ -66,6 +67,9 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th style="width: 42px;">
+                                <input class="form-check-input" type="checkbox" id="selectAllNametags" title="Pilih semua murid di halaman ini" aria-label="Pilih semua murid di halaman ini">
+                            </th>
                             <th>Nama</th>
                             <th>Tanggal Lahir</th>
                             <th>Tahun Angkatan</th>
@@ -77,6 +81,9 @@
                     <tbody>
                         @forelse($students as $student)
                             <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox" value="{{ $student->id }}" data-student-nametag-checkbox aria-label="Pilih {{ $student->user?->name }} untuk cetak nametag">
+                                </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar">
@@ -215,7 +222,7 @@
                             </div>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Belum ada data murid.</td>
+                                <td colspan="7" class="text-center py-5 text-muted">Belum ada data murid.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -348,5 +355,65 @@ function confirmDeactivateStudent(id) {
         }
     });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const selectAll = document.getElementById('selectAllNametags');
+    const printButton = document.getElementById('printSelectedNametags');
+    const selectedCount = document.getElementById('selectedNametagCount');
+    const checkboxes = Array.from(document.querySelectorAll('[data-student-nametag-checkbox]'));
+
+    const selectedIds = () => checkboxes
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value);
+
+    const syncSelectionState = () => {
+        const ids = selectedIds();
+
+        if (selectedCount) {
+            selectedCount.textContent = ids.length;
+        }
+
+        if (printButton) {
+            printButton.disabled = ids.length === 0;
+        }
+
+        if (selectAll) {
+            selectAll.checked = checkboxes.length > 0 && ids.length === checkboxes.length;
+            selectAll.indeterminate = ids.length > 0 && ids.length < checkboxes.length;
+        }
+    };
+
+    selectAll?.addEventListener('change', function () {
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = selectAll.checked;
+        });
+
+        syncSelectionState();
+    });
+
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', syncSelectionState);
+    });
+
+    printButton?.addEventListener('click', function () {
+        const ids = selectedIds();
+
+        if (ids.length === 0) {
+            Swal.fire({
+                title: 'Pilih murid dulu',
+                text: 'Ceklis murid yang nametag-nya ingin dicetak.',
+                icon: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        const url = new URL(printButton.dataset.printSelectedUrl, window.location.origin);
+        ids.forEach((id) => url.searchParams.append('student_ids[]', id));
+        window.open(url.toString(), '_blank');
+    });
+
+    syncSelectionState();
+});
 </script>
 @endsection
