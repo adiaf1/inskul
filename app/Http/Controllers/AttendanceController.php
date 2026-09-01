@@ -57,10 +57,12 @@ class AttendanceController extends Controller
             abort(403);
         }
 
+        $today = now()->toDateString();
+
         $todayAttendances = StudentDailyAttendance::query()
             ->with(['student.user', 'checkInBy', 'checkOutBy'])
             ->where('school_id', $school->id)
-            ->whereDate('attendance_date', now()->toDateString())
+            ->whereDate('attendance_date', $today)
             ->latest('updated_at')
             ->limit(20)
             ->get();
@@ -68,6 +70,7 @@ class AttendanceController extends Controller
             ->with(['user', 'classrooms' => fn ($query) => $query->wherePivot('status', 'active')->where('classrooms.is_active', true)])
             ->where('school_id', $school->id)
             ->where('is_active', true)
+            ->whereDoesntHave('dailyAttendances', fn ($query) => $query->whereDate('attendance_date', $today))
             ->join('users', 'students.user_id', '=', 'users.id')
             ->orderBy('users.name')
             ->select('students.*')

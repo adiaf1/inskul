@@ -504,6 +504,31 @@ document.addEventListener('DOMContentLoaded', function () {
         return ' (' + label + (minutes ? ' ' + minutes + ' menit' : '') + ')';
     };
 
+    const removeStudentFromManualAbsenceOptions = (studentId) => {
+        if (!manualAbsenceStudent || !studentId) {
+            return;
+        }
+
+        const option = Array.from(manualAbsenceStudent.options)
+            .find((item) => item.value === String(studentId));
+
+        if (!option) {
+            return;
+        }
+
+        if (manualAbsenceStudent.value === String(studentId)) {
+            manualAbsenceStudent.value = '';
+        }
+
+        option.remove();
+
+        manualAbsenceStudent.dispatchEvent(new Event('change', { bubbles: true }));
+
+        if (window.jQuery) {
+            window.jQuery(manualAbsenceStudent).trigger('change');
+        }
+    };
+
     const readScanResponse = async (response) => {
         const contentType = response.headers.get('content-type') || '';
 
@@ -596,6 +621,7 @@ document.addEventListener('DOMContentLoaded', function () {
             await playSuccessSound();
             updateLastScan(data);
             prependTodayAttendance(data);
+            removeStudentFromManualAbsenceOptions(data.student?.id);
             showMessage(['complete', 'duplicate_check_in'].includes(data.action) ? 'warning' : 'success', data.message || 'Presensi berhasil diproses.');
         } catch (error) {
             vibrate([120, 80, 120]);
@@ -642,8 +668,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             updateLastScan(data);
             prependTodayAttendance(data);
+            removeStudentFromManualAbsenceOptions(data.student?.id);
             showMessage('success', data.message || 'Status tidak hadir berhasil disimpan.');
             manualAbsenceForm?.reset();
+            manualAbsenceStudent?.dispatchEvent(new Event('change', { bubbles: true }));
+
+            if (window.jQuery && manualAbsenceStudent) {
+                window.jQuery(manualAbsenceStudent).trigger('change');
+            }
         } catch (error) {
             showMessage('danger', 'Status tidak hadir gagal dikirim. ' + (error.message || 'Cek koneksi dan domain aplikasi.'));
         }
