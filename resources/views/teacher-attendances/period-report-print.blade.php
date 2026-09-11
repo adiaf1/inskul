@@ -210,7 +210,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th class="left">Guru</th>
+                        <th class="left">Nama</th>
+                        <th class="left">NIP/NUPTK</th>
                         <th>Hari Efektif</th>
                         <th>Hadir</th>
                         <th>Terlambat</th>
@@ -223,10 +224,8 @@
                 <tbody>
                     @forelse($summaryRows as $row)
                         <tr>
-                            <td class="left">
-                                {{ $row['teacher']->user?->name ?? '-' }}
-                                <div class="muted">{{ $row['teacher']->nip ?? '-' }}</div>
-                            </td>
+                            <td class="left">{{ $row['teacher']->user?->name ?? '-' }}</td>
+                            <td class="left">{{ $row['teacher']->nip ?? $row['teacher']->nuptk ?? '-' }}</td>
                             <td>{{ $row['expected_days'] }}</td>
                             <td>{{ $row['hadir'] }}</td>
                             <td>{{ $row['terlambat'] }}</td>
@@ -237,11 +236,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">Tidak ada data presensi guru sesuai rentang tanggal.</td>
+                            <td colspan="9">Tidak ada data presensi guru sesuai rentang tanggal.</td>
                         </tr>
                     @endforelse
                     <tr>
                         <th class="left">Total</th>
+                        <th class="left">-</th>
                         <th>{{ $totals['teacher_count'] }}</th>
                         <th>{{ $totals['hadir'] }}</th>
                         <th>{{ $totals['terlambat'] }}</th>
