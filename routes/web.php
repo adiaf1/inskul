@@ -112,6 +112,8 @@ Route::middleware(['auth', 'active.user'])->group(function () {
 
         Route::middleware(['effective.role:school_admin,principal', 'module:teacher_attendance'])->group(function () {
             Route::get('/teacher-attendances/report', [TeacherAttendanceController::class, 'report'])->name('teacher-attendances.report');
+            Route::get('/teacher-attendances/report/period', [TeacherAttendanceController::class, 'periodReport'])->name('teacher-attendances.report.period');
+            Route::get('/teacher-attendances/report/period/print', [TeacherAttendanceController::class, 'printPeriodReport'])->name('teacher-attendances.report.period.print');
         });
 
         Route::middleware(['effective.role:school_admin,principal,teacher,parent', 'module:daily_attendance'])->group(function () {

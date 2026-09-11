@@ -158,6 +158,142 @@ class TeacherAttendanceController extends Controller
         return view('teacher-attendances.report', compact('school', 'teachers', 'records', 'date', 'teacherId'));
     }
 
+    public function periodReport(Request $request): View|RedirectResponse
+    {
+        $school = EffectiveAccess::school($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $dateFrom = CarbonImmutable::parse($request->input('date_from', now()->subDays(30)->toDateString()))->toDateString();
+        $dateTo = CarbonImmutable::parse($request->input('date_to', now()->toDateString()))->toDateString();
+        $teacherId = $request->input('teacher_id');
+
+        $teachers = $school->teachers()->with('user')->where('is_active', true)->get()->sortBy('user.name');
+        $records = TeacherDailyAttendance::query()
+            ->with('teacher.user')
+            ->where('school_id', $school->id)
+            ->whereBetween('attendance_date', [$dateFrom, $dateTo])
+            ->when($teacherId, fn ($query) => $query->where('teacher_id', $teacherId))
+            ->orderBy('attendance_date')
+            ->get();
+
+        $dateRange = collect();
+        $cursor = CarbonImmutable::parse($dateFrom);
+        $end = CarbonImmutable::parse($dateTo);
+
+        while ($cursor->lte($end)) {
+            $dateRange->push($cursor->copy());
+            $cursor = $cursor->addDay();
+        }
+
+        $summaryRows = $teachers->map(function ($teacher) use ($records, $dateRange) {
+            $teacherRecords = $records->where('teacher_id', $teacher->id);
+            $attendanceDays = $teacherRecords->count();
+
+            return [
+                'teacher' => $teacher,
+                'attendance_days' => $attendanceDays,
+                'expected_days' => $dateRange->count(),
+                'hadir' => $teacherRecords->where('check_in_status', 'hadir')->count(),
+                'terlambat' => $teacherRecords->where('check_in_status', 'terlambat')->count(),
+                'pulang' => $teacherRecords->where('check_out_status', 'pulang')->count(),
+                'pulang_cepat' => $teacherRecords->where('check_out_status', 'pulang_cepat')->count(),
+                'di_luar_area' => $teacherRecords->where('check_in_status', 'di_luar_area')->count() + $teacherRecords->where('check_out_status', 'di_luar_area')->count(),
+                'belum_absen' => max($dateRange->count() - $attendanceDays, 0),
+            ];
+        })->values();
+
+        $totals = [
+            'teacher_count' => $teachers->count(),
+            'attendance_days' => $summaryRows->sum('attendance_days'),
+            'hadir' => $summaryRows->sum('hadir'),
+            'terlambat' => $summaryRows->sum('terlambat'),
+            'pulang' => $summaryRows->sum('pulang'),
+            'pulang_cepat' => $summaryRows->sum('pulang_cepat'),
+            'di_luar_area' => $summaryRows->sum('di_luar_area'),
+            'belum_absen' => $summaryRows->sum('belum_absen'),
+        ];
+
+        return view('teacher-attendances.period-report', compact(
+            'school',
+            'teachers',
+            'summaryRows',
+            'totals',
+            'dateFrom',
+            'dateTo',
+            'teacherId'
+        ));
+    }
+
+    public function printPeriodReport(Request $request): View|RedirectResponse
+    {
+        $school = EffectiveAccess::school($request);
+
+        if (! $school) {
+            return redirect()->route('dashboard')->withErrors('Akun Anda belum terhubung ke sekolah aktif.');
+        }
+
+        $dateFrom = CarbonImmutable::parse($request->input('date_from', now()->subDays(30)->toDateString()))->toDateString();
+        $dateTo = CarbonImmutable::parse($request->input('date_to', now()->toDateString()))->toDateString();
+        $teacherId = $request->input('teacher_id');
+
+        $teachers = $school->teachers()->with('user')->where('is_active', true)->get()->sortBy('user.name');
+        $records = TeacherDailyAttendance::query()
+            ->with('teacher.user')
+            ->where('school_id', $school->id)
+            ->whereBetween('attendance_date', [$dateFrom, $dateTo])
+            ->when($teacherId, fn ($query) => $query->where('teacher_id', $teacherId))
+            ->orderBy('attendance_date')
+            ->get();
+
+        $cursor = CarbonImmutable::parse($dateFrom);
+        $end = CarbonImmutable::parse($dateTo);
+        $dateRange = collect();
+
+        while ($cursor->lte($end)) {
+            $dateRange->push($cursor->copy());
+            $cursor = $cursor->addDay();
+        }
+
+        $summaryRows = $teachers->map(function ($teacher) use ($records, $dateRange) {
+            $teacherRecords = $records->where('teacher_id', $teacher->id);
+            $attendanceDays = $teacherRecords->count();
+
+            return [
+                'teacher' => $teacher,
+                'attendance_days' => $attendanceDays,
+                'expected_days' => $dateRange->count(),
+                'hadir' => $teacherRecords->where('check_in_status', 'hadir')->count(),
+                'terlambat' => $teacherRecords->where('check_in_status', 'terlambat')->count(),
+                'pulang' => $teacherRecords->where('check_out_status', 'pulang')->count(),
+                'pulang_cepat' => $teacherRecords->where('check_out_status', 'pulang_cepat')->count(),
+                'di_luar_area' => $teacherRecords->where('check_in_status', 'di_luar_area')->count() + $teacherRecords->where('check_out_status', 'di_luar_area')->count(),
+                'belum_absen' => max($dateRange->count() - $attendanceDays, 0),
+            ];
+        })->values();
+
+        $totals = [
+            'teacher_count' => $teachers->count(),
+            'attendance_days' => $summaryRows->sum('attendance_days'),
+            'hadir' => $summaryRows->sum('hadir'),
+            'terlambat' => $summaryRows->sum('terlambat'),
+            'pulang' => $summaryRows->sum('pulang'),
+            'pulang_cepat' => $summaryRows->sum('pulang_cepat'),
+            'di_luar_area' => $summaryRows->sum('di_luar_area'),
+            'belum_absen' => $summaryRows->sum('belum_absen'),
+        ];
+
+        return view('teacher-attendances.period-report-print', compact(
+            'school',
+            'summaryRows',
+            'totals',
+            'dateFrom',
+            'dateTo'
+        ));
+    }
+
     private function statusFor($school, string $type, $time, ?int $distance, ?int $accuracy): string
     {
         if (! $school->teacher_attendance_latitude || ! $school->teacher_attendance_longitude) {

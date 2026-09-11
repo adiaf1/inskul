@@ -406,7 +406,7 @@
                                         <li class="menu-item {{ request()->is('attendances/check*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.check') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-qr-scan"></i>
-                                                <div data-i18n="Presensi Harian">Presensi Harian</div>
+                                                <div data-i18n="Presensi Harian Siswa">Presensi Harian Siswa</div>
                                             </a>
                                         </li>
                                         @endif
@@ -414,13 +414,13 @@
                                         <li class="menu-item {{ request()->is('attendances/daily-dashboard*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.daily-dashboard') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
-                                                <div data-i18n="Grafik Presensi Harian">Grafik Presensi Harian</div>
+                                                <div data-i18n="Grafik Presensi Harian Siswa">Grafik Presensi Harian Siswa</div>
                                             </a>
                                         </li>
                                         <li class="menu-item {{ request()->is('attendances/reports/period*') ? 'active' : '' }}">
                                             <a href="{{ route('attendances.report.period') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
-                                                <div data-i18n="Rekap Presensi Periode">Rekap Presensi Periode</div>
+                                                <div data-i18n="Rekap Presensi Periode Siswa">Rekap Presensi Periode Siswa</div>
                                             </a>
                                         </li>
                                         @endif
@@ -448,11 +448,17 @@
                                             </a>
                                         </li>
                                         @endif
-                                        @if($effectiveRole === 'school_admin' && $moduleTeacherAttendance)
-                                        <li class="menu-item {{ request()->is('teacher-attendances/report*') ? 'active' : '' }}">
+                                        @if(in_array($effectiveRole, ['school_admin', 'principal'], true) && $moduleTeacherAttendance)
+                                        <li class="menu-item {{ request()->is('teacher-attendances/report') ? 'active' : '' }}">
                                             <a href="{{ route('teacher-attendances.report') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons bx bx-file"></i>
+                                                <div data-i18n="Data Presensi Guru">Data Presensi Guru</div>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item {{ request()->is('teacher-attendances/report/period*') ? 'active' : '' }}">
+                                            <a href="{{ route('teacher-attendances.report.period') }}" class="menu-link">
                                                 <i class="menu-icon tf-icons bx bx-user-check"></i>
-                                                <div data-i18n="Laporan Presensi Guru">Laporan Presensi Guru</div>
+                                                <div data-i18n="Rekap Presensi Guru Periode">Rekap Presensi Guru Periode</div>
                                             </a>
                                         </li>
                                         @endif
@@ -490,15 +496,6 @@
                                     <a href="{{ route('attendances.daily-dashboard') }}" class="menu-link">
                                         <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
                                         <div data-i18n="Grafik Presensi">Grafik Presensi</div>
-                                    </a>
-                                </li>
-                                @endif
-
-                                @if($effectiveRole === 'principal' && $moduleTeacherAttendance)
-                                <li class="menu-item {{ request()->is('teacher-attendances/report*') ? 'active' : '' }}">
-                                    <a href="{{ route('teacher-attendances.report') }}" class="menu-link">
-                                        <i class="menu-icon tf-icons bx bx-user-check"></i>
-                                        <div data-i18n="Presensi Guru">Presensi Guru</div>
                                     </a>
                                 </li>
                                 @endif
@@ -839,8 +836,8 @@
                 @endif
 
                 @if(in_array($effectiveRole, ['school_admin', 'principal'], true) && $moduleTeacherAttendance)
-                    <a href="{{ route('teacher-attendances.report') }}" class="mobile-drawer-link {{ request()->is('teacher-attendances/report*') ? 'active' : '' }}">
-                        <i class="bx bx-user-check"></i><span>Laporan Presensi Guru</span>
+                    <a href="{{ route('teacher-attendances.report.period') }}" class="mobile-drawer-link {{ request()->is('teacher-attendances/report*') || request()->is('teacher-attendances/report/period*') ? 'active' : '' }}">
+                        <i class="bx bx-user-check"></i><span>Rekap Presensi Guru Periode</span>
                     </a>
                 @endif
 
