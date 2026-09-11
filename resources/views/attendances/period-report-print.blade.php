@@ -142,13 +142,16 @@
 
         .signature-row {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 22px;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 18px;
+            margin-top: 28px;
             break-inside: avoid;
         }
 
         .signature-box {
-            width: 240px;
+            width: 45%;
+            max-width: 280px;
             text-align: center;
         }
 
@@ -181,6 +184,10 @@
 <body>
     @php
         $periodLabel = \Illuminate\Support\Carbon::parse($filters['date_from'])->format('d M Y').' - '.\Illuminate\Support\Carbon::parse($filters['date_to'])->format('d M Y');
+        $waliKelasName = $selectedClassroom?->homeroomTeacher?->user?->name
+            ?? ($summaryRows[0]['classroom']->homeroomTeacher?->user?->name ?? '................................');
+        $waliKelasNip = $selectedClassroom?->homeroomTeacher?->nip
+            ?? ($summaryRows[0]['classroom']->homeroomTeacher?->nip ?? '................................');
     @endphp
 
     <div class="toolbar">
@@ -307,6 +314,14 @@
             @endforeach
 
             <div class="signature-row">
+                <div class="signature-box">
+                    <div>{{ now()->format('d M Y') }}</div>
+                    <div>Wali Kelas</div>
+                    <div class="signature-space"></div>
+                    <div class="signature-name">{{ $waliKelasName }}</div>
+                    <div>NIP. {{ $waliKelasNip }}</div>
+                </div>
+
                 <div class="signature-box">
                     <div>{{ now()->format('d M Y') }}</div>
                     <div>Kepala Sekolah</div>
