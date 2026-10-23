@@ -187,9 +187,9 @@ class PdoSessionHandler extends AbstractSessionHandler
     /**
      * Adds the Table to the Schema if it doesn't exist.
      *
-     * @return Schema The (possibly new) schema with the table added
+     * @param-immediately-invoked-callable $isSameDatabase
      */
-    public function configureSchema(Schema $schema, ?\Closure $isSameDatabase = null)
+    public function configureSchema(Schema $schema, ?\Closure $isSameDatabase = null): Schema
     {
         if ($schema->hasTable($this->table) || ($isSameDatabase && !$isSameDatabase($this->getConnection()->exec(...)))) {
             return $schema;
@@ -296,12 +296,7 @@ class PdoSessionHandler extends AbstractSessionHandler
                 throw new \DomainException(\sprintf('Creating the session table is currently not implemented for PDO driver "%s".', $this->driver));
         }
 
-        if (class_exists(PrimaryKeyConstraint::class)) {
-            $table->addPrimaryKeyConstraint(new PrimaryKeyConstraint(null, [new UnqualifiedName(Identifier::unquoted($this->idCol))], true));
-        } else {
-            $table->setPrimaryKey([$this->idCol]);
-        }
-
+        $table->addPrimaryKeyConstraint(new PrimaryKeyConstraint(null, [new UnqualifiedName(Identifier::unquoted($this->idCol))], true));
         $table->addIndex([$this->lifetimeCol], $this->lifetimeCol.'_idx');
     }
 
@@ -366,7 +361,7 @@ class PdoSessionHandler extends AbstractSessionHandler
         return parent::open($savePath, $sessionName);
     }
 
-    public function read(#[\SensitiveParameter] string $sessionId): string
+    public function read(#[\SensitiveParameter] string $sessionId): string|false
     {
         try {
             return parent::read($sessionId);
